@@ -2722,6 +2722,7 @@ var Board = (function () {
     }
     return GRADE_RULES[GRADE_RULES.length - 1].grade;
   }
+  var GRADE_LOWER = { S: 'A', A: 'B', B: 'C', C: 'C' };
   // Gemini 판정이 있을 때의 등급 (서버 gradeOf_ 와 같은 규칙). think: 사고 항목 2개의 참/거짓 수
   // S 필수 4개+사고 1개 이상 / A 필수 4개, 또는 필수 3개+사고 1개 이상, 또는 필수 2개+사고 2개 / B 필수 2개 이상 / C
   function getGradeThink(req, think) {
@@ -2760,7 +2761,7 @@ var Board = (function () {
     if (r.required.length !== REQUIRED_KEYWORDS.length || r.bonus.length !== BONUS_KEYWORDS.length) return null;
     var pick = function (list) { return function (d, i) { return { label: d.label, hit: list[i] === true }; }; };
     var think = Array.isArray(r.think) && r.think.length === 2 && r.think.every(function (v) { return typeof v === 'boolean'; }) ? r.think.filter(Boolean).length : null;   // 사고 항목이 없으면 예전 등급 규칙
-    return { required: REQUIRED_KEYWORDS.map(pick(r.required)), bonus: BONUS_KEYWORDS.map(pick(r.bonus)), think: think, source: 'server' };
+    return { required: REQUIRED_KEYWORDS.map(pick(r.required)), bonus: BONUS_KEYWORDS.map(pick(r.bonus)), think: think, fact: r.fact === true, source: 'server' };
   }
   function serverAdvice(r) {   // 서버(Gemini)가 쓴 조언 (토리의 조언으로 보여 줌). 형식이 맞을 때만, 아니면 ''
     if (!r || r.code !== 'OK_SUCCESS' || typeof r.advice !== 'string') return '';
@@ -3123,6 +3124,7 @@ var Board = (function () {
       var advice = kwr.source === 'server' ? serverAdvice(srv) : '';   // 조언은 서버 판정이 쓰일 때만
       var reqN = kwr.required.filter(function (r) { return r.hit; }).length;
       var grade = typeof kwr.think === 'number' ? getGradeThink(reqN, kwr.think) : getGrade({ required: kwr.required, bonus: kwr.bonus });   // Gemini가 안 되면 원래 기준
+      if (kwr.fact) grade = GRADE_LOWER[grade] || grade;   // 서버(Gemini)가 역사적 오류를 찾았으면 한 등급 낮춤 (C 는 유지)
       showGrade(grade);
       var hits = kwr.required.filter(function (r) { return r.hit; });
       var c2 = el('div', 'board-rcell'), h2 = el('h3', 'board-kwhead'), hl = el('span', 'board-kwleft', '키워드 ' + kwr.required.length + '개 중 ' + hits.length + '개 포함');
