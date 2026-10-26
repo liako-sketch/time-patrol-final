@@ -2656,7 +2656,7 @@ var Board = (function () {
     return def.terms.some(function (t) { return n.indexOf(normAnswer(t)) >= 0; });
   }
   // ----- 등급: 성공 후 평가 항목일 뿐 (성공 여부는 위치 채점만). 기준은 GRADE_RULES 한 곳, 위에서부터 처음 맞는 등급 -----
-  var BONUS_MIN_FOR_S = 1;   // S 에 필요한 추가(+) 키워드 수
+  var BONUS_MIN_FOR_S = 2;   // S 에 필요한 추가(+) 키워드 수 (Gemini 판정이 없을 때의 기준. Gemini 채점과 균형을 맞추려고 2개)
   var GRADE_RULES = [   // all: 필수 키워드를 모두 / minRequired: 필수 최소 개수 / minBonus: 추가 최소 개수
     { grade: 'S', all: true, minBonus: BONUS_MIN_FOR_S },
     { grade: 'A', all: true, minBonus: 0 },
