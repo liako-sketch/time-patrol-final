@@ -983,6 +983,30 @@ function viewSize() {
   return { w: w, h: h };
 }
 var TORI_CODENAME = '';   // 입력한 코드네임 (화면이 떠 있는 동안 메모리에만 보관. 브라우저에는 저장하지 않음. 최종 제출 때 기록 서버(스프레드시트)로만 전송하고 Gemini에는 보내지 않음)
+// ===== 기록 서버 (2차용): 서버 주소는 공개 주소라 숨길 비밀이 아님. 코드네임 중복 확인(인트로)과 최종 제출(타임라인)이 함께 씀 =====
+var RECORD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxs-nTH464MDMxTx4iZei87JkVNHRGpUnWWtC_Bu-7hsmzzuvUGVOCnFtlQ9hMRLh9z/exec';
+var CLIENT_ID = (function () {   // 이 접속에서만 쓰는 무작위 식별값 (어디에도 저장하지 않음)
+  var abc = 'abcdefghijklmnopqrstuvwxyz0123456789', out = '';
+  try { var u = new Uint8Array(16); window.crypto.getRandomValues(u); for (var i = 0; i < u.length; i++) out += abc.charAt(u[i] % 36); } catch (_) { out = 'anon' + Math.floor(Math.random() * 1e9); }
+  return out;
+})();
+function checkCodename(name) {   // 코드네임이 이미 시트에 있는지 서버에 물음. 결과: 'free' | 'taken' | 'busy'(잠시 뒤 다시) | 'unknown'(서버에 못 닿음 → 막지 않음). 코드네임만 보냄
+  return new Promise(function (resolve) {
+    if (!/^https:\/\/script\.google\.com\//.test(RECORD_ENDPOINT)) return resolve('unknown');
+    if (!/^[가-힣A-Za-z0-9 ]{1,10}$/.test(name)) return resolve('unknown');
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
+    try {
+      fetch(RECORD_ENDPOINT, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'check', clientId: CLIENT_ID, nickname: name }),
+        credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        resolve(j && j.code === 'OK_TAKEN' ? 'taken' : (j && j.code === 'OK_FREE' ? 'free' : (j && j.code === 'E_RATE' ? 'busy' : 'unknown')));
+      }, function () { resolve('unknown'); }).then(function () { clearTimeout(timer); });   // 오류는 쓰지 않고 남기지도 않음
+    } catch (_) { clearTimeout(timer); resolve('unknown'); }
+  });
+}
 // ===== 본 활동 토리 대사 (나중에 여기만 고치면 됨) =====
 var BOARD_LINES = {
   // 안내 대사: 두 줄. <y>..</y> 노랑 강조, <r>..</r> 붉은 강조 (글자는 그대로, 색만)
@@ -1887,9 +1911,9 @@ var Intro = (function () {
     return false;
   }
 
-  var nameBtn = $('intro-nameBtn');
+  var nameBtn = $('intro-nameBtn'), checking = false;
   function submitName() {
-    if (typing || input.disabled) return;
+    if (typing || input.disabled || checking) return;
     var v = input.value.trim();
     if (!v) { err.textContent = '코드네임을 입력해 주세요.'; input.focus({ preventScroll: true }); return; }
     if (looksPersonal(v)) {
@@ -1899,6 +1923,23 @@ var Intro = (function () {
       popPanel();   // 다시 입력할 때도 같은 연출 한 번
       return;
     }
+    checking = true; nameBtn.disabled = true; input.disabled = true;   // 서버에 이미 쓰인 이름인지 묻는 동안 잠금
+    checkCodename(v).then(function (st) {
+      checking = false;
+      if (!active) return;
+      nameBtn.disabled = false; input.disabled = false;
+      if (st === 'taken') {   // 이미 시트에 있는 코드네임: 개인정보 거절과 같은 붉은 안내 줄
+        SFX.play('reject');
+        err.textContent = '이미 사용 중인 코드네임이에요. 다른 코드네임으로 다시 입력해 주세요.';
+        input.value = '';
+        popPanel();
+        return;
+      }
+      if (st === 'busy') { err.textContent = '잠시 뒤에 다시 눌러 주세요.'; input.focus({ preventScroll: true }); return; }
+      acceptName(v);   // 'free' 이거나 서버에 닿지 못한 경우('unknown')는 막지 않음
+    });
+  }
+  function acceptName(v) {
     codename = v; TORI_CODENAME = v;
     input.value = '';
     err.textContent = '';
@@ -2461,7 +2502,7 @@ var Board = (function () {
   // ===== 오류 확인: 경고창 → 서술형 시퀀스 (쓴 글은 최종 제출 때 기록 서버로 가고, 화면에는 성공 팝업 동안만 남음) =====
   var AUDIT_MIN = 10;   // 제출 가능한 최소 글자 수 (최대 300자는 textarea maxlength)
   // 안내 문구(한 곳에서 관리). 2번째 줄은 서버 연결과 답안 저장이 모두 켜졌을 때만, 아니면 대체 문구를 보여 줌
-  var AUDIT_ENDPOINT = true, AUDIT_SAVE_ANSWERS = true;   // 2차용: 기록 서버(아래 RECORD_ENDPOINT)로 보내고 저장하므로 켬. 끄면 '저장·전송 안 함' 안내로 바뀜. 안내 문구는 실제 전송과 같게 유지: 시트=코드네임·배치·답안 / Gemini=(틀리면) 카드 배치, (처음 맞히면) 답안
+  var AUDIT_ENDPOINT = true, AUDIT_SAVE_ANSWERS = true;   // 2차용: 기록 서버(RECORD_ENDPOINT)로 보내고 저장하므로 켬. 끄면 '저장·전송 안 함' 안내로 바뀜. 안내 문구는 실제 전송과 같게 유지: 시트=코드네임·배치·답안 / Gemini=(틀리면) 카드 배치, (처음 맞히면) 답안
   var AUDIT_NOTE_1 = '이름, 연락처 같은 개인정보는 쓰지 마세요.';
   var AUDIT_NOTE_2_ON = '작성한 내용은 스프레드시트에 저장돼요. 또한 채점을 위해 작성한 내용과 카드 배치가 Google의 AI(Gemini)에게 전송돼요.';
   var AUDIT_NOTE_2_OFF = '쓴 내용은 이 화면에서만 쓰이고 저장되거나 전송되지 않아요.';
@@ -2633,12 +2674,7 @@ var Board = (function () {
   }
   // ===== 최종 제출 전송 (2차용): 코드네임·타임라인 배치·서술형 답안을 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳 =====
   // 서버가 결과(성공/실패)를 정하고, 실패면 구체적인 힌트를, 성공이면 답안의 키워드 판정을 돌려줌. 응답이 없거나 형식이 다르면 아래 기존 고정 힌트·로컬 키워드 판정을 씀. 오류·응답 원문은 화면·콘솔에 남기지 않음
-  var RECORD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxs-nTH464MDMxTx4iZei87JkVNHRGpUnWWtC_Bu-7hsmzzuvUGVOCnFtlQ9hMRLh9z/exec';
-  var CLIENT_ID = (function () {   // 이 접속에서만 쓰는 무작위 식별값 (어디에도 저장하지 않음)
-    var abc = 'abcdefghijklmnopqrstuvwxyz0123456789', out = '';
-    try { var u = new Uint8Array(16); window.crypto.getRandomValues(u); for (var i = 0; i < u.length; i++) out += abc.charAt(u[i] % 36); } catch (_) { out = 'anon' + Math.floor(Math.random() * 1e9); }
-    return out;
-  })();
+  // (기록 서버 주소 RECORD_ENDPOINT 와 접속 식별값 CLIENT_ID 는 위쪽 전역으로 옮김: 코드네임 중복 확인(인트로)과 최종 제출이 함께 씀)
   var SUBMIT_TIMEOUT_MS = 14000;   // 분석 대기 최대 시간(MAX_WAIT_MS)보다 조금 짧게
   function placementOf() {   // 칸 2~5와 오류 칸(칸 인덱스 1..ERR)에 놓인 카드의 번호(CARD_DATA 순서). 비어 있으면 -1
     var arr = [], i, c;
