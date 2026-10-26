@@ -2628,23 +2628,24 @@ var Board = (function () {
     }
     return GRADE_RULES[GRADE_RULES.length - 1].grade;
   }
-  // ===== 기록 전송 (2차용): 코드네임·등급만 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳. 답안·점수·개인정보는 보내지 않음. 실패해도 학생 화면에는 아무 표시·기록이 없음 =====
+  // ===== 기록 전송 (2차용): 코드네임·결과(성공/실패)·등급만 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳. 답안·점수·개인정보는 보내지 않음. 실패해도 학생 화면에는 아무 표시·기록이 없음 =====
   var RECORD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxs-nTH464MDMxTx4iZei87JkVNHRGpUnWWtC_Bu-7hsmzzuvUGVOCnFtlQ9hMRLh9z/exec';
   var CLIENT_ID = (function () {   // 이 접속에서만 쓰는 무작위 식별값 (어디에도 저장하지 않음)
     var abc = 'abcdefghijklmnopqrstuvwxyz0123456789', out = '';
     try { var u = new Uint8Array(16); window.crypto.getRandomValues(u); for (var i = 0; i < u.length; i++) out += abc.charAt(u[i] % 36); } catch (_) { out = 'anon' + Math.floor(Math.random() * 1e9); }
     return out;
   })();
-  function sendRecord(grade) {
+  function sendRecord(result, grade) {   // result: 'success' | 'fail' (실패는 등급 없음)
     if (!/^https:\/\/script\.google\.com\//.test(RECORD_ENDPOINT)) return;   // 주소가 비었거나 https 가 아니면 보내지 않음
     var nick = String(TORI_CODENAME || '').trim();
-    if (!/^[가-힣A-Za-z0-9 ]{1,10}$/.test(nick) || 'SABC'.indexOf(grade) < 0) return;   // 서버 규칙과 같음 (맞지 않으면 보내지 않음)
+    if (!/^[가-힣A-Za-z0-9 ]{1,10}$/.test(nick)) return;   // 서버 규칙과 같음 (맞지 않으면 보내지 않음)
+    if (result === 'success') { if ('SABC'.indexOf(grade) < 0 || grade.length !== 1) return; } else if (result === 'fail') grade = ''; else return;
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 5000);
     try {
       fetch(RECORD_ENDPOINT, {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'record', clientId: CLIENT_ID, nickname: nick, grade: grade }),
+        body: JSON.stringify({ action: 'record', clientId: CLIENT_ID, nickname: nick, result: result, grade: grade }),
         credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined
       }).then(function () {}, function () {}).then(function () { clearTimeout(timer); });   // 응답·오류는 쓰지 않고 남기지도 않음
     } catch (_) { clearTimeout(timer); }
@@ -2940,7 +2941,7 @@ var Board = (function () {
     try { document.activeElement.blur(); } catch (_) {}
   }
   function showFail(g) {
-   
+    sendRecord('fail', '');   // 실패도 코드네임만 기록 서버로 (시도 번호는 서버가 셈)
     hintCount++;
     var list = [], i, c;
     for (i = 1; i <= ERR; i++) { c = occupant(i); if (c) { c.where = 'hand'; list.push(c); } }
@@ -2990,7 +2991,7 @@ var Board = (function () {
       body.appendChild(row);
       var kwr = evaluateKeywords(lastAnswer);   // 판정은 이 함수 한 곳 (화면 안에서만, 저장·출력 안 함)
       var grade = getGrade({ required: kwr.required, bonus: kwr.bonus });
-      showGrade(grade); sendRecord(grade);   // 코드네임·등급만 기록 서버로 (실패해도 화면엔 영향 없음)
+      showGrade(grade); sendRecord('success', grade);   // 코드네임·등급만 기록 서버로 (실패해도 화면엔 영향 없음)
       var hits = kwr.required.filter(function (r) { return r.hit; });
       var c2 = el('div', 'board-rcell'), h2 = el('h3', 'board-kwhead'), hl = el('span', 'board-kwleft', '키워드 ' + kwr.required.length + '개 중 ' + hits.length + '개 포함');
       hl.appendChild(el('small', 'board-kwlimit', KW_LIMIT_NOTE));   // 제목 바로 오른쪽 (좁으면 이 문구만 아래로)
