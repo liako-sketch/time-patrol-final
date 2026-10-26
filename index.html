@@ -2672,8 +2672,16 @@ var Board = (function () {
     }
     return GRADE_RULES[GRADE_RULES.length - 1].grade;
   }
+  // Gemini 판정이 있을 때의 등급 (서버 gradeOf_ 와 같은 규칙). think: 사고 항목 2개의 참/거짓 수
+  // S 필수 4개+사고 1개 이상 / A 필수 4개, 또는 필수 3개+사고 1개 이상, 또는 필수 2개+사고 2개 / B 필수 2개 이상 / C
+  function getGradeThink(req, think) {
+    var all = req === REQUIRED_KEYWORDS.length;
+    if (all && think >= 1) return 'S';
+    if (all || (req >= 3 && think >= 1) || (req >= 2 && think >= 2)) return 'A';
+    return req >= 2 ? 'B' : 'C';
+  }
   // ===== 최종 제출 전송 (2차용): 코드네임·타임라인 배치·서술형 답안을 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳 =====
-  // 서버가 결과(성공/실패)를 정하고, 성공이면 Gemini가 낸 키워드 판정·일치도·조언을 돌려줌(실패는 기록만, 힌트는 고정 문구). 응답이 없거나 형식이 다르면 로컬 키워드 판정을 씀. 오류·응답 원문은 화면·콘솔에 남기지 않음
+  // 서버가 결과(성공/실패)를 정하고, 성공이면 Gemini가 낸 키워드·사고 항목 판정과 조언을 돌려줌(실패는 기록만, 힌트는 고정 문구). 응답이 없거나 형식이 다르면 로컬 키워드 판정을 씀. 오류·응답 원문은 화면·콘솔에 남기지 않음
   // (기록 서버 주소 RECORD_ENDPOINT 와 접속 식별값 CLIENT_ID 는 위쪽 전역으로 옮김: 코드네임 중복 확인(인트로)과 최종 제출이 함께 씀)
   var SUBMIT_TIMEOUT_MS = 45000;   // 분석 대기 최대 시간(MAX_WAIT_MS)보다 조금 짧게 (Gemini 채점 응답이 20~26초 걸린 적이 있어 넉넉히 잡음. 실패는 서버가 Gemini를 부르지 않아 바로 옴)
   function placementOf() {   // 칸 2~5와 오류 칸(칸 인덱스 1..ERR)에 놓인 카드의 번호(CARD_DATA 순서). 비어 있으면 -1
@@ -2701,12 +2709,12 @@ var Board = (function () {
     if (!r || r.code !== 'OK_SUCCESS' || !Array.isArray(r.required) || !Array.isArray(r.bonus)) return null;
     if (r.required.length !== REQUIRED_KEYWORDS.length || r.bonus.length !== BONUS_KEYWORDS.length) return null;
     var pick = function (list) { return function (d, i) { return { label: d.label, hit: list[i] === true }; }; };
-    return { required: REQUIRED_KEYWORDS.map(pick(r.required)), bonus: BONUS_KEYWORDS.map(pick(r.bonus)), source: 'server' };
+    var think = Array.isArray(r.think) && r.think.length === 2 && r.think.every(function (v) { return typeof v === 'boolean'; }) ? r.think.filter(Boolean).length : null;   // 사고 항목이 없으면 예전 등급 규칙
+    return { required: REQUIRED_KEYWORDS.map(pick(r.required)), bonus: BONUS_KEYWORDS.map(pick(r.bonus)), think: think, source: 'server' };
   }
-  function serverSimilarity(r) {   // 서버(Gemini)가 돌려준 일치도(0~100)와 조언. 형식이 맞을 때만, 아니면 null
-    if (!r || r.code !== 'OK_SUCCESS' || typeof r.sim !== 'number' || !(r.sim >= 0 && r.sim <= 100)) return null;
-    var adv = typeof r.advice === 'string' ? r.advice.replace(/\s+/g, ' ').trim().slice(0, 200) : '';
-    return { sim: Math.round(r.sim), advice: adv };
+  function serverAdvice(r) {   // 서버(Gemini)가 쓴 조언 (토리의 조언으로 보여 줌). 형식이 맞을 때만, 아니면 ''
+    if (!r || r.code !== 'OK_SUCCESS' || typeof r.advice !== 'string') return '';
+    return r.advice.replace(/\s+/g, ' ').trim().slice(0, 200);
   }
   function showGrade(g) {   // 성공 팝업 제목 줄 오른쪽 끝 배지: 이름(작게) + 알파벳(크게)
     var box = $('board-rgrade'); box.textContent = ''; box.className = 'board-g-' + g;
@@ -3056,8 +3064,9 @@ var Board = (function () {
       body.appendChild(row);
       var srv = lastServer; lastServer = null;
       var kwr = serverKeywordResult(srv) || evaluateKeywords(lastAnswer);   // 서버(Gemini) 판정이 있으면 그것, 없으면 로컬 판정
-      var simInfo = kwr.source === 'server' ? serverSimilarity(srv) : null;   // 일치도는 서버 판정이 쓰일 때만
-      var grade = getGrade({ required: kwr.required, bonus: kwr.bonus });
+      var advice = kwr.source === 'server' ? serverAdvice(srv) : '';   // 조언은 서버 판정이 쓰일 때만
+      var reqN = kwr.required.filter(function (r) { return r.hit; }).length;
+      var grade = typeof kwr.think === 'number' ? getGradeThink(reqN, kwr.think) : getGrade({ required: kwr.required, bonus: kwr.bonus });   // Gemini가 안 되면 원래 기준
       showGrade(grade);
       var hits = kwr.required.filter(function (r) { return r.hit; });
       var c2 = el('div', 'board-rcell'), h2 = el('h3', 'board-kwhead'), hl = el('span', 'board-kwleft', '키워드 ' + kwr.required.length + '개 중 ' + hits.length + '개 포함');
@@ -3078,10 +3087,9 @@ var Board = (function () {
       body.appendChild(c2);
       var still = document.documentElement.classList.contains('calm-mode');   // 움직임 줄이기: 처음부터 켜진 상태
       litChips.forEach(function (c, i) { if (still) c.classList.add('board-lit'); else setTimeout(function () { c.classList.add('board-lit'); }, 150 * (i + 1)); });
-      var c3 = el('div', 'board-rcell'); c3.appendChild(el('h3', '', 'Gemini 일치도'));
-      if (simInfo) {   // 글은 textContent 로만 넣음
-        var t3 = el('div', 'board-rtext'); t3.appendChild(el('p', '', '모범답안과 ' + simInfo.sim + '% 비슷해요'));
-        if (simInfo.advice) t3.appendChild(el('p', '', simInfo.advice));
+      var c3 = el('div', 'board-rcell'); c3.appendChild(el('h3', '', '토리의 조언'));
+      if (advice) {   // 글은 textContent 로만 넣음
+        var t3 = el('div', 'board-rtext'); t3.appendChild(el('p', '', advice));
         c3.appendChild(t3);
       } else c3.appendChild(el('p', 'board-rdim', '이번에는 표시할 수 없어요'));
       body.appendChild(c3);
