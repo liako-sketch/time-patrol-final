@@ -2739,7 +2739,6 @@ var Board = (function () {
   var ANA_SHRINK_TO = 0.55;   // 가속 구간에서 원이 줄어드는 크기(배율). 결과 직전에 확 커졌다가 1배로 돌아옴
   var ANA_ACCEL_MS = 3000;   // 결과 연출 직전 이만큼 전부터 회전이 점점 빨라짐
   var ANA_MOVE_X = -272;     // 팝 뒤 원이 왼쪽으로 옮겨 가는 거리. 옮겨진 원 + 원에서 뻗어난 채팅 전체가 화면 가운데(960)에 오도록 계산한 값
-  var ANA_SHOW_NOTE = !!(AUDIT_ENDPOINT && AUDIT_SAVE_ANSWERS);   // 서버 연결·저장이 켜졌을 때만 개인정보 안내 줄 표시
   function analysisSignal() {   // 서버 응답이 오면(또는 실패하면) 분석 완료. 서버로 보내지 못하는 경우(로컬 확인 등)에는 기존처럼 임시 신호
     if (pendingSubmit) return pendingSubmit.then(function () { return { source: 'server' }; });
     return new Promise(function (res) { setTimeout(function () { res({ source: 'mock' }); }, ANA_MOCK_MS); });
@@ -2788,7 +2787,7 @@ var Board = (function () {
     var tori3 = document.createElement('img'); tori3.id = 'board-ana-tori3'; tori3.alt = ''; tori3.draggable = false; tori3.style.visibility = 'hidden'; disc.appendChild(tori3);   // 검사 중(원이 작아지는 동안) 로딩 그림. 미리 불러 두고 보이기만 함   // 결과 표정(happy/sad)은 미리 불러 둔 이 그림을 겹쳐 두었다가 보이기만 함 (그림 교체 때 깜빡이거나 사라지는 것 방지)
     if (IS_IPHONE) tori.style.animation = tori2.style.animation = tori3.style.animation = 'none';
     var txt = document.createElement('p'); txt.id = 'board-ana-txt'; txt.appendChild(document.createTextNode('분석 중이에요')); var dots = document.createElement('span'); txt.appendChild(dots); anaEl.appendChild(txt);
-    var note = document.createElement('p'); note.id = 'board-ana-note'; note.textContent = '전화번호·이메일처럼 보이는 부분은 가려서 처리해요.'; note.hidden = !ANA_SHOW_NOTE; anaEl.appendChild(note);
+    var note = document.createElement('p'); note.id = 'board-ana-note'; note.hidden = true; anaEl.appendChild(note);   // 분석 중 화면의 설명 줄은 쓰지 않음 (자리만 둠: 아래 코드가 이 요소를 참조)
     var chat = document.createElement('div'); chat.id = 'board-ana-chat'; var ct = document.createElement('span'); ct.textContent = '성공!'; chat.appendChild(ct); move.insertBefore(chat, pop);   // 원과 함께 움직이도록 이동 층 안, 원(pop) 뒤에
     if (IS_IPHONE) anaEl.style.transition = 'none';
     $('board-shaker').appendChild(anaEl);
