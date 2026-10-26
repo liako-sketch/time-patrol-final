@@ -699,7 +699,11 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 #board-rkcontent { flex: 1 1 0; min-width: 0; max-height: 100%; display: flex; flex-direction: column; }
 #board-rkmain { margin: 0; font-family: var(--font-title); font-weight: 600; font-size: 44px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
 #board-rknote { margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
-#board-rklist { margin-top: 16px; min-height: 120px; }
+#board-rkwrap { position: relative; margin-top: 16px; }
+#board-rklist { position: relative; min-height: 120px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#board-rklist::-webkit-scrollbar { display: none; }
+#board-rksb { position: absolute; right: -22px; top: 0; bottom: 0; width: 5px; border-radius: 3px; background: rgba(150, 220, 230, .15); pointer-events: none; display: none; }   /* 타임라인 아래 막대와 같은 색·굵기의 세로 선 */
+#board-rksb i { position: absolute; left: 0; width: 100%; border-radius: 3px; background: rgba(150, 235, 240, .6); }
 .board-rkrow { display: flex; align-items: center; gap: 20px; padding: 10px 18px; margin-top: 8px; border: 1px solid rgba(110, 230, 240, .35); border-radius: 12px; background: rgb(10, 25, 45); }
 .board-rkrow:first-child { margin-top: 0; }
 .board-rkno { flex: none; min-width: 64px; white-space: nowrap; font-family: var(--font-title); font-weight: 600; font-size: 32px; color: #8ff3fa; text-align: center; }
@@ -954,7 +958,7 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
           <div id="board-rkcontent">
             <h2 id="board-rkmain"></h2>
             <p id="board-rknote"></p>
-            <div id="board-rklist"></div>
+            <div id="board-rkwrap"><div id="board-rklist"></div><div id="board-rksb"><i></i></div></div>
             <div id="board-rkme" hidden></div>
             <div id="board-rkbtns"><button id="board-rkclose" class="board-wbtn" type="button">닫기</button></div>
           </div>
@@ -3264,7 +3268,7 @@ var Board = (function () {
   function rkMsg(list, text) { list.textContent = ''; var p = document.createElement('p'); p.className = 'board-rkempty'; p.textContent = text; list.appendChild(p); }
   function rkRow(rankNo, name, grade, self) {   // 순위 줄과 내 순위 줄이 같은 구성(등수·코드네임·등급)이라 한눈에 비교됨. 글은 textContent 로만 넣음
     var row = document.createElement('div'); row.className = 'board-rkrow' + (self ? ' board-rkself' : '');
-    var no = document.createElement('div'); no.className = 'board-rkno'; no.textContent = String(Math.round(rankNo)) + '등'; row.appendChild(no);
+    var no = document.createElement('div'); no.className = 'board-rkno'; no.textContent = String(Math.round(rankNo)) + '위'; row.appendChild(no);
     var nm = document.createElement('div'); nm.className = 'board-rkname'; nm.textContent = name; row.appendChild(nm);
     var gr = document.createElement('div'); gr.className = 'board-rkgrade'; gr.appendChild(document.createTextNode(GRADE_NAMES[grade])); var b = document.createElement('b'); b.textContent = grade; gr.appendChild(b); row.appendChild(gr);
     return row;
@@ -3272,7 +3276,7 @@ var Board = (function () {
   function renderRank(j, mine) {   // 형식이 맞는 줄만 보여 줌. mine: 창을 열 때의 내 코드네임
     var list = $('board-rklist'), me = $('board-rkme'); me.hidden = true; me.textContent = '';
     if (!j || !Array.isArray(j.list)) { rkMsg(list, RK_FAIL); return; }
-    var rows = j.list.filter(function (x) { return x && typeof x.rank === 'number' && typeof x.nickname === 'string' && /^[가-힣A-Za-z0-9 ]{1,10}$/.test(x.nickname) && GRADE_NAMES[x.grade]; }).slice(0, 5);
+    var rows = j.list.filter(function (x) { return x && typeof x.rank === 'number' && typeof x.nickname === 'string' && /^[가-힣A-Za-z0-9 ]{1,10}$/.test(x.nickname) && GRADE_NAMES[x.grade]; }).slice(0, 10);
     if (!rows.length) rkMsg(list, RK_EMPTY);
     else {
       list.textContent = '';
@@ -3285,6 +3289,21 @@ var Board = (function () {
     if (m && typeof m.rank === 'number' && GRADE_NAMES[m.grade]) me.appendChild(rkRow(m.rank, mine, m.grade, true));
     else { var none = document.createElement('div'); none.className = 'board-rkrow board-rkself board-rkmenone'; none.textContent = RK_ME_NONE; me.appendChild(none); }
     alignRank();
+    fitRankList();
+  }
+  function fitRankList() {   // 순위 목록은 5줄 높이까지만 보이고 나머지는 스크롤. 줄 간격은 그대로
+    var list = $('board-rklist'), rows = list.querySelectorAll('.board-rkrow');
+    list.style.maxHeight = '';
+    if (rows.length > 5) list.style.maxHeight = (rows[4].offsetTop + rows[4].offsetHeight - rows[0].offsetTop) + 'px';
+    list.scrollTop = 0;
+    syncRankBar();
+  }
+  function syncRankBar() {   // 오른쪽의 가는 파란 선: 타임라인 아래 스크롤 막대와 같은 모양
+    var list = $('board-rklist'), bar = $('board-rksb'), th = bar.firstChild, over = list.scrollHeight - list.clientHeight;
+    if (over <= 1) { bar.style.display = 'none'; return; }
+    bar.style.display = 'block';
+    var track = bar.clientHeight, h = Math.max(28, Math.round(track * list.clientHeight / list.scrollHeight));
+    th.style.height = h + 'px'; th.style.top = Math.round((track - h) * list.scrollTop / over) + 'px';
   }
   function alignRank() {   // 등수 자리수가 늘면(29등, 100등 …) 모든 줄의 등수 칸을 가장 넓은 것에 맞춰 이름이 오른쪽으로 밀리게 함 (줄바꿈 없이, 이름 위치는 모든 줄이 같음)
     var nos = $('board-rkbox').querySelectorAll('.board-rkno'), w = 64, i;
@@ -3665,7 +3684,8 @@ var Board = (function () {
   bind(rankBtn, 'pointerdown', function (e) { e.stopPropagation(); });
   bind(rankBtn, 'click', function () { rankBtn.blur(); openRk(); });
   bind(rkEl, 'pointerdown', function (e) { e.stopPropagation(); });
-  bind(rkEl, 'wheel', function (e) { e.stopPropagation(); e.preventDefault(); }, { passive: false });
+  bind(rkEl, 'wheel', function (e) { e.stopPropagation(); if (!$('board-rklist').contains(e.target)) e.preventDefault(); }, { passive: false });
+  bind($('board-rklist'), 'scroll', syncRankBar);
   bind(rkEl, 'click', function (e) { if (e.target === rkEl) closeRk(); });
   bind($('board-rkclose'), 'click', closeRk);
   bind(lnkEl, 'pointerdown', function (e) { e.stopPropagation(); });
