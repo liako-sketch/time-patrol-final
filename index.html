@@ -198,9 +198,9 @@ html.calm-mode #intro-orb { transition: none; }
 #board-ana .ana-cssring.r3 { inset: 12px; border: 3px dashed currentColor; opacity: .4; }
 #board-scene.board-dragging .board-piece { animation-play-state: paused; }
 @keyframes ana-reveal { from { opacity: 0; } to { opacity: 1; } }
-html.is-iphone.ana-reveal #board-bg, html.is-iphone.ana-reveal #board-clip, html.is-iphone.ana-reveal #board-comm, html.is-iphone.ana-reveal #board-cards, html.is-iphone.ana-reveal .board-edge, html.is-iphone.ana-reveal #board-sbar, html.is-iphone.ana-reveal #board-srcbtn { animation: ana-reveal .6s ease; }   /* 아이폰: 가려 두었던 뒤 화면이 돌아올 때 한 번에 튀어나오지 않고 서서히 나타남 */
+html.is-iphone.ana-reveal #board-bg, html.is-iphone.ana-reveal #board-clip, html.is-iphone.ana-reveal #board-comm, html.is-iphone.ana-reveal #board-cards, html.is-iphone.ana-reveal .board-edge, html.is-iphone.ana-reveal #board-sbar, html.is-iphone.ana-reveal #board-srcbtn, html.is-iphone.ana-reveal #board-rankbtn { animation: ana-reveal .6s ease; }   /* 아이폰: 가려 두었던 뒤 화면이 돌아올 때 한 번에 튀어나오지 않고 서서히 나타남 */
 html.is-iphone.ana-running .board-piece { visibility: hidden; }   /* 아이폰: 어두운 막 뒤라 거의 안 보이므로 아예 그리지 않음 (자주 실패하면 분석 화면에서 튕기던 문제 대응) */
-html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, html.is-iphone.ana-running #board-comm, html.is-iphone.ana-running #board-cards, html.is-iphone.ana-running .board-edge, html.is-iphone.ana-running #board-confirm, html.is-iphone.ana-running #board-sbar, html.is-iphone.ana-running #board-srcbtn { visibility: hidden; }   /* 아이폰: 분석 화면이 뜬 동안 어두운 막 뒤의 큰 화면 층(배경·타임라인·토리 통신·카드·타임라인 수정하기 버튼)은 그리지 않음 (메모리 절약). 뒤가 어중간하게 비치는 것보다 깔끔함 */
+html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, html.is-iphone.ana-running #board-comm, html.is-iphone.ana-running #board-cards, html.is-iphone.ana-running .board-edge, html.is-iphone.ana-running #board-confirm, html.is-iphone.ana-running #board-sbar, html.is-iphone.ana-running #board-srcbtn, html.is-iphone.ana-running #board-rankbtn { visibility: hidden; }   /* 아이폰: 분석 화면이 뜬 동안 어두운 막 뒤의 큰 화면 층(배경·타임라인·토리 통신·카드·타임라인 수정하기 버튼)은 그리지 않음 (메모리 절약). 뒤가 어중간하게 비치는 것보다 깔끔함 */
 .board-piece { position: absolute; margin: 0; pointer-events: none; user-select: none; -webkit-user-drag: none; will-change: transform;
   animation: board-float var(--dur, 10s) ease-in-out var(--delay, 0s) infinite alternate; }
 @keyframes board-float {   /* 아주 느린 둥둥: 위아래·좌우 소폭 + 아주 작은 회전 (transform 만) */
@@ -637,7 +637,7 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 .board-csrc span { display: block; }
 /* 비교 화면이 열린 동안 뒤 화면(타임라인·카드 글자·토리 말풍선·버튼)은 덮개 너머로 비치지 않게 숨김 */
 #board-scene.board-cmpopen #board-clip, #board-scene.board-cmpopen #board-cards, #board-scene.board-cmpopen #board-comm, #board-scene.board-cmpopen .board-edge,
-#board-scene.board-cmpopen #board-sbar, #board-scene.board-cmpopen #board-confirm, #board-scene.board-cmpopen #board-srcbtn, #board-scene.board-cmpopen #board-detail { visibility: hidden; }
+#board-scene.board-cmpopen #board-sbar, #board-scene.board-cmpopen #board-confirm, #board-scene.board-cmpopen #board-srcbtn, #board-scene.board-cmpopen #board-rankbtn, #board-scene.board-cmpopen #board-detail { visibility: hidden; }
 #board-cmpMid { flex: none; align-self: center; margin: 10px 0; padding: 2px 22px; border-radius: 999px; border: 1px solid rgba(200, 235, 240, .4); font-family: var(--font-title); font-weight: 600; font-size: 24px; color: rgba(200, 235, 240, .85); background: linear-gradient(90deg, rgba(var(--bad-rgb), .35), rgba(var(--ok-rgb), .35)); }
 #board-cmpBtns { flex: none; display: flex; justify-content: center; margin-top: 16px; }
 /* 결과 팝업 색: 실패=붉은(--tori-warn), 성공=녹색(--ok-*). 불투명 */
@@ -667,12 +667,13 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 #board-scene.board-revealing #board-bg { transition: transform .35s cubic-bezier(.22, .61, .36, 1); }
 #board-scene.board-revealing #board-world { transition: transform .35s cubic-bezier(.22, .61, .36, 1); }
 /* 사료 원문 보러가기 버튼 + 팝업 (톺아본 뒤) */
-#board-srcbtn { position: absolute; left: 730px; top: 830px; width: 460px; height: 92px; box-sizing: border-box; margin: 0; padding: 0; cursor: pointer; z-index: 1;
+#board-srcbtn, #board-rankbtn { position: absolute; left: 480px; top: 830px; width: 460px; height: 92px; box-sizing: border-box; margin: 0; padding: 0; cursor: pointer; z-index: 1;
   font-family: var(--font-title); font-weight: 600; font-size: 36px; color: var(--ok-text); letter-spacing: .02em;
   background: rgb(10, 25, 45); border: 2px solid var(--ok-main); border-radius: 20px; box-shadow: 0 0 24px var(--ok-glow);
   opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .3s ease, visibility 0s linear .3s; }
-#board-srcbtn.board-on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .5s ease .5s; }
-#board-srcbtn:hover { background: rgb(18, 42, 72); }
+#board-rankbtn { left: 980px; }   /* 사료 원문 보러가기 버튼 오른쪽에 나란히 (둘이 가운데 정렬) */
+#board-srcbtn.board-on, #board-rankbtn.board-on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .5s ease .5s; }
+#board-srcbtn:hover, #board-rankbtn:hover { background: rgb(18, 42, 72); }
 #board-lnk { position: absolute; inset: 0; z-index: 210; background: rgba(2, 8, 20, .64); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
 #board-lnk.board-open { opacity: 1; visibility: visible; transition: opacity .3s ease; }
 #board-lbox { width: 1500px; max-width: 94%; max-height: 94%; box-sizing: border-box; padding: 40px 56px 40px 36px; display: flex; align-items: center; gap: 36px; }
@@ -690,6 +691,26 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 .board-llink:hover { background: rgb(18, 42, 72); }
 .board-lnone { flex: none; font-family: var(--font-body); font-weight: 400; font-size: 22px; color: rgba(200, 235, 240, .45); }
 #board-lbtns { display: flex; justify-content: flex-start; margin-top: 20px; }
+/* 패트롤 랭킹 창 (사료 원문 팝업과 같은 모양) */
+#board-rk { position: absolute; inset: 0; z-index: 210; background: rgba(2, 8, 20, .64); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
+#board-rk.board-open { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+#board-rkbox { width: 1300px; max-width: 94%; max-height: 94%; box-sizing: border-box; padding: 40px 56px 40px 36px; display: flex; align-items: center; gap: 36px; }
+#board-rkimg { flex: none; width: 300px; height: 300px; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+#board-rkcontent { flex: 1 1 0; min-width: 0; max-height: 100%; display: flex; flex-direction: column; }
+#board-rkmain { margin: 0; font-family: var(--font-title); font-weight: 600; font-size: 44px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
+#board-rknote { margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
+#board-rklist { margin-top: 16px; min-height: 120px; }
+.board-rkrow { display: flex; align-items: center; gap: 20px; padding: 10px 18px; margin-top: 8px; border: 1px solid rgba(110, 230, 240, .35); border-radius: 12px; background: rgb(10, 25, 45); }
+.board-rkrow:first-child { margin-top: 0; }
+.board-rkno { flex: none; width: 64px; font-family: var(--font-title); font-weight: 600; font-size: 32px; color: #8ff3fa; text-align: center; }
+.board-rkname { flex: 1 1 0; min-width: 0; font-family: var(--font-title); font-weight: 600; font-size: 28px; color: #eefcff; overflow-wrap: anywhere; }
+.board-rkgrade { flex: none; font-family: var(--font-title); font-weight: 600; font-size: 24px; color: rgba(200, 235, 240, .85); }
+.board-rkgrade b { margin-left: 10px; font-size: 32px; color: #ffe27a; }
+.board-rkself { border-color: #ffe27a; box-shadow: 0 0 14px rgba(255, 226, 122, .3); }   /* 내 줄 (내 화면에서만 표시) */
+.board-rkempty { margin: 0; font-family: var(--font-body); font-weight: 400; font-size: 24px; color: rgba(200, 235, 240, .7); }
+#board-rkme { margin-top: 16px; padding: 12px 18px; border: 2px solid #ffe27a; border-radius: 12px; background: rgb(10, 25, 45); font-family: var(--font-title); font-weight: 600; font-size: 28px; color: #eefcff; }
+#board-rkme[hidden] { display: none; }
+#board-rkbtns { display: flex; justify-content: flex-start; margin-top: 20px; }
 /* ===== 접근성 버튼 + 설정 팝업 (스케일 무대 밖에 두되, right·bottom 은 스크립트가 무대 안쪽 오른쪽 아래 모서리로 맞춤) ===== */
 #a11y-btn { position: absolute; right: 24px; bottom: 24px; z-index: 40; width: 64px; height: 64px; box-sizing: border-box; margin: 0; padding: 4px 0 0; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
@@ -870,6 +891,7 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
         <div id="board-cards"></div>
         <div id="board-sbar"><i></i></div>
         <button id="board-srcbtn" type="button"></button>
+        <button id="board-rankbtn" type="button"></button>
         <div id="board-detail"><div id="board-dpanel" role="dialog" aria-modal="true" aria-labelledby="board-dtitle">
           <button id="board-dclose" type="button" aria-label="닫기">✕</button>
           <h2 id="board-dtitle"></h2><p id="board-dbody"></p><p id="board-dsrc"></p>
@@ -920,6 +942,16 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
             <p id="board-lnote"></p>
             <div id="board-llist"></div>
             <div id="board-lbtns"><button id="board-lclose" class="board-wbtn" type="button">닫기</button></div>
+          </div>
+        </div></div>
+        <div id="board-rk"><div id="board-rkbox" class="board-glass" role="dialog" aria-modal="true" aria-labelledby="board-rkmain">
+          <img id="board-rkimg" src="images/tori/tori_hint.webp" alt="">
+          <div id="board-rkcontent">
+            <h2 id="board-rkmain"></h2>
+            <p id="board-rknote"></p>
+            <div id="board-rklist"></div>
+            <div id="board-rkme" hidden></div>
+            <div id="board-rkbtns"><button id="board-rkclose" class="board-wbtn" type="button">닫기</button></div>
           </div>
         </div></div>
         <div id="board-warn"><div id="board-wbox" class="board-glass" role="alertdialog" aria-modal="true" aria-labelledby="board-wmain">
@@ -3064,7 +3096,7 @@ var Board = (function () {
     boardSolved = false; lastAnswer = ''; revealed = false; applyReveal(false); if (typeof Comm !== 'undefined') Comm.setSolved(false);
     cards.forEach(function (k) { k.solved = false; k.el.classList.remove('board-okc'); });
     sceneEl.classList.remove('board-solved'); syncTools();
-    closeRes(); closeCmp(); closeLnk();
+    closeRes(); closeCmp(); closeLnk(); closeRk();
   }
   function showSuccess() {
    
@@ -3203,6 +3235,63 @@ var Board = (function () {
     lnkOpen = false; lnkEl.classList.remove('board-open');
     try { document.activeElement.blur(); } catch (_) {}
   }
+  // ===== 패트롤 랭킹 보기 (톺아본 뒤): 서버에서 1~5등과 내 등수·등급을 받아 보여 줌. 보내는 것은 접속 식별값과 내 코드네임뿐 =====
+  var RK_BTN_LABEL = '패트롤 랭킹 보기', RK_TITLE = '패트롤 랭킹', RK_NOTE = '성공한 기록 중 등급이 높은 순이에요. 같은 등급이면 추가 키워드가 많은 순, 그다음 먼저 낸 순이에요.';
+  var RK_LOADING = '불러오는 중이에요...', RK_FAIL = '랭킹을 불러오지 못했어요. 잠시 뒤에 다시 열어 주세요.', RK_EMPTY = '아직 기록이 없어요', RK_ME_NONE = '아직 내 성공 기록이 없어요', RK_TIMEOUT_MS = 15000;
+  var rankBtn = $('board-rankbtn'), rkEl = $('board-rk'), rkOpen = false, rkToken = 0;
+  rankBtn.textContent = RK_BTN_LABEL;
+  function fetchRank() {   // 서버 응답 객체 또는 null (오류 내용은 쓰지도 남기지도 않음)
+    return new Promise(function (resolve) {
+      if (!/^https:\/\/script\.google\.com\//.test(RECORD_ENDPOINT)) return resolve(null);
+      var nick = String(TORI_CODENAME || '').trim();
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, RK_TIMEOUT_MS);
+      try {
+        fetch(RECORD_ENDPOINT, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'rank', clientId: CLIENT_ID, nickname: /^[가-힣A-Za-z0-9 ]{1,10}$/.test(nick) ? nick : '' }),
+          credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined
+        }).then(function (r) { return r.json(); }).then(function (j) { resolve(j && j.ok === true && j.code === 'OK_RANK' ? j : null); }, function () { resolve(null); }).then(function () { clearTimeout(timer); });
+      } catch (_) { clearTimeout(timer); resolve(null); }
+    });
+  }
+  function rkMsg(list, text) { list.textContent = ''; var p = document.createElement('p'); p.className = 'board-rkempty'; p.textContent = text; list.appendChild(p); }
+  function renderRank(j) {   // 글은 모두 textContent 로만 넣음. 형식이 맞는 줄만 보여 줌
+    var list = $('board-rklist'), me = $('board-rkme'); me.hidden = true; me.textContent = '';
+    if (!j || !Array.isArray(j.list)) { rkMsg(list, RK_FAIL); return; }
+    var mine = String(TORI_CODENAME || '').trim();
+    var rows = j.list.filter(function (x) { return x && typeof x.rank === 'number' && typeof x.nickname === 'string' && /^[가-힣A-Za-z0-9 ]{1,10}$/.test(x.nickname) && GRADE_NAMES[x.grade]; }).slice(0, 5);
+    if (!rows.length) rkMsg(list, RK_EMPTY);
+    else {
+      list.textContent = '';
+      rows.forEach(function (x) {
+        var row = document.createElement('div'); row.className = 'board-rkrow' + (x.nickname === mine ? ' board-rkself' : '');
+        var no = document.createElement('div'); no.className = 'board-rkno'; no.textContent = String(Math.round(x.rank)) + '등'; row.appendChild(no);
+        var nm = document.createElement('div'); nm.className = 'board-rkname'; nm.textContent = x.nickname; row.appendChild(nm);
+        var gr = document.createElement('div'); gr.className = 'board-rkgrade'; gr.appendChild(document.createTextNode(GRADE_NAMES[x.grade])); var b = document.createElement('b'); b.textContent = x.grade; gr.appendChild(b); row.appendChild(gr);
+        list.appendChild(row);
+      });
+    }
+    var m = j.me;   // 내 등수·등급: 내 화면의 이 칸에만 보임 (서버가 안 돌려줬어도 상위 목록에 내가 있으면 그 줄로)
+    if (!m) rows.forEach(function (x) { if (x.nickname === mine) m = { rank: x.rank, grade: x.grade }; });
+    me.hidden = false;
+    if (m && typeof m.rank === 'number' && GRADE_NAMES[m.grade]) me.textContent = '내 순위: ' + Math.round(m.rank) + '등 · ' + GRADE_NAMES[m.grade] + ' (' + m.grade + ')';
+    else me.textContent = RK_ME_NONE;
+  }
+  function openRk() {
+    if (rkOpen) return;
+    $('board-rkmain').textContent = RK_TITLE; $('board-rknote').textContent = RK_NOTE;
+    $('board-rkme').hidden = true; rkMsg($('board-rklist'), RK_LOADING);
+    rkOpen = true; rkEl.classList.add('board-open');
+    $('board-rkclose').focus({ preventScroll: true });
+    var tok = ++rkToken;
+    fetchRank().then(function (j) { if (tok === rkToken && rkOpen) renderRank(j); });   // 그 사이 닫았거나 다시 열었으면 버림
+  }
+  function closeRk() {
+    if (!rkOpen) return;
+    rkOpen = false; rkToken++; rkEl.classList.remove('board-open');
+    try { document.activeElement.blur(); } catch (_) {}
+  }
   var normalWorld = null, revealTimer = null, hlTimer = null;
   function revGeom() {   // 6장이 한 줄에 들어가도록 카드 크기를 자동 계산 (칸과 같은 비율)
     var n = slotTotal, w = Math.floor((L.stageW - 2 * L.sidePad - (n - 1) * REVEAL_GAP) / n), h = Math.round(w * L.slotH / L.slotW);
@@ -3267,9 +3356,9 @@ var Board = (function () {
       c.reveal = { title: REAL_SOURCE_TITLE, image: REAL_IMAGE_SRC, text: REAL_SOURCE_TEXT.join(' '), sourceLines: REAL_SOURCE_SRC, toriLit: true, toriNote: REAL_TORI_NOTE };
       paintFace(c, c.reveal);
       layoutReveal();
-      c.el.classList.add('board-hl'); srcBtn.classList.add('board-on');
+      c.el.classList.add('board-hl'); srcBtn.classList.add('board-on'); rankBtn.classList.add('board-on');
       clearTimeout(hlTimer); hlTimer = setTimeout(function () { c.el.classList.add('board-hl-pulse'); }, REVEAL_MS);   // 재배치가 끝난 뒤부터 글로우 호흡
-    } else { srcBtn.classList.remove('board-on'); clearTimeout(hlTimer); c.el.classList.remove('board-hl', 'board-hl-pulse'); c.reveal = null; paintFace(c, c.data); layoutNormal(); }
+    } else { srcBtn.classList.remove('board-on'); rankBtn.classList.remove('board-on'); clearTimeout(hlTimer); c.el.classList.remove('board-hl', 'board-hl-pulse'); c.reveal = null; paintFace(c, c.data); layoutNormal(); }
   }
   function leaveCmp() {   // 톺아보기 화면을 나가면 팝업을 모두 닫고 본 화면(원 사료로 바뀐 고정 타임라인)으로
     if (!cmpOpen) return;
@@ -3550,12 +3639,19 @@ var Board = (function () {
   });
   bind(srcBtn, 'pointerdown', function (e) { e.stopPropagation(); });
   bind(srcBtn, 'click', function () { srcBtn.blur(); openLnk(); });
+  bind(rankBtn, 'pointerdown', function (e) { e.stopPropagation(); });
+  bind(rankBtn, 'click', function () { rankBtn.blur(); openRk(); });
+  bind(rkEl, 'pointerdown', function (e) { e.stopPropagation(); });
+  bind(rkEl, 'wheel', function (e) { e.stopPropagation(); e.preventDefault(); }, { passive: false });
+  bind(rkEl, 'click', function (e) { if (e.target === rkEl) closeRk(); });
+  bind($('board-rkclose'), 'click', closeRk);
   bind(lnkEl, 'pointerdown', function (e) { e.stopPropagation(); });
   bind(lnkEl, 'wheel', function (e) { e.stopPropagation(); if (!$('board-llist').contains(e.target)) e.preventDefault(); }, { passive: false });
   bind(lnkEl, 'click', function (e) { if (e.target === lnkEl) closeLnk(); });
   bind($('board-lclose'), 'click', closeLnk);
   bind(auditBack, 'click', closeAudit);
   bind(document, 'keydown', function (e) {
+    if (rkOpen && (e.key === 'Escape' || e.key === 'Esc')) { e.preventDefault(); e.stopPropagation(); closeRk(); return; }
     if (lnkOpen && (e.key === 'Escape' || e.key === 'Esc')) { e.preventDefault(); e.stopPropagation(); closeLnk(); return; }
     if (cmpOpen && (e.key === 'Escape' || e.key === 'Esc')) { e.preventDefault(); e.stopPropagation(); leaveCmp(); return; }
     if (resOpen && (e.key === 'Escape' || e.key === 'Esc')) { e.preventDefault(); e.stopPropagation(); if (resMode !== 'ok') closeRes(); return; }   // 성공 팝업은 Esc 로 닫히지 않음
