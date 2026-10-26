@@ -3247,7 +3247,7 @@ var Board = (function () {
     try { document.activeElement.blur(); } catch (_) {}
   }
   // ===== 패트롤 랭킹 보기 (톺아본 뒤): 서버에서 1~5등과 내 등수·등급을 받아 보여 줌. 보내는 것은 접속 식별값과 내 코드네임뿐 =====
-  var RK_BTN_LABEL = '패트롤 랭킹 보기', RK_TITLE = '패트롤 랭킹', RK_NOTE = '성공한 기록 중 등급이 높은 순이에요. 같은 등급이면 추가 키워드가 많은 순, 그다음 먼저 낸 순이에요.';
+  var RK_BTN_LABEL = '패트롤 랭킹 보기', RK_TITLE = '패트롤 랭킹', RK_NOTE = '성공한 기록 중 등급이 높은 순이에요. 같은 등급이면 추가 키워드가 많은 순, 그다음 문장의 짜임새가 좋은 순, 그래도 같으면 먼저 낸 순이에요.';
   var RK_LOADING = '불러오는 중이에요...', RK_FAIL = '랭킹을 불러오지 못했어요. 잠시 뒤에 다시 열어 주세요.', RK_EMPTY = '아직 기록이 없어요', RK_ME_NONE = '아직 내 성공 기록이 없어요', RK_TIMEOUT_MS = 15000;
   var rankBtn = $('board-rankbtn'), rkEl = $('board-rk'), rkOpen = false, rkToken = 0;
   rankBtn.textContent = RK_BTN_LABEL;
