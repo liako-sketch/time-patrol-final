@@ -2675,7 +2675,7 @@ var Board = (function () {
   // ===== 최종 제출 전송 (2차용): 코드네임·타임라인 배치·서술형 답안을 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳 =====
   // 서버가 결과(성공/실패)를 정하고, 성공이면 Gemini가 낸 키워드 판정·일치도·조언을 돌려줌(실패는 기록만, 힌트는 고정 문구). 응답이 없거나 형식이 다르면 로컬 키워드 판정을 씀. 오류·응답 원문은 화면·콘솔에 남기지 않음
   // (기록 서버 주소 RECORD_ENDPOINT 와 접속 식별값 CLIENT_ID 는 위쪽 전역으로 옮김: 코드네임 중복 확인(인트로)과 최종 제출이 함께 씀)
-  var SUBMIT_TIMEOUT_MS = 28000;   // 분석 대기 최대 시간(MAX_WAIT_MS)보다 조금 짧게 (Gemini 응답이 10~25초 걸리는 때가 있었음)
+  var SUBMIT_TIMEOUT_MS = 45000;   // 분석 대기 최대 시간(MAX_WAIT_MS)보다 조금 짧게 (Gemini 채점 응답이 20~26초 걸린 적이 있어 넉넉히 잡음. 실패는 서버가 Gemini를 부르지 않아 바로 옴)
   function placementOf() {   // 칸 2~5와 오류 칸(칸 인덱스 1..ERR)에 놓인 카드의 번호(CARD_DATA 순서). 비어 있으면 -1
     var arr = [], i, c;
     for (i = 1; i <= ERR; i++) { c = occupant(i); arr.push(c && c.data ? CARD_DATA.indexOf(c.data) : -1); }
@@ -2769,7 +2769,7 @@ var Board = (function () {
 
   // ===== 분석 대기 연출 (최종 제출 → 대기 → 정답이면 정답 연출). 이 연출 자체는 저장하지 않고, 같은 때 시작한 최종 제출 요청(sendSubmit)의 응답을 기다림 =====
   var MIN_WAIT_MS = 6000;    // 응답이 더 빨리 와도 이만큼은 보여 줌
-  var MAX_WAIT_MS = 30000;   // 이만큼 지나면 응답이 없어도 진행 (서버·Gemini 응답이 느린 때를 기다려 줌)
+  var MAX_WAIT_MS = 48000;   // 이만큼 지나면 응답이 없어도 진행 (서버·Gemini 응답이 느린 때를 기다려 줌)
   var ANA_MOCK_MS = 6000;    // 이 시간 뒤 분석 완료 신호
   var ANA_SPIN_BASE = 45, ANA_ACCEL_MULT = 14;   // 기본 회전(도/초)과 완료 가속 때 최대 배율. 호별 상대 속도는 anaBuild 의 spins
   var ANA_SHRINK_TO = 0.55;   // 가속 구간에서 원이 줄어드는 크기(배율). 결과 직전에 확 커졌다가 1배로 돌아옴
