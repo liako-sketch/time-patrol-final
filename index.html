@@ -3074,9 +3074,10 @@ var Board = (function () {
     resOpen = true; resEl.classList.add('board-open');
     if (first) first.focus({ preventScroll: true });
   }
+  var bubbleHint = '';   // 실패 창을 닫은 뒤 토리 말풍선에 올릴 서버 힌트
   function closeRes() {
     if (!resOpen) return;
-    if (resMode === 'fail') anaRelease();   // 실패 결과 창이 사라지면 타임라인이 나타남
+    if (resMode === 'fail') { anaRelease(); if (bubbleHint) { Comm.setHint(bubbleHint); bubbleHint = ''; } }   // 실패 결과 창이 사라지면 타임라인이 나타남
     resOpen = false; resEl.classList.remove('board-open');
     if (resMode === 'ok') {
       lastAnswer = ''; if (boardSolved) Comm.setSolved(true);
@@ -3086,6 +3087,7 @@ var Board = (function () {
   }
   function showFail(g) {
     var srvHint = serverHint(lastServer);   // 3번째 실패부터 서버(Gemini)가 보낸 자세한 힌트. 없으면 아래 고정 문구
+    if (srvHint) bubbleHint = srvHint;   // 실패 창을 닫으면 토리 말풍선에도 계속 보여 줌
     lastServer = null;
     hintCount++;
     var list = [], i, c;
@@ -3118,6 +3120,7 @@ var Board = (function () {
     cards.forEach(function (k) { k.solved = false; k.el.classList.remove('board-okc'); });
     sceneEl.classList.remove('board-solved'); syncTools();
     closeRes(); closeCmp(); closeLnk(); closeRk();
+    bubbleHint = ''; if (typeof Comm !== 'undefined') Comm.setHint('');
   }
   function showSuccess() {
    
@@ -3955,9 +3958,27 @@ var Board = (function () {
         var solved = BOARD_LINES.solved.replace('{이름}님 ', nm ? '<k>' + nm + '</k>님 ' : '');   // 코드네임이 없으면 "{이름}님" 부분을 뺌
         idleTyped = true; say(solved, TORI_POSE.right, 'idle', true, false, true); return;   // 성공 후 고정 타임라인 화면의 토리는 happy
       }
+      if (hintText) { sayHint(); return; }
       var first = !idleTyped; idleTyped = true; say(BOARD_LINES.idle, TORI_POSE.idle, 'idle', true, false, !first);
     }
-    function setSolved(v) { solvedLine = !!v; if (shown && (mode === 'idle' || !v)) sayIdle(); }
+    function setSolved(v) { solvedLine = !!v; if (v) { hintText = ''; hintTyped = false; } if (shown && (mode === 'idle' || !v)) sayIdle(); }
+    // 3번째 실패부터 서버가 보낸 힌트: 실패 창을 닫은 뒤에도 잊지 않게 평소 안내 대사 자리에 계속 보여 줌 (맞추거나 다시 시작하면 사라짐). 문장마다 눌러서 넘김
+    var hintText = '', hintTyped = false;
+    function sayHint() {
+      var lines = splitNote(hintText);
+      if (!lines.length) { hintText = ''; sayGuide(); return; }
+      var first = !hintTyped; hintTyped = true;
+      say(lines[0], TORI_POSE.explain, 'hint', true, false, !first);
+      noteLines = lines; noteIdx = 0; noteOn = true;
+      root.classList.add('board-noting');
+      if (!first && lines.length > 1) showNext(true);   // 이미 본 힌트는 바로 보이고, 넘길 문장이 있으면 ▼
+    }
+    function setHint(t) {
+      var s = String(t || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 700);
+      if (s === hintText) return;
+      hintText = s; hintTyped = false;
+      if (shown && !solvedLine) { clearTimeout(revertTimer); if (s) sayHint(); else sayGuide(); }
+    }
     function sayIdle() { clearTimeout(revertTimer); sayGuide(); }
 
     // 설명 패널이 열린 카드의 토리 해설 (mode 'explain' 이라 패널을 닫으면 cardDown 이 평소 안내로 되돌림)
@@ -3991,14 +4012,14 @@ var Board = (function () {
       ring.classList.remove('board-is-talking', 'board-is-wrong', 'board-is-right', 'board-is-glitch');
       portrait.classList.remove('board-pglitch');
       g1.style.transform = g2.style.transform = ''; glitchOff = 0;
-      endNote(); typingNow = false; idleTyped = false; solvedLine = false;
+      endNote(); typingNow = false; idleTyped = false; solvedLine = false; hintText = ''; hintTyped = false;
       textEl.textContent = ''; setPose(TORI_POSE.idle);
     }
     bubble.addEventListener('pointerdown', function (e) { if (noteOn) e.stopPropagation(); });
     portrait.addEventListener('pointerdown', function (e) { if (noteOn) e.stopPropagation(); });
     bubble.addEventListener('click', function (e) { if (noteOn) { e.stopPropagation(); noteAdvance(); } });
     portrait.addEventListener('click', function (e) { if (noteOn) { e.stopPropagation(); noteAdvance(); } });
-    return { frame: frame, show: show, reset: reset, note: note, noteAdvance: noteAdvance, noteActive: function () { return noteOn; }, splitNote: splitNote, cardDown: cardDown, setSolved: setSolved };
+    return { frame: frame, show: show, reset: reset, note: note, noteAdvance: noteAdvance, noteActive: function () { return noteOn; }, splitNote: splitNote, cardDown: cardDown, setSolved: setSolved, setHint: setHint };
   })();
 
   // '사료카드 재배치'와 접근성 버튼 상태: 타임라인을 고치는 중(처음, 실패 뒤 다시 고칠 때)에만 재배치 가능
