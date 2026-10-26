@@ -2775,7 +2775,7 @@ var Board = (function () {
   }
   function serverHint(r) {   // 배치 실패 힌트 (글은 textContent 로만 넣음). 형식이 맞을 때만, 아니면 ''
     if (!r || r.code !== 'OK_FAIL' || typeof r.hint !== 'string') return '';
-    return r.hint.replace(/\s+/g, ' ').trim().slice(0, 400);
+    return r.hint.replace(/\s+/g, ' ').trim().slice(0, 600);
   }
   function serverAdvice(r) {   // 서버(Gemini)가 쓴 조언 (토리의 조언으로 보여 줌). 형식이 맞을 때만, 아니면 ''
     if (!r || r.code !== 'OK_SUCCESS' || typeof r.advice !== 'string') return '';
