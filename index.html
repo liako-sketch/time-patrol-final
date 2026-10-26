@@ -577,11 +577,11 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
 @keyframes board-gbreath { 0%, 100% { box-shadow: 0 0 22px var(--hl-glow), inset 0 0 12px var(--hl-glow); } 50% { box-shadow: 0 0 42px var(--hl-glow), inset 0 0 22px var(--hl-glow); } }
 html.calm-mode #board-rgrade, html.calm-mode .board-g-S .board-gletter { animation: none; }   /* 움직임 줄이기(앱 안 설정)에 연결. OS 설정과는 무관 */
 #board-rmain { margin: 0; font-family: var(--font-title); font-weight: 600; font-size: 48px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
-#board-rbody { margin-top: 22px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; font-family: var(--font-body); font-weight: 400; font-size: 26px; line-height: 1.5; color: rgba(200, 235, 240, .9); word-break: keep-all; }
+#board-rbody { margin-top: 20px; padding: 2px 16px 0; margin-left: -16px; margin-right: -16px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; font-family: var(--font-body); font-weight: 400; font-size: 26px; line-height: 1.5; color: rgba(200, 235, 240, .9); word-break: keep-all; }
 #board-rbody p { margin: 0; }
-.board-rhint { padding: 18px 22px; border: 1px solid rgba(110, 230, 240, .45); border-radius: 12px; background: rgba(10, 25, 45, .6); font-size: 26px; }
+.board-rhint { padding: 18px 22px; border: var(--bw, 1px) solid rgba(110, 230, 240, .45); border-radius: 12px; background: rgba(10, 25, 45, .6); font-size: 26px; }
 .board-rlead { font-size: 28px; color: #eefcff; }
-.board-rcell { margin-top: 14px; padding: 14px 20px; border: 1px solid rgba(110, 230, 240, .35); border-radius: 12px; background: rgba(10, 25, 45, .6); }
+.board-rcell { margin-top: 14px; padding: 14px 20px; border: var(--bw, 1px) solid rgba(110, 230, 240, .35); border-radius: 12px; background: rgba(10, 25, 45, .6); }
 .board-rcell h3 { margin: 0 0 6px; font-family: var(--font-title); font-weight: 600; font-size: 26px; color: #8ff3fa; }
 .board-rcell h3 small { margin-left: 10px; font-family: var(--font-body); font-weight: 400; font-size: 20px; color: rgba(200, 235, 240, .6); }
 .board-rcell p + p { margin-top: 4px; }
@@ -2138,6 +2138,7 @@ var Board = (function () {
     scale = Math.min(V.w / L.stageW, V.h / L.stageH);
     offX = (V.w - L.stageW * scale) / 2; offY = (V.h - L.stageH * scale) / 2;
     stage.style.transform = 'translate(' + offX + 'px,' + offY + 'px) scale(' + scale + ')';
+    stage.style.setProperty('--bw', Math.min(3, Math.max(1, 1.1 / scale)).toFixed(2) + 'px');   // 화면을 줄여 맞출 때(아이폰) 1px 선이 0.4px 로 줄어 끊겨 보이므로, 화면에서 항상 1.1px 이상이 되게 선 굵기를 키움
     var fs = $('board-auditFrame').style;   // 서술 화면 가장자리 틈 가림 틀: 무대 경계에서 2px 바깥
     fs.left = (offX - 2) + 'px'; fs.top = (offY - 2) + 'px'; fs.width = (L.stageW * scale + 4) + 'px'; fs.height = (L.stageH * scale + 4) + 'px';
     $('board-stage').appendChild($('board-tools'));   // 재배치 버튼도 전체화면·접근성 버튼처럼 무대 안으로(무대와 같은 비율). 팝업이 뜨면 팝업 아래로 가려짐
@@ -4056,7 +4057,8 @@ var Flow = (function () {
   var keep = [];
   var preload = Promise.all([
     'images/back/back_2' + BACK_SUF + '.webp',
-  ].concat(PIECES.map(function (p) { return 'images/piece_clean/piece_' + p.n + '.webp'; })).concat(Object.keys(TORI_POSES).map(function (k) { return 'images/tori/tori_' + TORI_POSES[k] + '.webp'; })).map(function (u) {
+  ].concat(['1', '2', '3', '4', '5', 'E'].map(function (n) { return 'images/card/card_' + n + '.webp'; }))   // 카드 그림도 미리 디코딩: 본 활동에 들어가자마자 첫 카드를 놓을 때 이미지가 늦게 뜨며 버벅이는 것을 줄임
+  .concat(PIECES.map(function (p) { return 'images/piece_clean/piece_' + p.n + '.webp'; })).concat(Object.keys(TORI_POSES).map(function (k) { return 'images/tori/tori_' + TORI_POSES[k] + '.webp'; })).map(function (u) {
     return new Promise(function (res) {
       var im = new Image(); keep.push(im);
       im.onerror = function () { res(); };
