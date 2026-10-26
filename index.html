@@ -842,7 +842,7 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
         </div>
         <button id="intro-yes" type="button" aria-label="네, 그럴게요!">네, 그럴게요!</button>
         <div id="intro-namePanel">
-          <p id="intro-nameNote">실명 대신 <b>가명(코드네임)</b>을 써 주세요. 입력한 코드네임은 이 화면에서만 쓰이고 어디로도 전송되지 않아요.</p>
+          <p id="intro-nameNote">실명 대신 <b>가명(코드네임)</b>을 써 주세요. 코드네임은 제출 기록과 함께 스프레드시트에 저장되고, AI에는 보내지 않아요.</p>
           <div id="intro-nameRow">
             <input id="intro-nameInput" type="text" maxlength="10" autocomplete="off" spellcheck="false" placeholder="코드네임을 입력하세요 (예: 시간여행자)">
             <button id="intro-nameBtn" type="button">확인</button>
@@ -980,7 +980,7 @@ function viewSize() {
   }
   return { w: w, h: h };
 }
-var TORI_CODENAME = '';   // 입력한 코드네임 (화면이 떠 있는 동안 메모리에만 보관. 저장·출력 없음. 성공 결과가 나오면 등급과 함께 기록 서버로만 전송)
+var TORI_CODENAME = '';   // 입력한 코드네임 (화면이 떠 있는 동안 메모리에만 보관. 브라우저에는 저장하지 않음. 최종 제출 때 기록 서버(스프레드시트)로만 전송하고 Gemini에는 보내지 않음)
 // ===== 본 활동 토리 대사 (나중에 여기만 고치면 됨) =====
 var BOARD_LINES = {
   // 안내 대사: 두 줄. <y>..</y> 노랑 강조, <r>..</r> 붉은 강조 (글자는 그대로, 색만)
@@ -2459,15 +2459,15 @@ var Board = (function () {
   // ===== 오류 확인: 경고창 → 서술형 시퀀스 (쓴 글은 최종 제출 때 기록 서버로 가고, 화면에는 성공 팝업 동안만 남음) =====
   var AUDIT_MIN = 10;   // 제출 가능한 최소 글자 수 (최대 300자는 textarea maxlength)
   // 안내 문구(한 곳에서 관리). 2번째 줄은 서버 연결과 답안 저장이 모두 켜졌을 때만, 아니면 대체 문구를 보여 줌
-  var AUDIT_ENDPOINT = true, AUDIT_SAVE_ANSWERS = true;   // 2차용: 기록 서버(아래 RECORD_ENDPOINT)로 보내고 저장하므로 켬. 끄면 '저장·전송 안 함' 안내로 바뀜
+  var AUDIT_ENDPOINT = true, AUDIT_SAVE_ANSWERS = true;   // 2차용: 기록 서버(아래 RECORD_ENDPOINT)로 보내고 저장하므로 켬. 끄면 '저장·전송 안 함' 안내로 바뀜. 안내 문구는 실제 전송과 같게 유지: 시트=코드네임·배치·답안 / Gemini=(틀리면) 카드 배치, (처음 맞히면) 답안
   var AUDIT_NOTE_1 = '이름, 연락처 같은 개인정보는 쓰지 마세요.';
-  var AUDIT_NOTE_2_ON = '쓴 내용은 스프레드시트에 저장되고, 피드백을 만들기 위해 Google의 AI가 읽고 분석할 수 있어요. 전화번호·이메일처럼 보이는 부분은 가려지지만 이름은 가려지지 않으니, 처음부터 쓰지 않는 게 가장 안전해요.';
+  var AUDIT_NOTE_2_ON = '쓴 내용은 스프레드시트에 저장돼요. 타임라인을 처음 맞히면 채점을 위해 Google의 AI(Gemini)가 읽고, 틀리면 AI에는 카드 배치만 보내요. 전화번호·이메일은 가려지지만 이름은 가려지지 않아요.';
   var AUDIT_NOTE_2_OFF = '쓴 내용은 이 화면에서만 쓰이고 저장되거나 전송되지 않아요.';
   // 제출 확인 팝업 안내 문구(한 곳에서 관리). 2번째 줄은 위 AUDIT_ENDPOINT·AUDIT_SAVE_ANSWERS 가 모두 켜졌을 때만, 아니면 대체 문구
   var SUBMIT_WAIT_SEC = 5;   // '최종 제출'이 활성화되기까지 기다리는 시간(초)
   var SUB_NOTE_1 = '이름, 연락처 같은 개인정보가 들어 있지 않은지 한 번 더 확인해 주세요.';
   var SUB_NOTE_1_GLOW = '이름, 연락처 같은 개인정보';   // SUB_NOTE_1 안에서 빛나게 할 구절
-  var SUB_NOTE_2_ON = '제출한 내용은 스프레드시트에 저장되고, 피드백을 만들기 위해 Google의 AI가 읽고 분석할 수 있어요.';
+  var SUB_NOTE_2_ON = '제출한 내용은 스프레드시트에 저장돼요. 타임라인을 처음 맞히면 채점을 위해 Google의 AI(Gemini)가 읽고, 틀리면 AI에는 카드 배치만 보내요.';
   var SUB_NOTE_2_OFF = '쓴 내용은 이 화면에서만 쓰이고 저장되거나 전송되지 않아요.';
   var subEl = $('board-sub'), subGo = $('board-sgo'), subOpen = false, subTimer = null;
   var warnEl = $('board-warn'), auditEl = $('board-audit'), auditInput = $('board-ainput'), auditCount = $('board-acount');
@@ -2728,7 +2728,7 @@ var Board = (function () {
     return first === ERR ? HINT_ERR : HINT_SLOT.replace('{N}', first + 1);
   }
 
-  // ===== 분석 대기 연출 (최종 제출 → 대기 → 정답이면 정답 연출). 네트워크·저장·전송 없음 =====
+  // ===== 분석 대기 연출 (최종 제출 → 대기 → 정답이면 정답 연출). 이 연출 자체는 저장하지 않고, 같은 때 시작한 최종 제출 요청(sendSubmit)의 응답을 기다림 =====
   var MIN_WAIT_MS = 6000;    // 응답이 더 빨리 와도 이만큼은 보여 줌
   var MAX_WAIT_MS = 15000;   // 이만큼 지나면 응답이 없어도 진행
   var ANA_MOCK_MS = 6000;    // 이 시간 뒤 분석 완료 신호
@@ -2785,7 +2785,7 @@ var Board = (function () {
     var tori3 = document.createElement('img'); tori3.id = 'board-ana-tori3'; tori3.alt = ''; tori3.draggable = false; tori3.style.visibility = 'hidden'; disc.appendChild(tori3);   // 검사 중(원이 작아지는 동안) 로딩 그림. 미리 불러 두고 보이기만 함   // 결과 표정(happy/sad)은 미리 불러 둔 이 그림을 겹쳐 두었다가 보이기만 함 (그림 교체 때 깜빡이거나 사라지는 것 방지)
     if (IS_IPHONE) tori.style.animation = tori2.style.animation = tori3.style.animation = 'none';
     var txt = document.createElement('p'); txt.id = 'board-ana-txt'; txt.appendChild(document.createTextNode('분석 중이에요')); var dots = document.createElement('span'); txt.appendChild(dots); anaEl.appendChild(txt);
-    var note = document.createElement('p'); note.id = 'board-ana-note'; note.textContent = '개인정보로 보이는 부분은 가려서 분석해요.'; note.hidden = !ANA_SHOW_NOTE; anaEl.appendChild(note);
+    var note = document.createElement('p'); note.id = 'board-ana-note'; note.textContent = '전화번호·이메일처럼 보이는 부분은 가려서 처리해요.'; note.hidden = !ANA_SHOW_NOTE; anaEl.appendChild(note);
     var chat = document.createElement('div'); chat.id = 'board-ana-chat'; var ct = document.createElement('span'); ct.textContent = '성공!'; chat.appendChild(ct); move.insertBefore(chat, pop);   // 원과 함께 움직이도록 이동 층 안, 원(pop) 뒤에
     if (IS_IPHONE) anaEl.style.transition = 'none';
     $('board-shaker').appendChild(anaEl);
