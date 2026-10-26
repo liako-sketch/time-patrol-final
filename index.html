@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <link rel="icon" href="data:,">
 <title>타임 패트롤: 서임권 투쟁</title>
 <script>if (/iPhone|iPod/.test(navigator.userAgent)) document.documentElement.classList.add('is-iphone');</script>   <!-- 아이폰 표시를 가장 먼저 달아, 아이폰이 큰 배경 그림을 받기 시작하지 않게 -->
@@ -980,7 +980,7 @@ function viewSize() {
   }
   return { w: w, h: h };
 }
-var TORI_CODENAME = '';   // 입력한 코드네임 (화면이 떠 있는 동안 메모리에만 보관. 저장·전송·출력 없음)
+var TORI_CODENAME = '';   // 입력한 코드네임 (화면이 떠 있는 동안 메모리에만 보관. 저장·출력 없음. 성공 결과가 나오면 등급과 함께 기록 서버로만 전송)
 // ===== 본 활동 토리 대사 (나중에 여기만 고치면 됨) =====
 var BOARD_LINES = {
   // 안내 대사: 두 줄. <y>..</y> 노랑 강조, <r>..</r> 붉은 강조 (글자는 그대로, 색만)
@@ -2628,6 +2628,27 @@ var Board = (function () {
     }
     return GRADE_RULES[GRADE_RULES.length - 1].grade;
   }
+  // ===== 기록 전송 (2차용): 코드네임·등급만 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳. 답안·점수·개인정보는 보내지 않음. 실패해도 학생 화면에는 아무 표시·기록이 없음 =====
+  var RECORD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxs-nTH464MDMxTx4iZei87JkVNHRGpUnWWtC_Bu-7hsmzzuvUGVOCnFtlQ9hMRLh9z/exec';
+  var CLIENT_ID = (function () {   // 이 접속에서만 쓰는 무작위 식별값 (어디에도 저장하지 않음)
+    var abc = 'abcdefghijklmnopqrstuvwxyz0123456789', out = '';
+    try { var u = new Uint8Array(16); window.crypto.getRandomValues(u); for (var i = 0; i < u.length; i++) out += abc.charAt(u[i] % 36); } catch (_) { out = 'anon' + Math.floor(Math.random() * 1e9); }
+    return out;
+  })();
+  function sendRecord(grade) {
+    if (!/^https:\/\/script\.google\.com\//.test(RECORD_ENDPOINT)) return;   // 주소가 비었거나 https 가 아니면 보내지 않음
+    var nick = String(TORI_CODENAME || '').trim();
+    if (!/^[가-힣A-Za-z0-9 ]{1,10}$/.test(nick) || 'SABC'.indexOf(grade) < 0) return;   // 서버 규칙과 같음 (맞지 않으면 보내지 않음)
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 5000);
+    try {
+      fetch(RECORD_ENDPOINT, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'record', clientId: CLIENT_ID, nickname: nick, grade: grade }),
+        credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined
+      }).then(function () {}, function () {}).then(function () { clearTimeout(timer); });   // 응답·오류는 쓰지 않고 남기지도 않음
+    } catch (_) { clearTimeout(timer); }
+  }
   function showGrade(g) {   // 성공 팝업 제목 줄 오른쪽 끝 배지: 이름(작게) + 알파벳(크게)
     var box = $('board-rgrade'); box.textContent = ''; box.className = 'board-g-' + g;
     var nm = document.createElement('span'); nm.className = 'board-gname'; nm.textContent = GRADE_NAMES[g];
@@ -2968,7 +2989,8 @@ var Board = (function () {
       c1b.appendChild(t1b); row.appendChild(c1b);
       body.appendChild(row);
       var kwr = evaluateKeywords(lastAnswer);   // 판정은 이 함수 한 곳 (화면 안에서만, 저장·출력 안 함)
-      showGrade(getGrade({ required: kwr.required, bonus: kwr.bonus }));
+      var grade = getGrade({ required: kwr.required, bonus: kwr.bonus });
+      showGrade(grade); sendRecord(grade);   // 코드네임·등급만 기록 서버로 (실패해도 화면엔 영향 없음)
       var hits = kwr.required.filter(function (r) { return r.hit; });
       var c2 = el('div', 'board-rcell'), h2 = el('h3', 'board-kwhead'), hl = el('span', 'board-kwleft', '키워드 ' + kwr.required.length + '개 중 ' + hits.length + '개 포함');
       hl.appendChild(el('small', 'board-kwlimit', KW_LIMIT_NOTE));   // 제목 바로 오른쪽 (좁으면 이 문구만 아래로)
