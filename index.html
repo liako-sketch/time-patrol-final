@@ -2502,15 +2502,15 @@ var Board = (function () {
   // ===== 오류 확인: 경고창 → 서술형 시퀀스 (쓴 글은 최종 제출 때 기록 서버로 가고, 화면에는 성공 팝업 동안만 남음) =====
   var AUDIT_MIN = 10;   // 제출 가능한 최소 글자 수 (최대 300자는 textarea maxlength)
   // 안내 문구(한 곳에서 관리). 2번째 줄은 서버 연결과 답안 저장이 모두 켜졌을 때만, 아니면 대체 문구를 보여 줌
-  var AUDIT_ENDPOINT = true, AUDIT_SAVE_ANSWERS = true;   // 2차용: 기록 서버(RECORD_ENDPOINT)로 보내고 저장하므로 켬. 끄면 '저장·전송 안 함' 안내로 바뀜. 안내 문구는 실제 전송과 같게 유지: 시트=코드네임·배치·답안 / Gemini=(틀리면) 카드 배치, (처음 맞히면) 답안
+  var AUDIT_ENDPOINT = true, AUDIT_SAVE_ANSWERS = true;   // 2차용: 기록 서버(RECORD_ENDPOINT)로 보내고 저장하므로 켬. 끄면 '저장·전송 안 함' 안내로 바뀜. 안내 문구는 실제 전송과 같게 유지: 시트=코드네임·배치·답안 / Gemini=(타임라인을 맞혔을 때만) 답안
   var AUDIT_NOTE_1 = '이름, 연락처 같은 개인정보는 쓰지 마세요.';
-  var AUDIT_NOTE_2_ON = '작성한 내용은 스프레드시트에 저장돼요. 또한 채점을 위해 작성한 내용과 카드 배치가 Google의 AI(Gemini)에게 전송돼요.';
+  var AUDIT_NOTE_2_ON = '작성한 내용은 스프레드시트에 저장돼요. 또한 타임라인을 맞히면 채점을 위해 작성한 내용이 Google의 AI(Gemini)에게 전송돼요.';
   var AUDIT_NOTE_2_OFF = '쓴 내용은 이 화면에서만 쓰이고 저장되거나 전송되지 않아요.';
   // 제출 확인 팝업 안내 문구(한 곳에서 관리). 2번째 줄은 위 AUDIT_ENDPOINT·AUDIT_SAVE_ANSWERS 가 모두 켜졌을 때만, 아니면 대체 문구
   var SUBMIT_WAIT_SEC = 5;   // '최종 제출'이 활성화되기까지 기다리는 시간(초)
   var SUB_NOTE_1 = '이름, 연락처 같은 개인정보가 들어 있지 않은지 한 번 더 확인해 주세요.';
   var SUB_NOTE_1_GLOW = '이름, 연락처 같은 개인정보';   // SUB_NOTE_1 안에서 빛나게 할 구절
-  var SUB_NOTE_2_ON = '작성한 내용은 스프레드시트에 저장돼요. 또한 채점을 위해 작성한 내용과 카드 배치가 Google의 AI(Gemini)에게 전송돼요.';
+  var SUB_NOTE_2_ON = '작성한 내용은 스프레드시트에 저장돼요. 또한 타임라인을 맞히면 채점을 위해 작성한 내용이 Google의 AI(Gemini)에게 전송돼요.';
   var SUB_NOTE_2_OFF = '쓴 내용은 이 화면에서만 쓰이고 저장되거나 전송되지 않아요.';
   var subEl = $('board-sub'), subGo = $('board-sgo'), subOpen = false, subTimer = null;
   var warnEl = $('board-warn'), auditEl = $('board-audit'), auditInput = $('board-ainput'), auditCount = $('board-acount');
@@ -2673,7 +2673,7 @@ var Board = (function () {
     return GRADE_RULES[GRADE_RULES.length - 1].grade;
   }
   // ===== 최종 제출 전송 (2차용): 코드네임·타임라인 배치·서술형 답안을 Apps Script 웹앱으로 보냄. 서버 주소는 이 한 곳 =====
-  // 서버가 결과(성공/실패)를 정하고, 실패면 구체적인 힌트를, 성공이면 답안의 키워드 판정을 돌려줌. 응답이 없거나 형식이 다르면 아래 기존 고정 힌트·로컬 키워드 판정을 씀. 오류·응답 원문은 화면·콘솔에 남기지 않음
+  // 서버가 결과(성공/실패)를 정하고, 성공이면 Gemini가 낸 키워드 판정·일치도·조언을 돌려줌(실패는 기록만, 힌트는 고정 문구). 응답이 없거나 형식이 다르면 로컬 키워드 판정을 씀. 오류·응답 원문은 화면·콘솔에 남기지 않음
   // (기록 서버 주소 RECORD_ENDPOINT 와 접속 식별값 CLIENT_ID 는 위쪽 전역으로 옮김: 코드네임 중복 확인(인트로)과 최종 제출이 함께 씀)
   var SUBMIT_TIMEOUT_MS = 28000;   // 분석 대기 최대 시간(MAX_WAIT_MS)보다 조금 짧게 (Gemini 응답이 10~25초 걸리는 때가 있었음)
   function placementOf() {   // 칸 2~5와 오류 칸(칸 인덱스 1..ERR)에 놓인 카드의 번호(CARD_DATA 순서). 비어 있으면 -1
@@ -2703,10 +2703,10 @@ var Board = (function () {
     var pick = function (list) { return function (d, i) { return { label: d.label, hit: list[i] === true }; }; };
     return { required: REQUIRED_KEYWORDS.map(pick(r.required)), bonus: BONUS_KEYWORDS.map(pick(r.bonus)), source: 'server' };
   }
-  function serverHint(r) {
-    if (!r || r.code !== 'OK_FAIL' || typeof r.hint !== 'string') return '';
-    var h = r.hint.replace(/\s+/g, ' ').trim();
-    return h.length >= 1 && h.length <= 140 ? h : '';
+  function serverSimilarity(r) {   // 서버(Gemini)가 돌려준 일치도(0~100)와 조언. 형식이 맞을 때만, 아니면 null
+    if (!r || r.code !== 'OK_SUCCESS' || typeof r.sim !== 'number' || !(r.sim >= 0 && r.sim <= 100)) return null;
+    var adv = typeof r.advice === 'string' ? r.advice.replace(/\s+/g, ' ').trim().slice(0, 200) : '';
+    return { sim: Math.round(r.sim), advice: adv };
   }
   function showGrade(g) {   // 성공 팝업 제목 줄 오른쪽 끝 배지: 이름(작게) + 알파벳(크게)
     var box = $('board-rgrade'); box.textContent = ''; box.className = 'board-g-' + g;
@@ -3006,7 +3006,7 @@ var Board = (function () {
     try { document.activeElement.blur(); } catch (_) {}
   }
   function showFail(g) {
-    var srvHint = serverHint(lastServer); lastServer = null;   // 서버가 배치 정보로 만든 힌트 (없으면 아래 고정 힌트)
+    lastServer = null;   // 실패는 서버에 기록만 남기고, 힌트는 아래 고정 문구를 씀 (Gemini는 성공했을 때만)
     hintCount++;
     var list = [], i, c;
     for (i = 1; i <= ERR; i++) { c = occupant(i); if (c) { c.where = 'hand'; list.push(c); } }
@@ -3015,7 +3015,7 @@ var Board = (function () {
     SFX.play('failShow', AUDIO.level.fail);
     openRes('fail', 'images/tori/tori_' + TORI_POSES.sad + '.webp', '타임라인 수정에 실패했어요... ㅠ.ㅠ', function (body) {
       var p = document.createElement('p'); p.className = 'board-rhint';
-      var hintText = srvHint || getHint(g), mk = /^\d+번 칸/.exec(hintText);   // 칸 힌트의 '○번 칸'만 노랑 (오류 칸 힌트는 그대로)
+      var hintText = getHint(g), mk = /^\d+번 칸/.exec(hintText);   // 칸 힌트의 '○번 칸'만 노랑 (오류 칸 힌트는 그대로)
       if (mk) { var hk = document.createElement('span'); hk.className = 'hl-y'; hk.textContent = mk[0]; p.appendChild(hk); p.appendChild(document.createTextNode(hintText.slice(mk[0].length))); }
       else p.textContent = hintText;
       body.appendChild(p);
@@ -3054,8 +3054,9 @@ var Board = (function () {
       if (lastAnswer.trim()) t1b.appendChild(SHOW_ANSWER_HIGHLIGHT ? answerMarked(lastAnswer) : document.createTextNode(lastAnswer)); else t1b.appendChild(el('p', 'board-rdim', MY_ANSWER_EMPTY));   // 글 그대로(textContent·텍스트 노드), 화면에서만 사용
       c1b.appendChild(t1b); row.appendChild(c1b);
       body.appendChild(row);
-      var kwr = serverKeywordResult(lastServer) || evaluateKeywords(lastAnswer);   // 서버(Gemini) 판정이 있으면 그것, 없으면 로컬 판정
-      lastServer = null;
+      var srv = lastServer; lastServer = null;
+      var kwr = serverKeywordResult(srv) || evaluateKeywords(lastAnswer);   // 서버(Gemini) 판정이 있으면 그것, 없으면 로컬 판정
+      var simInfo = kwr.source === 'server' ? serverSimilarity(srv) : null;   // 일치도는 서버 판정이 쓰일 때만
       var grade = getGrade({ required: kwr.required, bonus: kwr.bonus });
       showGrade(grade);
       var hits = kwr.required.filter(function (r) { return r.hit; });
@@ -3077,7 +3078,13 @@ var Board = (function () {
       body.appendChild(c2);
       var still = document.documentElement.classList.contains('calm-mode');   // 움직임 줄이기: 처음부터 켜진 상태
       litChips.forEach(function (c, i) { if (still) c.classList.add('board-lit'); else setTimeout(function () { c.classList.add('board-lit'); }, 150 * (i + 1)); });
-      var c3 = el('div', 'board-rcell'); c3.appendChild(el('h3', '', 'Gemini 일치도')); c3.appendChild(el('p', 'board-rdim', '서버 연결 후 표시됩니다')); body.appendChild(c3);
+      var c3 = el('div', 'board-rcell'); c3.appendChild(el('h3', '', 'Gemini 일치도'));
+      if (simInfo) {   // 글은 textContent 로만 넣음
+        var t3 = el('div', 'board-rtext'); t3.appendChild(el('p', '', '모범답안과 ' + simInfo.sim + '% 비슷해요'));
+        if (simInfo.advice) t3.appendChild(el('p', '', simInfo.advice));
+        c3.appendChild(t3);
+      } else c3.appendChild(el('p', 'board-rdim', '이번에는 표시할 수 없어요'));
+      body.appendChild(c3);
     }, [{ label: '오류 사료 톺아보기', fn: openCmp }]);   // 닫기 없음: 반드시 톺아보게 함
   }
   var SUCCESS_LEAD = '오류 사료도 찾았어요. 얼마나 맞췄는지 확인해 볼까요?';   // 성공 팝업 제목 아래 안내
