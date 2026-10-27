@@ -304,6 +304,7 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
 .board-card .board-tag { position: absolute; left: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em;
   color: #aef6fb; background: rgba(60, 200, 215, .18); border: 1px solid rgba(130, 240, 250, .45); text-shadow: 0 0 6px rgba(110, 240, 250, .8); }
 .board-card .board-oktag { position: absolute; right: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em; color: #b9f8c8; background: rgba(70, 210, 110, .2); border: 1px solid rgba(130, 250, 160, .5); text-shadow: 0 0 6px rgba(110, 250, 150, .7); }   /* 5번째 실패부터 고정된 카드 */
+.board-rlock small { margin-left: 10px; font-size: 19px; color: rgba(200, 210, 220, .5); }   /* 작고 반투명한 회색 보충 설명 */
 .board-rlock { align-self: center; margin: 0; font-family: var(--font-body); font-weight: 400; font-size: 26px; line-height: 1.3; color: var(--tori-hl); }   /* '맞춘 카드는 고정되었어요!': 다시 도전하기 단추 오른쪽에 칸 없이 글자만 */
 .board-ainote { margin: 10px 4px 0; font-size: 20px; color: rgba(190, 215, 230, .7); }   /* 'Gemini는 실수할 수 있어요.' */
 /* ② 하단 라벨 */
@@ -618,7 +619,8 @@ html.colorblind-mode mark.board-kmk-req, html.colorblind-mode mark.board-kmk-bon
 .board-rcell h3.board-kwhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 12px; }
 .board-rcell h3.board-kwhead small { margin-left: 0; }
 .board-rcell h3.board-kwhead .board-kwleft { flex: 1 1 0; min-width: 0; }
-.board-rcell h3.board-kwhead .board-kwlimit { display: inline-block; margin-left: 12px; }   /* 한 덩어리로 움직임: 좁으면 이 문구만 아래로 */
+.board-rcell h3.board-kwhead .board-kwlimit { display: inline-block; margin-left: 12px; }
+.board-rcell h3.board-kwhead .board-kwsep::before { content: ''; display: inline-block; width: 1px; height: .95em; margin-right: 12px; vertical-align: -.12em; background: rgba(200, 235, 240, .45); }   /* 앞 안내와 구분하는 세로 선. 문구와 한 덩어리로 줄바꿈됨 */   /* 한 덩어리로 움직임: 좁으면 이 문구만 아래로 */
 .board-rcell h3.board-kwhead .board-kwbonus { flex: none; white-space: nowrap; }
 .board-kw { white-space: nowrap; }   /* 칩 글자는 중간에서 줄바꿈·잘림 없이 칩째로 내려감 */
 .board-kw { display: inline-block; margin: 4px 8px 0 0; padding: 2px 12px; border-radius: 999px; border: 1px solid rgba(200, 235, 240, .3); color: rgba(200, 235, 240, .5); font-size: 24px; }
@@ -3153,7 +3155,7 @@ var Board = (function () {
     if (hintCount >= HLOCK_FROM) {   // 5번째 실패부터: 맞은 칸의 카드는 그 자리에 고정 (새로고침 전까지 풀리지 않음). 틀린 칸의 카드는 제자리에 두되 움직일 수 있음
       for (i = 1; i <= ERR; i++) {
         c = occupant(i);
-        if (c && !c.locked && g.wrong.indexOf(i) < 0) { c.hlock = true; c.el.classList.add('board-hlock'); if (i !== ERR) c.el.classList.add('board-okc'); addOkTag(c); }
+        if (i !== ERR && c && !c.locked && g.wrong.indexOf(i) < 0) { c.hlock = true; c.el.classList.add('board-hlock'); c.el.classList.add('board-okc'); addOkTag(c); }   // 오류 칸의 카드는 맞아도 고정하지 않음
       }
     }
     refreshSlots(); Comm.cardDown();
@@ -3169,7 +3171,7 @@ var Board = (function () {
       if (srvAi) { var an = document.createElement('p'); an.className = 'board-ainote'; an.textContent = AI_NOTE; body.appendChild(an); }
     }, [{ label: '다시 도전하기', fn: closeRes }]);
     if (hintCount >= HLOCK_FROM && cards.some(function (k) { return k.hlock; })) {   // 5번째 실패부터 고정 안내: 단추 줄(다시 도전하기 오른쪽)에 글자만
-      var q = document.createElement('span'); q.className = 'board-rlock'; q.textContent = '맞춘 카드는 고정되었어요!'; $('board-rbtns').appendChild(q);
+      var q = document.createElement('span'); q.className = 'board-rlock'; q.appendChild(document.createTextNode('맞춘 카드는 고정되었어요!')); var qs = document.createElement('small'); qs.textContent = '오류 카드는 고정되지 않아요'; q.appendChild(qs); $('board-rbtns').appendChild(q);
     }
   }
   function solveBoard() {   // 맞춘 타임라인 고정 + 녹색 (설명 패널은 그대로 열림)
@@ -3220,7 +3222,7 @@ var Board = (function () {
       var hits = kwr.required.filter(function (r) { return r.hit; });
       var c2 = el('div', 'board-rcell'), h2 = el('h3', 'board-kwhead'), hl = el('span', 'board-kwleft', '키워드 ' + kwr.required.length + '개 중 ' + hits.length + '개 포함');
       hl.appendChild(el('small', 'board-kwlimit', KW_LIMIT_NOTE));   // 제목 바로 오른쪽 (좁으면 이 문구만 아래로)
-      if (kwr.bonus.length) hl.appendChild(el('small', 'board-kwlimit', BONUS_NOTE));   // 비슷한 말 안내 바로 뒤 (좁으면 이 문구만 아래로)
+      if (kwr.bonus.length) hl.appendChild(el('small', 'board-kwlimit board-kwsep', BONUS_NOTE));   // 비슷한 말 안내 바로 뒤 (좁으면 이 문구만 아래로)
       h2.appendChild(hl);
       c2.appendChild(h2);
       var kw = el('p', '');
