@@ -152,6 +152,7 @@ html.calm-mode #intro-namePanel.intro-pop { animation: intro-popfade .2s ease-ou
 }
 #intro-nameNote { margin: 0 0 12px; font-size: 19px; color: #e8edf3; line-height: 1.45; word-break: keep-all; }
 #intro-nameNote b { color: #fff; }
+#intro-nameNote .intro-sep { margin: 0 6px; color: rgba(232, 237, 243, .45); }
 #intro-nameErr { margin: 6px 0 0; font-size: 16px; color: #ffb4a8; min-height: 0; }
 #intro-nameErr:empty { display: none; }
 
@@ -893,7 +894,7 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
         </div>
         <button id="intro-yes" type="button" aria-label="네, 그럴게요!">네, 그럴게요!</button>
         <div id="intro-namePanel">
-          <p id="intro-nameNote">실명 대신 <b>가명(코드네임)</b>을 써 주세요. 코드네임은 제출 기록과 함께 스프레드시트에 저장되고, AI에는 보내지 않아요.</p>
+          <p id="intro-nameNote">실명 대신 <b>가명(코드네임)</b>을 써 주세요. 코드네임은 제출 기록과 함께 스프레드시트에 저장되고, AI에는 보내지 않아요. <span class="intro-sep" aria-hidden="true">|</span> 일부 특수기호는 사용이 어려울 수 있어요.</p>
           <div id="intro-nameRow">
             <input id="intro-nameInput" type="text" maxlength="10" autocomplete="off" spellcheck="false" placeholder="코드네임을 입력하세요 (예: 시간여행자)">
             <button id="intro-nameBtn" type="button">확인</button>
@@ -1055,7 +1056,7 @@ var CLIENT_ID = (function () {   // 이 접속에서만 쓰는 무작위 식별�
   try { var u = new Uint8Array(16); window.crypto.getRandomValues(u); for (var i = 0; i < u.length; i++) out += abc.charAt(u[i] % 36); } catch (_) { out = 'anon' + Math.floor(Math.random() * 1e9); }
   return out;
 })();
-var NAME_RE = /^[^\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202f\u2060-\u206f\ud800-\udfff\ufeff<>\[\]{}$\\`]{1,10}$/;   // 코드네임 규칙(서버 NICK_RE 와 같음): 1~10자, 제어·보이지 않는 글자, 이모지, 표시 문법과 겹치는 기호(< > [ ] { } $ \ `)만 받지 않음
+var NAME_RE = /^[^\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202f\u2060-\u206f\ud800-\udfff\ufeff<>\[\]$`]{1,10}$/;   // 코드네임 규칙(서버 NICK_RE 와 같음): 1~10자, 제어·보이지 않는 글자, 이모지, 표시 문법과 겹치는 기호(< > [ ] $ `)만 받지 않음
 function checkCodename(name) {   // 코드네임이 이미 시트에 있는지 서버에 물음. 결과: 'free' | 'taken' | 'busy'(잠시 뒤 다시) | 'unknown'(서버에 못 닿음 → 막음: 시트에 이름이 올라가지 않으면 이름 중복을 가릴 수 없음) | 'bad'(쓸 수 없는 글자) | 'skip'(서버 주소가 없어 확인하지 않음). 코드네임만 보냄
   return new Promise(function (resolve) {
     if (!/^https:\/\/script\.google\.com\//.test(RECORD_ENDPOINT)) return resolve('skip');
@@ -2008,7 +2009,7 @@ var Intro = (function () {
       }
       if (st === 'busy') { showNetPop(); return; }   // 서버가 바빠서 이름이 시트에 올라가지 않았을 때도 같은 안내 창
       if (st === 'unknown') { showNetPop(); return; }   // 서버에 이름이 올라가지 않으면 중복을 가릴 수 없어 다음으로 보내지 않음
-      if (st === 'bad') { err.textContent = '코드네임에 쓸 수 없는 글자(이모지, < > [ ] { } $ \\ ` 등)가 있어요. 다시 입력해 주세요.'; input.focus({ preventScroll: true }); return; }
+      if (st === 'bad') { err.textContent = '코드네임에 쓸 수 없는 글자(이모지, < > [ ] $ ` 등)가 있어요. 다시 입력해 주세요.'; input.focus({ preventScroll: true }); return; }
       acceptName(v);   // 'free'(서버에 이름이 올라감) 또는 'skip'
     });
   }
