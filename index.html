@@ -2668,8 +2668,8 @@ var Board = (function () {
     try { document.activeElement.blur(); } catch (_) {}
   }
   // ===== 제출 뒤 흐름 =====
-  var HINT_SLOT = '{N}번 칸 앞뒤의 사료를 다시 읽고, 누가 누구에게 무엇을 했는지 비교해 보세요.';   // 힌트 문구 (정답 카드 이름·번호는 알려 주지 않음)
-  var HINT_ERR = '오류 칸에 둔 사료의 말하는 사람과 받는 사람을 다시 확인해 보세요.';
+  var HINT_SLOT = '먼저 {N}번 칸을 확인해 보아요. 앞뒤의 사료를 읽고, 누가 누구에게 무엇을 했는지 비교해 봐요.';   // 힌트 문구 (정답 카드 이름·번호는 알려 주지 않음)
+  var HINT_ERR = '먼저 오류 칸을 확인해 보아요. 오류 칸에 둔 사료의 말하는 사람과 받는 사람을 비교해 봐요.';
   var MODEL_ANSWER = '사료에는 교황이 왕에게 용서를 구하며 서약한다고 나오지만, 실제로는 그레고리우스 7세가 성직자 임명권(서임권)을 두고 다투다 하인리히 왕을 파문했어요. 그래서 왕이 카노사에서 맨발로 교황에게 용서를 빌었어요. 용서를 구하는 사람과 받는 사람이 뒤바뀌어 있어서 이 사료는 오류예요.';
   var MODEL_ANSWER_TITLE = '토리의 답안';   // 성공 팝업 왼쪽 칸 제목
   var MODEL_ANSWER_NOTE ='이렇게 쓸 수도 있어요';
@@ -3098,8 +3098,8 @@ var Board = (function () {
     SFX.play('failShow', AUDIO.level.fail);
     openRes('fail', 'images/tori/tori_' + TORI_POSES.sad + '.webp', '타임라인 수정에 실패했어요... ㅠ.ㅠ', function (body) {
       var p = document.createElement('p'); p.className = 'board-rhint';
-      var hintText = srvHint || getHint(g), mk = srvHint ? null : /^\d+번 칸/.exec(hintText);   // 칸 힌트의 '○번 칸'만 노랑 (오류 칸 힌트는 그대로)
-      if (mk) { var hk = document.createElement('span'); hk.className = 'hl-y'; hk.textContent = mk[0]; p.appendChild(hk); p.appendChild(document.createTextNode(hintText.slice(mk[0].length))); }
+      var hintText = srvHint || getHint(g), mk = srvHint ? null : /\d+번 칸/.exec(hintText);   // 칸 힌트의 '○번 칸'만 노랑 (오류 칸 힌트는 그대로)
+      if (mk) { var hk = document.createElement('span'); hk.className = 'hl-y'; hk.textContent = mk[0]; p.appendChild(document.createTextNode(hintText.slice(0, mk.index))); p.appendChild(hk); p.appendChild(document.createTextNode(hintText.slice(mk.index + mk[0].length))); }
       else p.textContent = hintText;
       body.appendChild(p);
     }, [{ label: '다시 도전하기', fn: closeRes }]);
