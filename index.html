@@ -144,16 +144,14 @@ html.calm-mode #intro-namePanel.intro-pop { animation: intro-popfade .2s ease-ou
   flex: 1; font: 400 28px var(--font-body); padding: 10px 16px; color: #fff;
   background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(95, 212, 224, 0.6); border-radius: 10px; outline: none;
 }
-#intro-nameInput::placeholder { color: rgba(255, 255, 255, 0.45); }
+#intro-nameInput::placeholder { color: rgba(255, 255, 255, 0.45); font-size: 23px; text-overflow: ellipsis; }   /* 안내가 길어서 입력 글자(28px)보다 작게 */
 #intro-nameInput:focus { border-color: #5fd4e0; }
 #intro-nameBtn {
   font: 600 22px var(--font-title); padding: 0 22px; color: #0a1a2c;
   background: #5fd4e0; border: 0; border-radius: 10px; cursor: pointer;
 }
 #intro-nameNote { margin: 0 0 12px; font-size: 19px; color: #e8edf3; line-height: 1.45; word-break: keep-all; }
-#intro-nameNote b { color: #fff; }
-#intro-nameNote .intro-sep { margin: 0 6px; color: rgba(232, 237, 243, .45); }
-#intro-nameErr { margin: 6px 0 0; font-size: 16px; color: #ffb4a8; min-height: 0; }
+#intro-nameNote b { color: #fff; }#intro-nameErr { margin: 6px 0 0; font-size: 16px; color: #ffb4a8; min-height: 0; }
 #intro-nameErr:empty { display: none; }
 
 #intro-orb {
@@ -306,7 +304,7 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
 .board-card .board-tag { position: absolute; left: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em;
   color: #aef6fb; background: rgba(60, 200, 215, .18); border: 1px solid rgba(130, 240, 250, .45); text-shadow: 0 0 6px rgba(110, 240, 250, .8); }
 .board-card .board-oktag { position: absolute; right: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em; color: #b9f8c8; background: rgba(70, 210, 110, .2); border: 1px solid rgba(130, 250, 160, .5); text-shadow: 0 0 6px rgba(110, 250, 150, .7); }   /* 5번째 실패부터 고정된 카드 */
-.board-rhint.board-rlock { margin-top: 12px; color: var(--tori-hl); border-color: rgba(255, 213, 74, .6); }   /* '맞춘 카드는 고정되었어요!' */
+.board-rlock { align-self: center; margin: 0; font-family: var(--font-body); font-weight: 400; font-size: 26px; line-height: 1.3; color: var(--tori-hl); }   /* '맞춘 카드는 고정되었어요!': 다시 도전하기 단추 오른쪽에 칸 없이 글자만 */
 .board-ainote { margin: 10px 4px 0; font-size: 20px; color: rgba(190, 215, 230, .7); }   /* 'Gemini는 실수할 수 있어요.' */
 /* ② 하단 라벨 */
 .board-card .board-t { flex: none; font-family: var(--font-title); font-size: .8em; font-weight: 600; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; color: #e6fdff; text-shadow: 0 0 8px rgba(110, 230, 240, .45); }
@@ -630,7 +628,7 @@ html.colorblind-mode mark.board-kmk-req, html.colorblind-mode mark.board-kmk-bon
 .board-kw.board-bonus.board-lit { border-color: var(--tori-hl); background: var(--tori-hl); box-shadow: 0 0 14px var(--hl-glow); }
 html.colorblind-mode .board-kw.board-lit::before { content: '\2713\00a0'; }   /* 색약 모드: 색 말고 모양(✓)으로도 구분 */
 html.calm-mode .board-kw { transition: none; }
-#board-rbtns { display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap; }
+#board-rbtns { display: flex; align-items: center; gap: 24px; margin-top: 28px; flex-wrap: wrap; }
 #board-cmp { position: absolute; inset: 0; z-index: 215; background: rgba(2, 8, 20, .96); display: flex; flex-direction: column; box-sizing: border-box; padding: 28px 90px 24px; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
 #board-cmp.board-open { opacity: 1; visibility: visible; transition: opacity .3s ease; }
 .board-cz { position: relative; z-index: 1; flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; gap: 36px; box-sizing: border-box; padding: 18px 32px; border-radius: 16px; border: 2px solid; }
@@ -718,7 +716,7 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 #board-rkimg { flex: none; width: 300px; height: 300px; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 #board-rkcontent { flex: 1 1 0; min-width: 0; max-height: 100%; display: flex; flex-direction: column; }
 #board-rkmain { margin: 0; font-family: var(--font-title); font-weight: 600; font-size: 44px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
-#board-rknote { margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
+#board-rknote { white-space: pre-line; margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
 #board-rkwrap { position: relative; margin-top: 16px; }
 #board-rklist { position: relative; min-height: 120px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 #board-rklist::-webkit-scrollbar { display: none; }
@@ -894,9 +892,9 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
         </div>
         <button id="intro-yes" type="button" aria-label="네, 그럴게요!">네, 그럴게요!</button>
         <div id="intro-namePanel">
-          <p id="intro-nameNote">실명 대신 <b>가명(코드네임)</b>을 써 주세요. 코드네임은 제출 기록과 함께 스프레드시트에 저장되고, AI에는 보내지 않아요. <span class="intro-sep" aria-hidden="true">|</span> 일부 특수기호는 사용이 어려울 수 있어요.</p>
+          <p id="intro-nameNote">실명 대신 <b>가명(코드네임)</b>을 써 주세요. 코드네임은 제출 기록과 함께 스프레드시트에 저장되고, AI에는 보내지 않아요.</p>
           <div id="intro-nameRow">
-            <input id="intro-nameInput" type="text" maxlength="10" autocomplete="off" spellcheck="false" placeholder="코드네임을 입력하세요 (예: 시간여행자)">
+            <input id="intro-nameInput" type="text" maxlength="10" autocomplete="off" spellcheck="false" placeholder="코드네임을 입력하세요 (예: 시간여행자) | 일부 특수기호는 사용이 어려울 수 있어요.">
             <button id="intro-nameBtn" type="button">확인</button>
           </div>
           <p id="intro-nameErr"></p>
@@ -3169,10 +3167,10 @@ var Board = (function () {
       });
       body.appendChild(p);
       if (srvAi) { var an = document.createElement('p'); an.className = 'board-ainote'; an.textContent = AI_NOTE; body.appendChild(an); }
-      if (hintCount >= HLOCK_FROM && cards.some(function (k) { return k.hlock; })) {   // 5번째 실패부터 고정 안내
-        var q = document.createElement('p'); q.className = 'board-rhint board-rlock'; q.textContent = '맞춘 카드는 고정되었어요!'; body.appendChild(q);
-      }
     }, [{ label: '다시 도전하기', fn: closeRes }]);
+    if (hintCount >= HLOCK_FROM && cards.some(function (k) { return k.hlock; })) {   // 5번째 실패부터 고정 안내: 단추 줄(다시 도전하기 오른쪽)에 글자만
+      var q = document.createElement('span'); q.className = 'board-rlock'; q.textContent = '맞춘 카드는 고정되었어요!'; $('board-rbtns').appendChild(q);
+    }
   }
   function solveBoard() {   // 맞춘 타임라인 고정 + 녹색 (설명 패널은 그대로 열림)
     boardSolved = true;
@@ -3222,8 +3220,8 @@ var Board = (function () {
       var hits = kwr.required.filter(function (r) { return r.hit; });
       var c2 = el('div', 'board-rcell'), h2 = el('h3', 'board-kwhead'), hl = el('span', 'board-kwleft', '키워드 ' + kwr.required.length + '개 중 ' + hits.length + '개 포함');
       hl.appendChild(el('small', 'board-kwlimit', KW_LIMIT_NOTE));   // 제목 바로 오른쪽 (좁으면 이 문구만 아래로)
+      if (kwr.bonus.length) hl.appendChild(el('small', 'board-kwlimit', BONUS_NOTE));   // 비슷한 말 안내 바로 뒤 (좁으면 이 문구만 아래로)
       h2.appendChild(hl);
-      if (kwr.bonus.length) h2.appendChild(el('small', 'board-kwbonus', BONUS_NOTE));   // 같은 줄 오른쪽 끝
       c2.appendChild(h2);
       var kw = el('p', '');
       var litChips = [];   // 켜질 칩 (왼쪽부터 차례로)
@@ -3238,12 +3236,13 @@ var Board = (function () {
       body.appendChild(c2);
       var still = document.documentElement.classList.contains('calm-mode');   // 움직임 줄이기: 처음부터 켜진 상태
       litChips.forEach(function (c, i) { if (still) c.classList.add('board-lit'); else setTimeout(function () { c.classList.add('board-lit'); }, 150 * (i + 1)); });
-      var c3 = el('div', 'board-rcell'); c3.appendChild(el('h3', '', '토리의 조언'));
+      var c3 = el('div', 'board-rcell'), h3 = el('h3', '', '토리의 조언');
+      if (kwr.source === 'server') h3.appendChild(el('small', '', AI_NOTE));   // 키워드·등급·조언은 Gemini가 정함: 제목 바로 오른쪽
+      c3.appendChild(h3);
       if (advice) {   // 글은 textContent 로만 넣음
         var t3 = el('div', 'board-rtext'); t3.appendChild(el('p', '', advice));
         c3.appendChild(t3);
       } else c3.appendChild(el('p', 'board-rdim', '이번에는 표시할 수 없어요'));
-      if (kwr.source === 'server') c3.appendChild(el('p', 'board-ainote', AI_NOTE));   // 키워드·등급·조언은 Gemini가 정함
       body.appendChild(c3);
     }, [{ label: '오류 사료 톺아보기', fn: openCmp }]);   // 닫기 없음: 반드시 톺아보게 함
   }
@@ -3337,7 +3336,7 @@ var Board = (function () {
     try { document.activeElement.blur(); } catch (_) {}
   }
   // ===== 패트롤 랭킹 보기 (톺아본 뒤): 서버에서 1~5등과 내 등수·등급을 받아 보여 줌. 보내는 것은 접속 식별값과 내 코드네임뿐 =====
-  var RK_BTN_LABEL = '패트롤 랭킹 보기', RK_TITLE = '패트롤 랭킹', RK_NOTE = '성공한 기록 중 등급이 높은 순이에요. 같은 등급이면 추가 키워드가 많은 순, 그다음 문장의 짜임새가 좋은 순, 그래도 같으면 먼저 낸 순이에요.';
+  var RK_BTN_LABEL = '패트롤 랭킹 보기', RK_TITLE = '패트롤 랭킹', RK_NOTE = '성공한 기록 중 등급이 높은 순이에요. 같은 등급이면\n추가 키워드가 많은 순, 그다음 문장의 짜임새가 좋은 순, 그래도 같으면 먼저 낸 순이에요.';
   var RK_LOADING = '불러오는 중이에요...', RK_FAIL = '랭킹을 불러오지 못했어요. 잠시 뒤에 다시 열어 주세요.', RK_EMPTY = '아직 기록이 없어요', RK_ME_NONE = '아직 내 성공 기록이 없어요', RK_TIMEOUT_MS = 15000;
   var rankBtn = $('board-rankbtn'), rkEl = $('board-rk'), rkOpen = false, rkToken = 0;
   rankBtn.textContent = RK_BTN_LABEL;
