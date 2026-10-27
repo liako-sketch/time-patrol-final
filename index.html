@@ -294,6 +294,8 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
 .board-card.board-hasimg .board-ai { display: block; }
 .board-card .board-tag { position: absolute; left: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em;
   color: #aef6fb; background: rgba(60, 200, 215, .18); border: 1px solid rgba(130, 240, 250, .45); text-shadow: 0 0 6px rgba(110, 240, 250, .8); }
+.board-card .board-oktag { position: absolute; right: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em; color: #b9f8c8; background: rgba(70, 210, 110, .2); border: 1px solid rgba(130, 250, 160, .5); text-shadow: 0 0 6px rgba(110, 250, 150, .7); }   /* 5번째 실패부터 고정된 카드 */
+.board-rhint.board-rlock { margin-top: 12px; color: var(--tori-hl); border-color: rgba(255, 213, 74, .6); }   /* '맞춘 카드는 고정되었어요!' */
 /* ② 하단 라벨 */
 .board-card .board-t { flex: none; font-family: var(--font-title); font-size: .8em; font-weight: 600; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; color: #e6fdff; text-shadow: 0 0 8px rgba(110, 230, 240, .45); }
 .board-card.board-locked, .board-card.board-hlock { cursor: pointer; }
@@ -3092,6 +3094,11 @@ var Board = (function () {
     }   // 성공 팝업을 닫고 돌아오면 안내 대사가 한 줄로 바뀜
     try { document.activeElement.blur(); } catch (_) {}
   }
+  function addOkTag(c) {   // 고정된 카드 오른쪽 위에 '성공!' (ARCHIVE 태그와 같은 모양). 1번 고정 카드에는 붙이지 않음
+    var im = c.el.querySelector('.board-img');
+    if (!im || im.querySelector('.board-oktag')) return;
+    var t = document.createElement('span'); t.className = 'board-oktag'; t.textContent = '성공!'; im.appendChild(t);
+  }
   function showFail(g) {
     var srvHint = serverHint(lastServer);   // 3번째 실패부터 서버(Gemini)가 보낸 자세한 힌트. 없으면 아래 고정 문구
     if (srvHint) bubbleHint = srvHint;   // 실패 창을 닫으면 토리 말풍선에도 계속 보여 줌
@@ -3102,21 +3109,30 @@ var Board = (function () {
     if (hintCount >= HLOCK_FROM) {   // 5번째 실패부터: 맞은 칸의 카드는 그 자리에 고정 (새로고침 전까지 풀리지 않음). 틀린 칸의 카드는 제자리에 두되 움직일 수 있음
       for (i = 1; i <= ERR; i++) {
         c = occupant(i);
-        if (c && !c.locked && g.wrong.indexOf(i) < 0) { c.hlock = true; c.el.classList.add('board-hlock'); if (i !== ERR) c.el.classList.add('board-okc'); }
+        if (c && !c.locked && g.wrong.indexOf(i) < 0) { c.hlock = true; c.el.classList.add('board-hlock'); if (i !== ERR) c.el.classList.add('board-okc'); addOkTag(c); }
       }
     }
     refreshSlots(); Comm.cardDown();
     SFX.play('failShow', AUDIO.level.fail);
     openRes('fail', 'images/tori/tori_' + TORI_POSES.sad + '.webp', '타임라인 수정에 실패했어요... ㅠ.ㅠ', function (body) {
       var p = document.createElement('p'); p.className = 'board-rhint';
-      var hintText = srvHint || getHint(g), mk = srvHint ? null : /\d+번 칸/.exec(hintText);   // 칸 힌트의 '○번 칸'만 노랑 (오류 칸 힌트는 그대로)
-      if (mk) { var hk = document.createElement('span'); hk.className = 'hl-y'; hk.textContent = mk[0]; p.appendChild(document.createTextNode(hintText.slice(0, mk.index))); p.appendChild(hk); p.appendChild(document.createTextNode(hintText.slice(mk.index + mk[0].length))); }
-      else p.textContent = hintText;
+      var hintText = srvHint || getHint(g);
+      hintText.split(/(\d+(?:, ?\d+)*번 칸)/).forEach(function (part, n) {   // 칸 힌트의 '○번 칸'(여러 칸이면 '3, 4번 칸')만 노랑 (오류 칸은 그대로)
+        if (n % 2) { var hk = document.createElement('span'); hk.className = 'hl-y'; hk.textContent = part; p.appendChild(hk); }
+        else if (part) p.appendChild(document.createTextNode(part));
+      });
       body.appendChild(p);
+      if (hintCount >= HLOCK_FROM && cards.some(function (k) { return k.hlock; })) {   // 5번째 실패부터 고정 안내
+        var q = document.createElement('p'); q.className = 'board-rhint board-rlock'; q.textContent = '맞춘 카드는 고정되었어요!'; body.appendChild(q);
+      }
     }, [{ label: '다시 도전하기', fn: closeRes }]);
   }
   function solveBoard() {   // 맞춘 타임라인 고정 + 녹색 (설명 패널은 그대로 열림)
     boardSolved = true;
+    cards.forEach(function (k) {   // 실패 때의 부분 고정(성공! 배지)은 풀고, 아래 평소 고정 타임라인 모양으로
+      if (k.hlock) { k.hlock = false; k.el.classList.remove('board-hlock'); var ot = k.el.querySelector('.board-oktag'); if (ot) ot.remove(); }
+    });
+    hintCount = 0; lastFailKey = '';
     cards.forEach(function (k) {
       if (k.where === 'hand') return;
       if (!k.locked) k.solved = true;
@@ -3980,7 +3996,7 @@ var Board = (function () {
     // 3번째 실패부터 서버가 보낸 힌트: 실패 창을 닫은 뒤에도 잊지 않게 평소 안내 대사 자리에 계속 보여 줌 (맞추거나 다시 시작하면 사라짐). 문장마다 눌러서 넘김
     var hintText = '', hintTyped = false;
     function sayHint() {
-      var lines = splitNote(hintText);
+      var lines = splitNote(hintText).map(function (s) { return s.replace(/(\d+(?:, ?\d+)*번 칸)/g, '<y>$1</y>'); });   // 칸 번호는 노랑
       if (!lines.length) { hintText = ''; sayGuide(); return; }
       var first = !hintTyped; hintTyped = true;
       say(lines[0], TORI_POSE.explain, 'hint', true, false, !first);
