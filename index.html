@@ -296,6 +296,7 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
   color: #aef6fb; background: rgba(60, 200, 215, .18); border: 1px solid rgba(130, 240, 250, .45); text-shadow: 0 0 6px rgba(110, 240, 250, .8); }
 .board-card .board-oktag { position: absolute; right: .5em; top: .4em; font-family: var(--font-title); font-weight: 600; font-size: .5em; letter-spacing: .15em; padding: .15em .5em; border-radius: .3em; color: #b9f8c8; background: rgba(70, 210, 110, .2); border: 1px solid rgba(130, 250, 160, .5); text-shadow: 0 0 6px rgba(110, 250, 150, .7); }   /* 5번째 실패부터 고정된 카드 */
 .board-rhint.board-rlock { margin-top: 12px; color: var(--tori-hl); border-color: rgba(255, 213, 74, .6); }   /* '맞춘 카드는 고정되었어요!' */
+.board-ainote { margin: 10px 4px 0; font-size: 20px; color: rgba(190, 215, 230, .7); }   /* 'Gemini는 실수할 수 있어요.' */
 /* ② 하단 라벨 */
 .board-card .board-t { flex: none; font-family: var(--font-title); font-size: .8em; font-weight: 600; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; color: #e6fdff; text-shadow: 0 0 8px rgba(110, 230, 240, .45); }
 .board-card.board-locked, .board-card.board-hlock { cursor: pointer; }
@@ -2829,6 +2830,7 @@ var Board = (function () {
   var BAD_MARKS = [['그레고리우스', '파문의 일로', '왕 하인리히에게 용서를 구하며'], ['저에게', '왕이 정한 기한'], ['왕이 독일이나 다른 땅을', '제가'], ['왕을 방해하는', '왕에게 맞서면']];
   var REAL_MARKS = [['하인리히'], ['저에게', '교황이 정한 기한'], ['교황이 독일이나 다른 땅을', '제가'], ['교황을 방해하는', '교황에게 맞서면']];
 
+  var AI_NOTE = 'Gemini는 실수할 수 있어요.';
   var HLOCK_FROM = 5, lastFailKey = '';   // 맞은 칸을 고정하기 시작하는 실패 횟수 · 마지막으로 실패한 배치(같은 배치로는 다시 제출 불가)
   var hintCount = 0, lastAnswer = '', boardSolved = false;   // 힌트를 본 횟수(결과 화면용)·성공 팝업 동안만 화면에 보관하는 답안
   var pendingSubmit = null, lastServer = null;   // 최종 제출 요청(응답을 기다리는 약속)·그 응답. 결과 화면을 만든 뒤 바로 비움
@@ -3101,6 +3103,7 @@ var Board = (function () {
   }
   function showFail(g) {
     var srvHint = serverHint(lastServer);   // 3번째 실패부터 서버(Gemini)가 보낸 자세한 힌트. 없으면 아래 고정 문구
+    var srvAi = !!(srvHint && lastServer && lastServer.ai === true);   // Gemini가 쓴 부분이 들어 있을 때만 'Gemini는 실수할 수 있어요' 표시
     if (srvHint) bubbleHint = srvHint;   // 실패 창을 닫으면 토리 말풍선에도 계속 보여 줌
     lastServer = null;
     hintCount++;
@@ -3122,6 +3125,7 @@ var Board = (function () {
         else if (part) p.appendChild(document.createTextNode(part));
       });
       body.appendChild(p);
+      if (srvAi) { var an = document.createElement('p'); an.className = 'board-ainote'; an.textContent = AI_NOTE; body.appendChild(an); }
       if (hintCount >= HLOCK_FROM && cards.some(function (k) { return k.hlock; })) {   // 5번째 실패부터 고정 안내
         var q = document.createElement('p'); q.className = 'board-rhint board-rlock'; q.textContent = '맞춘 카드는 고정되었어요!'; body.appendChild(q);
       }
@@ -3196,6 +3200,7 @@ var Board = (function () {
         var t3 = el('div', 'board-rtext'); t3.appendChild(el('p', '', advice));
         c3.appendChild(t3);
       } else c3.appendChild(el('p', 'board-rdim', '이번에는 표시할 수 없어요'));
+      if (kwr.source === 'server') c3.appendChild(el('p', 'board-ainote', AI_NOTE));   // 키워드·등급·조언은 Gemini가 정함
       body.appendChild(c3);
     }, [{ label: '오류 사료 톺아보기', fn: openCmp }]);   // 닫기 없음: 반드시 톺아보게 함
   }
@@ -3997,6 +4002,9 @@ var Board = (function () {
     var hintText = '', hintTyped = false;
     function sayHint() {
       var lines = splitNote(hintText).map(function (s) { return s.replace(/(\d+(?:, ?\d+)*번 칸)/g, '<y>$1</y>'); });   // 칸 번호는 노랑
+      var pairs = [];
+      for (var pi = 0; pi < lines.length; pi += 2) pairs.push(lines.slice(pi, pi + 2).join(' '));   // 두 문장씩 한 화면에
+      lines = pairs;
       if (!lines.length) { hintText = ''; sayGuide(); return; }
       var first = !hintTyped; hintTyped = true;
       say(lines[0], TORI_POSE.explain, 'hint', true, false, !first);
