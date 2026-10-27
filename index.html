@@ -2380,7 +2380,7 @@ var Board = (function () {
   confirmBtn.style.cssText = 'width:' + L.confirmW + 'px;height:' + L.confirmH + 'px;font-size:' + L.confirmFontPx + 'px';
   cardsEl.parentNode.insertBefore(confirmBtn, cardsEl);   // 카드보다 아래층
   confirmBtn.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-  confirmBtn.addEventListener('click', function () { confirmBtn.blur(); openWarn(lastFailKey && placementOf().join(',') === lastFailKey); });   // 직전에 실패한 배치와 같으면 제출 못 함
+  confirmBtn.addEventListener('click', function () { confirmBtn.blur(); openWarn(!!failedKeys[placementOf().join(',')]); });   // 한 번이라도 실패한 배치는 성공할 때까지 다시 제출 못 함
   function updateConfirm() {
     if (boardSolved) { confirmBtn.classList.remove('board-on'); return; }
     var full = true, i;
@@ -2831,7 +2831,7 @@ var Board = (function () {
   var REAL_MARKS = [['하인리히'], ['저에게', '교황이 정한 기한'], ['교황이 독일이나 다른 땅을', '제가'], ['교황을 방해하는', '교황에게 맞서면']];
 
   var AI_NOTE = 'Gemini는 실수할 수 있어요.';
-  var HLOCK_FROM = 5, lastFailKey = '';   // 맞은 칸을 고정하기 시작하는 실패 횟수 · 마지막으로 실패한 배치(같은 배치로는 다시 제출 불가)
+  var HLOCK_FROM = 5, failedKeys = {};   // 맞은 칸을 고정하기 시작하는 실패 횟수 · 실패한 배치들(성공할 때까지 같은 배치로는 다시 제출 불가)
   var hintCount = 0, lastAnswer = '', boardSolved = false;   // 힌트를 본 횟수(결과 화면용)·성공 팝업 동안만 화면에 보관하는 답안
   var pendingSubmit = null, lastServer = null;   // 최종 제출 요청(응답을 기다리는 약속)·그 응답. 결과 화면을 만든 뒤 바로 비움
   var resEl = $('board-res'), cmpEl = $('board-cmp'), resOpen = false, resMode = '', cmpOpen = false;
@@ -3107,7 +3107,7 @@ var Board = (function () {
     if (srvHint) bubbleHint = srvHint;   // 실패 창을 닫으면 토리 말풍선에도 계속 보여 줌
     lastServer = null;
     hintCount++;
-    lastFailKey = placementOf().join(',');   // 같은 배치로 다시 제출하지 못하게 이 배치를 기억
+    failedKeys[placementOf().join(',')] = true;   // 같은 배치로 다시 제출하지 못하게 이 배치를 기억
     var i, c;
     if (hintCount >= HLOCK_FROM) {   // 5번째 실패부터: 맞은 칸의 카드는 그 자리에 고정 (새로고침 전까지 풀리지 않음). 틀린 칸의 카드는 제자리에 두되 움직일 수 있음
       for (i = 1; i <= ERR; i++) {
@@ -3136,7 +3136,7 @@ var Board = (function () {
     cards.forEach(function (k) {   // 실패 때의 부분 고정(성공! 배지)은 풀고, 아래 평소 고정 타임라인 모양으로
       if (k.hlock) { k.hlock = false; k.el.classList.remove('board-hlock'); var ot = k.el.querySelector('.board-oktag'); if (ot) ot.remove(); }
     });
-    hintCount = 0; lastFailKey = '';
+    hintCount = 0; failedKeys = {};
     cards.forEach(function (k) {
       if (k.where === 'hand') return;
       if (!k.locked) k.solved = true;
