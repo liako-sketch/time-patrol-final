@@ -2689,13 +2689,13 @@ var Board = (function () {
   var BONUS_NOTE = '+ 뒤는 있으면 더 좋은 키워드예요';
   var KW_LIMIT_NOTE = '비슷한 말도 인정해요. 표현이 달라도 괜찮아요.';
   // '왕이 용서를' 판정: 정규화한 글에서 붙어 있는 표현만 인정. 근접 규칙은 쓰지 않음
-  var KING_FORGIVE_PHRASES = ['왕이용서', '왕이빌', '왕이사죄', '왕이무릎', '왕이간청', '왕이눈물', '왕이맨발', '왕이잘못', '왕이사과', '왕이용서를빌', '왕이용서를구한', '하인리히가용서', '하인리히가빌', '하인리히가사죄', '하인리히가눈물', '하인리히가맨발'];
+  var KING_FORGIVE_PHRASES = ['왕이용서', '왕이빌', '왕이사죄', '왕이무릎', '왕이간청', '왕이눈물', '왕이맨발', '왕이잘못', '왕이사과', '왕이용서를빌', '왕이용서를구한', '하인리히가용서', '하인리히가빌', '하인리히가사죄', '하인리히가눈물', '하인리히가맨발', '황제가용서', '황제가빌', '황제가사죄', '황제가무릎', '황제가간청', '황제가눈물', '황제가맨발', '황제가잘못', '황제가사과', '황제가용서를빌', '황제가용서를구한', '하인리히황제가용서', '하인리히황제가빌'];
   // 방해 표현: 인정 표현이 이 표현과 겹치면 그 부분은 인정하지 않음 (교황이 용서를 구하는 방향 / 왕이 교황에게 시키는 뜻)
-  var KING_FORGIVE_BLOCKERS = ['왕이교황에게용서', '왕이교황에게빌', '왕이교황에게사죄', '용서를구하게', '용서를빌게', '사죄하게', '교황이용서를구', '교황이빌', '교황이사죄'];
+  var KING_FORGIVE_BLOCKERS = ['왕이교황에게용서', '왕이교황에게빌', '왕이교황에게사죄', '황제가교황에게용서', '황제가교황에게빌', '황제가교황에게사죄', '용서를구하게', '용서를빌게', '사죄하게', '교황이용서를구', '교황이빌', '교황이사죄'];
   function normAnswer(s) { return String(s).replace(/[\s.,]+/g, '').toLowerCase(); }   // 공백·줄바꿈·마침표·쉼표 제거 + 소문자
   function positions(s, w) { var r = [], i = s.indexOf(w); while (i >= 0) { r.push(i); i = s.indexOf(w, i + 1); } return r; }
   function spans(s, list) { var r = []; list.forEach(function (w) { positions(s, w).forEach(function (i) { r.push([i, i + w.length]); }); }); return r; }
-  var KING_SUBJECTS = ['왕이', '왕은', '하인리히가', '하인리히는', '하인리히왕이'];   // 주어 뒤 가까운 곳에서 용서를 비는 말이 나오면 인정 ("왕이 카노사에서 용서를 빌었다")
+  var KING_SUBJECTS = ['왕이', '왕은', '황제가', '황제는', '하인리히가', '하인리히는', '하인리히왕이', '하인리히황제가'];   // 주어 뒤 가까운 곳에서 용서를 비는 말이 나오면 인정 ("왕이 카노사에서 용서를 빌었다")
   var KING_FORGIVE_VERBS = ['용서', '빌었', '빌며', '빌고', '빈다', '사죄', '사과', '간청', '무릎', '눈물', '맨발'];
   var KING_NEAR = 14;   // 주어 뒤로 살피는 글자 수 (정규화한 글 기준)
   function kingForgiveNear(n, bad) {
@@ -3832,7 +3832,7 @@ var Board = (function () {
       '<p id="board-bubble-text"></p><span id="board-hint">Enter 또는 터치로 진행해 주세요.</span><span id="board-next">▼</span>';
     root.appendChild(bubble);
     var textEl = $('board-bubble-text'), hintEl = $('board-hint'), nextEl = $('board-next');
-    var typingNow = false, curText = '', noteLines = [], noteIdx = 0, noteOn = false;
+    var typingNow = false, curText = '', noteLines = [], noteIdx = 0, noteOn = false, hintLoop = false;   // hintLoop: 서버 힌트는 마지막 문장 뒤에 누르면 처음으로 돌아감
     function showNext(v) { hintEl.style.display = nextEl.style.display = v ? 'block' : 'none'; }
 
     // 해설 문장 나누기: 마침표·물음표 뒤에서 끊되, 따옴표 안의 부호는 건너뜀 (화면에 보일 때만 나눔, 원본은 그대로)
@@ -3851,16 +3851,17 @@ var Board = (function () {
       if (cur.trim()) out.push(cur.trim());
       return out.filter(function (x) { return x; });
     }
-    function endNote() { noteOn = false; noteLines = []; noteIdx = 0; root.classList.remove('board-noting'); showNext(false); }
+    function endNote() { hintLoop = false; noteOn = false; noteLines = []; noteIdx = 0; root.classList.remove('board-noting'); showNext(false); }
     function endTyping() {
       typingNow = false; talking = false; ring.classList.remove('board-is-talking');
-      if (noteOn && noteIdx < noteLines.length - 1) showNext(true);   // 다음 문장이 남았을 때만 안내·▼
+      if (noteOn && (noteIdx < noteLines.length - 1 || (hintLoop && noteLines.length > 1))) showNext(true);   // 다음 문장이 남았을 때만 안내·▼ (힌트는 계속 돌아가므로 늘 ▼)
     }
     // Enter·스페이스·말풍선·토리: 타이핑 중이면 그 문장을 끝까지 보여 주고, 끝났으면 다음 문장으로
     function noteAdvance() {
       if (!noteOn) return false;
       if (typingNow) { clearTimeout(typeTimer); textEl.textContent = curText; endTyping(); return true; }
-      if (noteIdx < noteLines.length - 1) { noteIdx++; say(noteLines[noteIdx], TORI_POSE.explain, 'explain', true, true); }
+      if (noteIdx < noteLines.length - 1) { noteIdx++; say(noteLines[noteIdx], TORI_POSE.explain, hintLoop ? 'hint' : 'explain', true, true); }
+      else if (hintLoop && noteLines.length > 1) { noteIdx = 0; say(noteLines[0], TORI_POSE.explain, 'hint', true, true); }   // 힌트는 마지막 문장 뒤에 다시 처음부터
       return true;
     }
 
@@ -3970,7 +3971,7 @@ var Board = (function () {
       if (!lines.length) { hintText = ''; sayGuide(); return; }
       var first = !hintTyped; hintTyped = true;
       say(lines[0], TORI_POSE.explain, 'hint', true, false, !first);
-      noteLines = lines; noteIdx = 0; noteOn = true;
+      noteLines = lines; noteIdx = 0; noteOn = true; hintLoop = true;
       root.classList.add('board-noting');
       if (!first && lines.length > 1) showNext(true);   // 이미 본 힌트는 바로 보이고, 넘길 문장이 있으면 ▼
     }
