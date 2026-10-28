@@ -3811,6 +3811,20 @@ var Board = (function () {
     binds.forEach(function (b) { b[0].addEventListener(b[1], b[2], b[3]); });
     last = performance.now();
     if (!looping) { looping = true; requestAnimationFrame(loop); }
+    warmDrag();
+  }
+  // 처음 카드를 집을 때 큰 그림자(.board-drag)를 처음 그리느라 생기는 약한 끊김을 줄이려고, 들어오는 순간(흰 화면이 덮인 동안) 카드 복제본에 같은 스타일을 두 프레임만 미리 입혀 둠. 보이지 않고 클릭도 막힘
+  function warmDrag() {
+    try {
+      var src = cards && cards[0] && cards[0].el;
+      if (!src) return;
+      var w = src.cloneNode(true);
+      w.removeAttribute('id'); w.setAttribute('aria-hidden', 'true'); w.inert = true;
+      w.className = 'board-card board-drag';
+      w.style.cssText = src.style.cssText + ';opacity:.01;pointer-events:none;transition:none;';
+      cardsEl.appendChild(w);
+      requestAnimationFrame(function () { requestAnimationFrame(function () { if (w.parentNode) w.parentNode.removeChild(w); }); });
+    } catch (_) { /* 미리 그리기는 없어도 동작에 영향 없음 */ }
   }
   // 사료카드 재배치 (부드럽게): 손패로 되돌림 + 순서·오류 카드 새로 섞기 + 스크롤 처음으로
   function cardsReset() {
