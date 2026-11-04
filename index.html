@@ -2872,8 +2872,8 @@ var Board = (function () {
   }
   // ----- 키워드 판정 진입점: 반환 형식 { required: [{label, hit}], bonus: [{label, hit}], source: 'local' | 'server' } -----
   function evaluateKeywordsMock(text) {   // 로컬 판정: 위의 유의어 목록·붙어 있는 표현 규칙. 브라우저 안에서만 비교하며 저장·전송·출력 없음
-    var n = normAnswer(text);
-    var pick = function (d) { return { label: d.label, hit: keywordHit(d, n) }; };
+    var n = normAnswer(text), nOk = normAnswer(withoutNameMistakes(text));
+    var pick = function (d) { return { label: d.label, hit: keywordHit(d, d.rule ? nOk : n) }; };   // 규칙으로 보는 두 키워드(교황의 파문·왕이 용서를)는 이름 오류 문장을 뺀 글로 판정
     return { required: REQUIRED_KEYWORDS.map(pick), bonus: BONUS_KEYWORDS.map(pick), source: 'local' };
   }
   var KW_SERVER_ON = false;
@@ -2887,17 +2887,19 @@ var Board = (function () {
   var NAME_STRICT = ['카노사', '카놋사', '카노싸', '카노샤', '굴욕', '그레고리'], NAME_BROAD = NAME_STRICT.concat(['파문', '용서', '맨발']);
   var NAME_CONCORD = ['보름스', '협약', '1122', '칙령', '칼릭', '특허장'], NAME_KIN = ['아들', '아버지', '아버님', '부자'];
   var NAME_FACT_TIP = '교황과 왕의 이름이 서로 바뀌었거나 다르게 적힌 것 같아요. 다시 확인해 보세요.';
-  function nameMistake(text) {
-    return String(text).split(/[.!?。\n]+/).some(function (raw) {
-      var n = raw.replace(/[\s,]+/g, '').toLowerCase();
-      if (!n) return false;
-      var has = function (list) { return list.some(function (w) { return n.indexOf(w) >= 0; }); };
-      if (/보니파[키시]우스|보니페이스|보니파시오|필리[프페]4세|필립4세/.test(n)) return has(NAME_STRICT) || n.indexOf('하인리') >= 0;
-      if (has(NAME_KIN)) return false;
-      if (/하인리[히희](?:황제|왕)?5세|헨리5세/.test(n)) return has(NAME_STRICT) && !has(NAME_CONCORD);
-      if (/하인리[히희](?:황제|왕)?4세|헨리4세/.test(n)) return has(NAME_CONCORD) && !has(NAME_BROAD);
-      return false;
-    });
+  function nameSentMistake(raw) {   // 한 문장(원문)에 이름 오류가 있는가
+    var n = String(raw).replace(/[\s,]+/g, '').toLowerCase();
+    if (!n) return false;
+    var has = function (list) { return list.some(function (w) { return n.indexOf(w) >= 0; }); };
+    if (/보니파[키시]우스|보니페이스|보니파시오|필리[프페]4세|필립4세/.test(n)) return has(NAME_STRICT) || n.indexOf('하인리') >= 0;
+    if (has(NAME_KIN)) return false;
+    if (/하인리[히희](?:황제|왕)?5세|헨리5세/.test(n)) return has(NAME_STRICT) && !has(NAME_CONCORD);
+    if (/하인리[히희](?:황제|왕)?4세|헨리4세/.test(n)) return has(NAME_CONCORD) && !has(NAME_BROAD);
+    return false;
+  }
+  function nameMistake(text) { return String(text).split(/[.!?。\n]+/).some(nameSentMistake); }
+  function withoutNameMistakes(text) {   // 이름 오류가 있는 문장은 '교황의 파문'·'왕이 용서를' 판정에서 뺌 (하인리히 5세가 용서를 빌었다는 맞게 쓴 것이 아님). 다른 문장에 맞게 쓴 표현이 있으면 그대로 인정
+    return String(text).split(/([.!?。\n]+)/).filter(function (part, i) { return i % 2 === 1 || !nameSentMistake(part); }).join('');
   }
   function evaluateKeywords(text) {
     var local = evaluateKeywordsMock(text);
