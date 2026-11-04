@@ -2893,7 +2893,7 @@ var Board = (function () {
     var has = function (list) { return list.some(function (w) { return n.indexOf(w) >= 0; }); };
     if (/보니파[키시]우스|보니페이스|보니파시오|필리[프페]4세|필립4세/.test(n)) return has(NAME_STRICT) || n.indexOf('하인리') >= 0;
     if (has(NAME_KIN)) return false;
-    if (/하인리[히희](?:황제|왕)?5세|헨리5세/.test(n)) return has(NAME_STRICT) && !has(NAME_CONCORD);
+    if (/하인리[히희](?:황제|왕)?5세|헨리5세/.test(n)) return has(NAME_BROAD) && !has(NAME_CONCORD);   // 교과서에 5세는 안 나옴: 5세가 카노사·파문·용서 이야기에 나오면 이름 오류 (협약 이야기·가족 관계 문장은 예외)
     if (/하인리[히희](?:황제|왕)?4세|헨리4세/.test(n)) return has(NAME_CONCORD) && !has(NAME_BROAD);
     return false;
   }
