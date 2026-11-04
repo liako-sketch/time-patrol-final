@@ -2707,8 +2707,9 @@ var Board = (function () {
   var MODEL_ANSWER_NOTE ='이렇게 쓸 수도 있어요';
   // 키워드: label = 칩에 보이는 글자, terms = 인정하는 표현(부분 문자열, 정규화한 글에서 찾음. 나중에 여기에 추가하면 됨), rule = 특별 판정 이름
   var KW_ROYAL_FORGIVE_LABEL = '왕이 용서를';   // 칩 라벨(화면에 보이는 글자만 바뀜)
+  var KW_POPE_EXCOMM_LABEL = '교황의 파문';   // 칩 라벨: 파문이라는 낱말만이 아니라 '교황이 왕을 파문했다' 또는 '왕이 파문당했다'가 드러나야 켜짐
   var REQUIRED_KEYWORDS = [   // 개수(N개 중 M개)에 세는 키워드
-    { label: '파문', terms: ['파문', '파면', '쫓겨', '교회에서 내쫓'] },
+    { label: KW_POPE_EXCOMM_LABEL, terms: [], rule: 'popeExcomm' },
     { label: '카노사', terms: ['카노사', '카놋사', '카노싸'] },
     { label: KW_ROYAL_FORGIVE_LABEL, terms: [], rule: 'kingForgive' },
     { label: '뒤바뀜', terms: ['뒤바뀌', '뒤바꿔', '바뀌어', '바뀐', '바뀌었', '거꾸로', '반대', '역으로', '뒤집', '엇갈', '틀렸', '맞지 않', '모순', '반대로'] }
@@ -2744,7 +2745,14 @@ var Board = (function () {
     var bad = spans(n, KING_FORGIVE_BLOCKERS);
     return spans(n, KING_FORGIVE_PHRASES).some(function (g) { return !bad.some(function (x) { return g[0] < x[1] && x[0] < g[1]; }); }) || kingForgiveNear(n, bad);
   }
+  // '교황의 파문' 판정: 정규화한 글에서 붙어 있는 표현만 인정 ('교황이 왕을 파문했다' 또는 '왕이 파문당했다/되었다'). '왕이 파문했다'처럼 방향이 틀린 말은 인정 표현에 넣지 않음
+  var POPE_EXCOMM_PHRASES = ['왕을파문', '하인리히를파문', '하인리히왕을파문', '황제를파문', '교황이파문했', '교황이파문하', '교황이파문을내리', '교황이파문을선고', '교황에게파문당', '교황에게파문을당', '파문당한왕', '파문당한하인리히', '파문당한황제',
+    '왕이파문당', '왕이파문되', '왕이파문을당', '왕이파문을받', '왕은파문당', '왕은파문되', '왕은파문을당', '왕은파문을받',
+    '하인리히가파문당', '하인리히가파문되', '하인리히가파문을당', '하인리히가파문을받', '하인리히는파문당', '하인리히는파문되', '하인리히는파문을당', '하인리히는파문을받',
+    '황제가파문당', '황제가파문되', '황제가파문을당', '황제가파문을받', '황제는파문당', '황제는파문되', '황제는파문을당', '황제는파문을받'];
+  function popeExcomm(n) { return POPE_EXCOMM_PHRASES.some(function (w) { return n.indexOf(w) >= 0; }); }
   function keywordHit(def, n) {   // n: normAnswer 로 정규화한 학생 글. 브라우저 안에서만 비교
+    if (def.rule === 'popeExcomm') return popeExcomm(n);
     if (def.rule === 'kingForgive') return kingForgive(n);
     return def.terms.some(function (t) { return n.indexOf(normAnswer(t)) >= 0; });
   }
