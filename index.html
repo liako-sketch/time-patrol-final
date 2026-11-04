@@ -2702,7 +2702,7 @@ var Board = (function () {
   // ===== 제출 뒤 흐름 =====
   var HINT_SLOT = '먼저 {N}번 칸을 확인해 보아요. 앞뒤의 사료를 읽고, 누가 누구에게 무엇을 했는지 비교해 봐요.';   // 힌트 문구 (정답 카드 이름·번호는 알려 주지 않음)
   var HINT_ERR = '먼저 오류 칸을 확인해 보아요. 오류 칸에 둔 사료의 말하는 사람과 받는 사람을 비교해 봐요.';
-  var MODEL_ANSWER = '사료에는 교황이 왕에게 용서를 구하며 서약한다고 나오지만, 실제로는 그레고리우스 7세가 성직자 임명권(서임권)을 두고 다투다 하인리히 왕을 파문했어요. 그래서 카노사 성문 앞에서 맨발로 사흘을 기다리며 왕이 용서를 빌었어요. 용서를 구하는 사람과 받는 사람이 뒤바뀌어 있어서 이 사료는 오류예요.';
+  var MODEL_ANSWER = '사료에는 교황이 왕에게 용서를 구하며 서약한다고 나오지만, 실제로는 교황 그레고리우스 7세가 성직자 임명권을 두고 다투다 왕 하인리히 4세를 파문했어요. 그래서 카노사 성문 앞에서 왕이 용서를 빌었고, 이를 카노사의 굴욕이라고 해요. 용서를 구하는 사람과 받는 사람이 뒤바뀌어 있어서 이 사료는 오류예요.';
   var MODEL_ANSWER_TITLE = '토리의 답안';   // 성공 팝업 왼쪽 칸 제목
   var MODEL_ANSWER_NOTE ='이렇게 쓸 수도 있어요';
   // 키워드: label = 칩에 보이는 글자, terms = 인정하는 표현(부분 문자열, 정규화한 글에서 찾음. 나중에 여기에 추가하면 됨), rule = 특별 판정 이름
@@ -2736,21 +2736,61 @@ var Board = (function () {
       return positions(n, s).some(function (p) {
         var w = n.substr(p + s.length, KING_NEAR);
         if (w.indexOf('교황') >= 0) return false;   // 사이에 교황이 끼면 누가 비는지 알 수 없어 인정하지 않음
-        if (!KING_FORGIVE_VERBS.some(function (v) { return w.indexOf(v) >= 0; })) return false;
+        if (!KING_FORGIVE_VERBS.some(function (v) { var k = w.indexOf(v); return k >= 0 && !negAfter(n, p + s.length + k + v.length); })) return false;   // 용서를 빌었다는 말 뒤에 부정이 오면('빌지 않았다') 인정하지 않음
         return !bad.some(function (x) { return p < x[1] && x[0] < p + s.length + KING_NEAR; });   // 방해 표현이 이 구간에 걸리면 인정하지 않음
       });
     });
   }
   function kingForgive(n) {   // 방해 표현과 겹치지 않는 인정 표현이 하나라도 있으면 인정 (다른 위치에 정상 표현이 있으면 그것으로 인정)
     var bad = spans(n, KING_FORGIVE_BLOCKERS);
-    return spans(n, KING_FORGIVE_PHRASES).some(function (g) { return !bad.some(function (x) { return g[0] < x[1] && x[0] < g[1]; }); }) || kingForgiveNear(n, bad);
+    return spans(n, KING_FORGIVE_PHRASES).some(function (g) { return !bad.some(function (x) { return g[0] < x[1] && x[0] < g[1]; }) && !negAfter(n, g[1]); }) || kingForgiveNear(n, bad) || kingForgiveStruct(n);
   }
-  // '교황의 파문' 판정: 정규화한 글에서 붙어 있는 표현만 인정 ('교황이 왕을 파문했다' 또는 '왕이 파문당했다/되었다'). '왕이 파문했다'처럼 방향이 틀린 말은 인정 표현에 넣지 않음
-  var POPE_EXCOMM_PHRASES = ['왕을파문', '하인리히를파문', '하인리히왕을파문', '황제를파문', '교황이파문했', '교황이파문하', '교황이파문을내리', '교황이파문을선고', '교황에게파문당', '교황에게파문을당', '파문당한왕', '파문당한하인리히', '파문당한황제',
-    '왕이파문당', '왕이파문되', '왕이파문을당', '왕이파문을받', '왕은파문당', '왕은파문되', '왕은파문을당', '왕은파문을받',
-    '하인리히가파문당', '하인리히가파문되', '하인리히가파문을당', '하인리히가파문을받', '하인리히는파문당', '하인리히는파문되', '하인리히는파문을당', '하인리히는파문을받',
-    '황제가파문당', '황제가파문되', '황제가파문을당', '황제가파문을받', '황제는파문당', '황제는파문되', '황제는파문을당', '황제는파문을받'];
-  function popeExcomm(n) { return POPE_EXCOMM_PHRASES.some(function (w) { return n.indexOf(w) >= 0; }); }
+  // 부정·시키는 말 검사: '왕이 용서를 빌지 않았다', '왕이 교황에게 용서를 구하게 했다'처럼 뜻이 달라지는 말이 뒤따르면 인정하지 않음
+  function negAfter(n, end) { return /지않|지못|않았|못했|못하|아니었|아니다|아니라|하게|하도록|시켰|시키|라고했|라고하/.test(n.substr(end, 8)); }
+  var FORGIVE_VERBS = ['용서를빌', '용서를구', '용서를청', '용서를했', '용서해달', '사죄', '사과', '간청', '무릎을꿇', '빌었', '빌며', '빌고', '빈다', '빌어', '빌면서'];
+  var ANY_SUBJ_RE_G = /(교황|그레고리우스7세|그레고리우스|왕|하인리히4세|하인리히|황제)(이|가|은|는)/g;   // 동사 앞 주어 후보
+  var KING_SUBJ_ONLY_RE = /^(왕|하인리히4세|하인리히|황제)(이|가|은|는)$/;
+  var KING_NOUN = '(?:왕|하인리히4세|하인리히왕|하인리히황제|하인리히|황제)(?!이아니라|가아니라|은아니라|는아니라)';
+  var KING_FORGIVE_WHO_RE = new RegExp('용서를(?:빈|구한|빌었던|구했던|청한)(?:사람|쪽|이|분|인물)(?:은|는|이)?(?:교황이아니라)?' + KING_NOUN);   // '용서를 빈 사람은 (교황이 아니라) 왕이다'
+  function kingForgiveStruct(n) {   // 동사 앞에서 가장 가까운 주어가 왕이면 인정 ('교황에게'처럼 주어가 아닌 말이 끼어도 됨). 가장 가까운 주어가 교황이면 인정하지 않음
+    if (KING_FORGIVE_WHO_RE.test(n)) return true;
+    return FORGIVE_VERBS.some(function (w) {
+      return positions(n, w).some(function (p) {
+        if (negAfter(n, p + w.length)) return false;
+        var subs = n.slice(Math.max(0, p - 40), p).match(ANY_SUBJ_RE_G);
+        return !!subs && KING_SUBJ_ONLY_RE.test(subs[subs.length - 1]);
+      });
+    });
+  }
+  // '교황의 파문' 판정: '교황이 왕을 파문했다' 또는 '왕이 파문당했다/되었다'가 드러나야 인정. 파문이라는 낱말만 있거나 방향이 틀린 말('왕이 교황을 파문했다')은 인정하지 않음. 부정('파문하지 않았다')도 인정하지 않음
+  var KING_TOKEN = '(?:왕|하인리히4세|하인리히왕|하인리히황제|하인리히|황제)';
+  var POPE_TOKEN = '(?:교황|그레고리우스7세|그레고리우스)';
+  var EXCOMM_OBJ_RE = /(왕|하인리히|황제|하인리히4세|하인리히왕|하인리히황제)$/;   // '○○를 파문'에서 ○○가 왕이면 인정. 앞이 교황이면 인정하지 않음
+  var EXCOMM_SUBJ_RE = /(왕|하인리히|황제|하인리히4세|하인리히왕|하인리히황제)(이|가|은|는)$/;   // '○○가 파문당했다'에서 ○○가 왕이면 인정
+  var EXCOMM_POPE_SUBJ_RE = /^(교황|그레고리우스7세|그레고리우스)(이|가|은|는)$/;
+  var EXCOMM_WHO_RE = new RegExp('파문(?:을)?(?:당한|받은|된)(?:사람|쪽|이|분|인물)(?:은|는|이)?(?:교황이아니라)?' + KING_TOKEN + '(?!이아니라|가아니라|은아니라|는아니라)');   // '파문당한 사람은 (교황이 아니라) 왕이다'
+  var EXCOMM_BY_POPE_RE = new RegExp(KING_TOKEN + '(?:이|가|은|는)?(?:교황|그레고리우스7세|그레고리우스)(?:에게|한테|에게서|의)파문(?:을)?(?:당|받|되)');   // '왕이 교황에게/한테 파문당했다', '교황에게 파문을 받은 왕'
+  var EXCOMM_POPE_PASSIVE_RE = new RegExp(POPE_TOKEN + '(?:에게|한테|의)파문(?:을)?(?:받은|당한)' + KING_TOKEN);   // '교황의 파문을 받은 왕', '교황에게 파문을 받은 왕'
+  var EXCOMM_ACTIVE_VERBS = ['파문했', '파문하', '파문시', '파문을내렸', '파문을내리', '파문을내린', '파문을선고', '파문선고', '파문을명', '파문을결정'];
+  var EXCOMM_PASSIVE_VERBS = ['파문당', '파문되', '파문을당', '파문을받'];
+  function popeExcomm(n) {
+    var ok = function (p, len) { return !negAfter(n, p + len); };
+    // 교황이 ○○를 파문 (○○ = 왕)
+    if (['을파문', '를파문'].some(function (w) { return positions(n, w).some(function (p) { return ok(p, w.length) && EXCOMM_OBJ_RE.test(n.slice(Math.max(0, p - 12), p)); }); })) return true;
+    // 교황이 (왕에게) 파문을 내렸다 / 파문했다: 동사 앞에서 가장 가까운 주어가 교황
+    if (EXCOMM_ACTIVE_VERBS.some(function (w) {
+      return positions(n, w).some(function (p) {
+        if (!ok(p, w.length)) return false;
+        var subs = n.slice(Math.max(0, p - 40), p).match(ANY_SUBJ_RE_G);
+        return !!subs && EXCOMM_POPE_SUBJ_RE.test(subs[subs.length - 1]);
+      });
+    })) return true;
+    // 왕이 파문당했다/되었다
+    if (EXCOMM_PASSIVE_VERBS.some(function (w) { return positions(n, w).some(function (p) { return ok(p, w.length) && EXCOMM_SUBJ_RE.test(n.slice(Math.max(0, p - 12), p)); }); })) return true;
+    // 파문당한 왕 / 파문당한 사람은 왕 / 교황에게(한테) 파문당한(받은) 왕
+    return ['파문당한왕', '파문당한하인리히', '파문당한황제', '파문받은왕', '파문받은하인리히'].some(function (w) { return n.indexOf(w) >= 0; })
+      || EXCOMM_WHO_RE.test(n) || EXCOMM_BY_POPE_RE.test(n) || EXCOMM_POPE_PASSIVE_RE.test(n);
+  }
   function keywordHit(def, n) {   // n: normAnswer 로 정규화한 학생 글. 브라우저 안에서만 비교
     if (def.rule === 'popeExcomm') return popeExcomm(n);
     if (def.rule === 'kingForgive') return kingForgive(n);
@@ -2842,8 +2882,26 @@ var Board = (function () {
     var ok = function (list, defs) { return Array.isArray(list) && list.length === defs.length && defs.every(function (d, i) { return list[i] && list[i].label === d.label && typeof list[i].hit === 'boolean'; }); };
     return !!r && ok(r.required, REQUIRED_KEYWORDS) && ok(r.bonus, BONUS_KEYWORDS);
   }
+  // 이름 오류(로컬 판정): 서버(Gemini)가 안 될 때도 코드로 확실히 잡는 것만. 서버 Code.js 의 nameMistake_ 와 같은 규칙.
+  // 하인리히 5세는 1122년 보름스 협약의 황제라 협약 이야기에서는 맞는 이름이므로, 카노사 사건 낱말이 있고 협약 낱말이 없는 문장에서만 오류(반대로 4세는 협약 낱말이 있고 카노사 쪽 낱말이 없을 때). 애매하면 오류로 보지 않음
+  var NAME_STRICT = ['카노사', '카놋사', '카노싸', '카노샤', '굴욕', '그레고리'], NAME_BROAD = NAME_STRICT.concat(['파문', '용서', '맨발']);
+  var NAME_CONCORD = ['보름스', '협약', '1122', '칙령', '칼릭', '특허장'], NAME_KIN = ['아들', '아버지', '아버님', '부자'];
+  var NAME_FACT_TIP = '교황과 왕의 이름이 서로 바뀌었거나 다르게 적힌 것 같아요. 다시 확인해 보세요.';
+  function nameMistake(text) {
+    return String(text).split(/[.!?。\n]+/).some(function (raw) {
+      var n = raw.replace(/[\s,]+/g, '').toLowerCase();
+      if (!n) return false;
+      var has = function (list) { return list.some(function (w) { return n.indexOf(w) >= 0; }); };
+      if (/보니파[키시]우스|보니페이스|보니파시오|필리[프페]4세|필립4세/.test(n)) return has(NAME_STRICT) || n.indexOf('하인리') >= 0;
+      if (has(NAME_KIN)) return false;
+      if (/하인리[히희](?:황제|왕)?5세|헨리5세/.test(n)) return has(NAME_STRICT) && !has(NAME_CONCORD);
+      if (/하인리[히희](?:황제|왕)?4세|헨리4세/.test(n)) return has(NAME_CONCORD) && !has(NAME_BROAD);
+      return false;
+    });
+  }
   function evaluateKeywords(text) {
     var local = evaluateKeywordsMock(text);
+    local.fact = nameMistake(text);
     if (!KW_SERVER_ON || !kwEndpoint()) return local;
     var server = null;
     if (validKeywordResult(server)) { server.source = 'server'; return server; }
@@ -3223,6 +3281,7 @@ var Board = (function () {
       var srv = lastServer; lastServer = null;
       var kwr = serverKeywordResult(srv) || evaluateKeywords(lastAnswer);   // 서버(Gemini) 판정이 있으면 그것, 없으면 로컬 판정
       var advice = kwr.source === 'server' ? serverAdvice(srv) : '';   // 조언은 서버 판정이 쓰일 때만
+      if (!advice && kwr.source !== 'server' && kwr.fact) advice = NAME_FACT_TIP;   // 서버가 없을 때 코드로 잡은 이름 오류는 고정 안내만
       var reqN = kwr.required.filter(function (r) { return r.hit; }).length;
       var grade = typeof kwr.think === 'number' ? getGradeThink(reqN, kwr.think) : getGrade({ required: kwr.required, bonus: kwr.bonus });   // Gemini가 안 되면 원래 기준
       if (kwr.fact) grade = GRADE_LOWER[grade] || grade;   // 서버(Gemini)가 역사적 오류를 찾았으면 한 등급 낮춤 (C 는 유지)
