@@ -1050,7 +1050,6 @@
     S.phase = 'exit';
     S.els.root.classList.remove('th-tutorial');
     say(TORI_LINES.tunnelEnd, 'happy');
-    sfx('holeBoost', 0.8);   // 출구로 다가가며 차오르는 바람 소리 (위로 솟는 음은 쓰지 않음)
     S.targetSpeed = CONFIG.CRUISE_SPEED;          // 평소 속도로 출구에 다가감
     // 터널 끝에 진짜 출구가 생김. 처음 화면 크기가 지금 보이는 끝 빛과 똑같은 거리에 놓아 툭 커지지 않게 함
     var d0 = CONFIG.EXIT_DIST;
@@ -1062,6 +1061,7 @@
     S.exit.white = true;
     S.els.root.classList.add('th-exiting');   // 말풍선·카드 칸도 흰 빛과 함께 바로 사라짐
     S.els.white.classList.add('th-on');
+    sfx('holeBoost', 0.8);   // 출구가 하얗게 밝아지는 순간에 가속음 (위로 솟는 음은 쓰지 않음)
     if (S.onExit) { try { S.onExit(); } catch (_) { /* 바깥 연출이 실패해도 계속 */ } }
     after(1100, function () {
       S.phase = 'done';
