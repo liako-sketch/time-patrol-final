@@ -1588,7 +1588,7 @@ var SFX = {
 var BGM = (function () {
   'use strict';
   var DIR = 'audio/';
-  var TRACKS = { intro: 'bgm_1.mp3', quake: 'bgm_2.mp3', board: 'bgm_3.mp3', clear: 'bgm_4.mp3' };   // 인트로 / 흔들림 뒤 / 타임라인 / 분석 성공
+  var TRACKS = { intro: 'bgm_1.mp3', quake: 'bgm_2.mp3', board: 'bgm_3.mp3', clear: 'bgm_4.mp3', hole: 'bgm_5.mp3' };   // 인트로 / 흔들림 뒤 / 타임라인 / 분석 성공 / 타임 홀
   var LEVEL = 0.216;        // 배경음 크기 (효과음·말소리보다 작게). 여기 한 곳에서 조절 (0.35 에서 낮춤)
   var LOOP_FADE = 1.5;     // 반복할 때 곡 끝에서 줄어드는 시간(초)
   var muted = false, bm = null;   // 배경음 끄기 (효과음 끄기와 따로)
@@ -4345,6 +4345,7 @@ var Flow = (function () {
         TimeHole.mount(holeStage, { assetBase: '' });
         fitHole();
         TimeHole.start({ onExit: startExitWhite, onComplete: function () { toBoard(true); } });   // 얻은 카드 목록은 타임라인에 넘기지 않음
+        BGM.play('hole', { fade: 1.5 });          // 타임 홀 배경음 (반복). 흰 화면이 걷히는 동안 서서히 커짐
         return wait(HOLD_MS);
       })
       .then(function () {
@@ -4362,6 +4363,7 @@ var Flow = (function () {
   function startExitWhite() {                     // 타임 홀 출구가 밝아지는 순간, 비율 바깥 창도 같은 속도로 서서히 하얘짐
     white.style.display = 'block';
     exitWhite = white.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out', fill: 'forwards' });
+    BGM.stop(0.9);                                  // 타임 홀 배경음도 흰 화면과 함께 줄어듦
   }
   function toBoard(fromHole) {
     if (locked) return;
