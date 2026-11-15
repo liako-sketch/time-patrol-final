@@ -1161,6 +1161,10 @@ var SFX = {
     holeGlitch: [{ noise: true, filter: 'bandpass', f0: 2200, q: 2, d: 0.09, g: 0.045, a: 0.012 },
                  { noise: true, filter: 'bandpass', f0: 1300, q: 2, t: 0.1, d: 0.09, g: 0.04, a: 0.012 },
                  { wave: 'square', f0: 700, f1: 220, t: 0.02, d: 0.3, g: 0.03, lp: 1400, a: 0.015 }],
+    // 튜토리얼 안내 상자 등장: 오류 글리치보다 부드러운 신호 잡음 (짧은 정전기 두 번 + 작게 올라가다 멎는 전자음). 경고가 아니라 안내 느낌
+    holeGlitchSoft: [{ noise: true, filter: 'bandpass', f0: 1800, q: 2, d: 0.08, g: 0.03, a: 0.012 },
+                     { noise: true, filter: 'bandpass', f0: 1100, q: 2, t: 0.09, d: 0.08, g: 0.028, a: 0.012 },
+                     { wave: 'sine', f0: 520, f1: 780, t: 0.04, d: 0.2, g: 0.03, a: 0.02 }],
     // 글리치 사라짐: 브라운관 TV 전원이 꺼지는 낮은 소리 (낮은 울림이 뚝 내려앉고, 낮아지는 지직이 사그라듦. 높은 음·딸깍 없음)
     holeGlitchOut: [{ wave: 'sine', fpts: [[0, 1100], [0.1, 700], [0.34, 220]], lp: 2500, gpts: [[0, 0.0001], [0.01, 0.06], [0.2, 0.04], [0.36, 0.001]] },
                     { noise: true, filter: 'bandpass', f0: 1800, q: 2, d: 0.2, g: 0.015, a: 0.003 }],

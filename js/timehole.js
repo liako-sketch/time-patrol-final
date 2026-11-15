@@ -682,7 +682,7 @@
     if (S.expIdx === 0) {   // 글리치는 처음 나타날 때 한 번만
       e.tutbox.classList.remove('th-on', 'th-off');
       void e.tutbox.offsetWidth;
-      sfx('holeGlitch', 1);   // 오답 창과 같은 글리치 소리
+      sfx('holeGlitchSoft', 1);   // 안내 상자용: 오류 글리치보다 부드러운 소리
     }
     e.tutbox.classList.add('th-on', 'th-await');
     fitBubble(e.tutnote);
