@@ -884,8 +884,9 @@
     S.els.optR.btn.setAttribute('aria-label', '오른쪽: ' + S.els.optR.text.textContent);
     // 수도원(튜토리얼) 문제에서만 정답 쪽에 노란 아우라가 계속 퍼짐
     var explain = !!q.tutorial && !S.tutDone;   // 설명 중에는 아우라를 끄고, 직접 고르는 때부터 켬
-    S.els.optL.btn.classList.toggle('th-aura', !!q.tutorial && !explain && S.sides.left);
-    S.els.optR.btn.classList.toggle('th-aura', !!q.tutorial && !explain && S.sides.right);
+    var help = !!q.tutorial || ((S.wrongBy && S.wrongBy[q.id]) || 0) >= 2;   // 같은 문제를 두 번 틀렸으면 세 번째부터는 정답 쪽에 노란 아우라 (수도원처럼)
+    S.els.optL.btn.classList.toggle('th-aura', help && !explain && S.sides.left);
+    S.els.optR.btn.classList.toggle('th-aura', help && !explain && S.sides.right);
     [S.els.optL.btn, S.els.optR.btn].forEach(function (b) {
       b.classList.remove('th-picked', 'th-dim', 'th-pop');
       void b.offsetWidth;
@@ -1034,6 +1035,8 @@
     say([{ text: TORI_LINES.wrong, cls: 'th-w' }], 'sad');
     S.els.bTitle.textContent = timeout ? UI_TEXT.timeoutTitle : UI_TEXT.wrongTitle;
     S.els.bNote.textContent = UI_TEXT.wrongRetry;   // 문제 해설은 일단 띄우지 않음 (q.wrongNote 데이터는 남겨 둠)
+    S.wrongBy = S.wrongBy || {};
+    S.wrongBy[q.id] = (S.wrongBy[q.id] || 0) + 1;   // 문제별로 틀린 횟수 (시간 초과 포함)
     requeue(q.id);
     S.wrongOpen = false;
     after(CONFIG.WRONG_NOTE_DELAY_MS, function () {   // 바로 띄우지 않고 잠깐 뒤에 지지직
