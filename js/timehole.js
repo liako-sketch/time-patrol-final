@@ -165,6 +165,7 @@
   }
   // 효과음: 앱(index.html)에 SFX 가 있을 때만 울림. 시험 페이지처럼 없으면 소리 없이 지나감 (오류를 화면·로그에 내보내지 않음)
   function sfx(name, vol) { try { if (window.SFX && typeof window.SFX.play === 'function') window.SFX.play(name, vol); } catch (_) { /* 소리가 안 나도 게임은 계속 */ } }
+  function bgmDuck(on) { try { if (window.BGM && typeof window.BGM.duck === 'function') window.BGM.duck(on ? 0.8 : 1, 1.2); } catch (_) { /* 소리 조절이 안 되어도 게임은 계속 */ } }   // 튜토리얼 구간 동안 배경음을 20% 낮춤
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function qById(id) { for (var i = 0; i < QUESTIONS.length; i++) if (QUESTIONS[i].id === id) return QUESTIONS[i]; return null; }
   function src(path) { return CONFIG.ASSET_BASE + path; }
@@ -572,6 +573,7 @@
     S.onExit = typeof opts.onExit === 'function' ? opts.onExit : null;   // 출구가 하얗게 밝아지기 시작하는 순간 (바깥 화면도 같이 하얘지게)
     clearTimers();
     S.queue = ['tutorial'].concat(makeOrder());
+    bgmDuck(true);   // 튜토리얼 시작
     S.obtained = [];
     S.current = null;
     S.exit = null;
@@ -866,6 +868,7 @@
     S.targetSpeed = CONFIG.CRUISE_SPEED;
     S.lightTarget = 0.05;
     S.els.root.classList.toggle('th-tutorial', !!S.current.tutorial);
+    bgmDuck(!!S.current.tutorial);   // 튜토리얼 문제가 끝나 첫 정식 문제로 넘어가면 원래 크기로
     if (!S.current.tutorial) {   // 수도원(튜토리얼) 문제 직전에는 대사 없음
       var lines = TORI_LINES.beforeQuestion;
       say(lines[Math.floor(Math.random() * lines.length)], 'roading');
@@ -936,7 +939,7 @@
     if (stage !== S.timerStage) { S.timerStage = stage; applyTimerStage(); }
     if (S.phase === 'question') {   // (소리 높이는 그대로 크기만 키움) 눈금이 두 개 꺼질 때마다(1초에 한 번) 작은 똑 소리 (절반 지나면 조금 크게, 마지막 구간은 높고 또렷하게). 튜토리얼 시범 눈금에서는 울리지 않음
       var gi = Math.floor(gone);
-      if (gi > (S.tickIdx || 0)) { S.tickIdx = gi; if (gi % 2 === 0 || stage >= 1) sfx(stage === 2 ? 'holeTickHurry' : 'holeTick', stage === 1 ? 2.1 : 1.6); }
+      if (gi > (S.tickIdx || 0)) { S.tickIdx = gi; if (gi % 2 === 0 || stage >= 1) sfx(stage === 2 ? 'holeTickHurry' : 'holeTick', stage === 1 ? 2.5 : 1.9); }
     }
     S.els.timer.setAttribute('aria-valuenow', String(Math.round((1 - p) * 100)));
     S.els.timer.classList.toggle('th-warn', p > 0.5 && p <= 0.75);   // 절반 지나면 노랑
@@ -1607,6 +1610,7 @@
   /* ---------------- 정리 ---------------- */
   function destroyGame() {
     if (!S) return;
+    bgmDuck(false);
     if (S.raf) cancelAnimationFrame(S.raf);
     S.timers.length = 0;
     S.listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
