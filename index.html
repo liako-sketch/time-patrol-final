@@ -895,8 +895,8 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
             <path d="M28 0 L0 22 L28 44" fill="rgba(10,25,45,0.82)" stroke="#5fd4e0" stroke-width="2" stroke-linejoin="round"/>
           </svg>
           <p id="intro-line"></p>
-          <span id="intro-wait"><span id="intro-waitNote"></span><span id="intro-waitMain">터치 또는 Enter로 시작</span></span>
-          <span id="intro-hint">Enter 또는 터치로 진행해 주세요.</span>
+          <span id="intro-wait"><span id="intro-waitNote"></span><span id="intro-waitMain">터치 또는 Enter·Space로 시작</span></span>
+          <span id="intro-hint">Enter·Space 또는 터치로 진행해 주세요.</span>
           <span id="intro-next">▼</span>
         </div>
         <button id="intro-yes" type="button" aria-label="네, 그럴게요!">네, 그럴게요!</button>
@@ -2072,8 +2072,9 @@ var Intro = (function () {
   bind(stage, 'click', function () { advance(); });
   bind(speedBtn, 'click', function (e) { e.stopPropagation(); setFast(!fast); SFX.play('toggle'); speedBtn.blur(); });
   bind(document, 'keydown', function (e) {
-    if (e.key !== 'Enter' || e.repeat || e.isComposing) return;
-    if (e.target.closest && e.target.closest('input, button')) return;   // 입력창·버튼의 Enter는 각자 처리
+    if ((e.key !== 'Enter' && e.key !== ' ') || e.repeat || e.isComposing) return;
+    if (e.target.closest && e.target.closest('input, button')) return;   // 입력창·버튼의 Enter·Space는 각자 처리
+    if (e.key === ' ') e.preventDefault();   // Space 로 페이지가 내려가지 않게
     advance();
   });
   bind(yesBtn, 'click', function (e) { e.stopPropagation(); advance(true); yesBtn.blur(); });   // Enter·터치와 같은 진행 (효과음도 advance 안에서 기존 소리)
@@ -4028,7 +4029,7 @@ var Board = (function () {
     bubble.style.cssText = 'left:' + C.bubbleL + 'px;top:' + C.bubbleT + 'px;width:' + (C.bubbleR - C.bubbleL) + 'px;height:' + (C.bubbleB - C.bubbleT) + 'px;padding:0 ' + C.bubblePadX + 'px';
     bubble.innerHTML = '<svg id="board-bubble-tail" style="top:' + tailTop + 'px" viewBox="0 0 28 44" aria-hidden="true">' +
       '<path d="M28 0 L0 22 L28 44" fill="rgba(10,25,45,0.82)" stroke="#5fd4e0" stroke-width="2" stroke-linejoin="round"/></svg>' +
-      '<p id="board-bubble-text"></p><span id="board-hint">Enter 또는 터치로 진행해 주세요.</span><span id="board-next">▼</span>';
+      '<p id="board-bubble-text"></p><span id="board-hint">Enter·Space 또는 터치로 진행해 주세요.</span><span id="board-next">▼</span>';
     root.appendChild(bubble);
     var textEl = $('board-bubble-text'), hintEl = $('board-hint'), nextEl = $('board-next');
     var typingNow = false, curText = '', noteLines = [], noteIdx = 0, noteOn = false, hintLoop = false;   // hintLoop: 서버 힌트는 마지막 문장 뒤에 누르면 처음으로 돌아감

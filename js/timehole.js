@@ -117,6 +117,7 @@
     wrongTitle: '길을 잘못 들었어요!',
     timeoutTitle: '시간이 지났어요!',
     wrongRetry: '잠시 뒤에 다시 도전해보아요.',
+    nextHint: 'Enter·Space 또는 터치로 진행해 주세요.',
     guideTitle: '타임 홀 달리는 법',
     guideRows: { keys: '키보드 ← → 키', click: '왼쪽·오른쪽 글 클릭하기', swipe: '왼쪽·오른쪽으로 슬라이드', tap: '왼쪽·오른쪽 글 누르기' },
     guideNote: '토리가 문제를 내면 15초 안에 정답이 있는 쪽을 골라. 토리 둘레 눈금이 다 꺼지면 시간이 끝난 거야.',
@@ -323,6 +324,9 @@
     var nextMark = el('span', 'th-next', '\u25BC');   // 터치해서 넘기라는 표시 (오프닝 대사 동안)
     nextMark.setAttribute('aria-hidden', 'true');
     bubble.appendChild(nextMark);
+    var nextHint = el('span', 'th-hint', UI_TEXT.nextHint);   // 진행 안내 (Enter·Space 또는 터치)
+    nextHint.setAttribute('aria-hidden', 'true');
+    bubble.appendChild(nextHint);
     top.appendChild(bubble);
     function makeOpt(side) {
       var b = el('button', 'th-opt th-opt-' + side);
@@ -413,6 +417,9 @@
     var tnext = el('span', 'th-next', '▼');
     tnext.setAttribute('aria-hidden', 'true');
     tutbox.appendChild(tnext);
+    var thint = el('span', 'th-hint', UI_TEXT.nextHint);
+    thint.setAttribute('aria-hidden', 'true');
+    tutbox.appendChild(thint);
     root.appendChild(tutbox);
 
     var cardget = el('div', 'th-cardget');
@@ -1074,8 +1081,8 @@
   function onKey(e) {
     if (!S) return;
     if (S.phase === 'opening' || S.phase === 'explain') {
-      if (e.key === 'Enter') { e.preventDefault(); if (!e.repeat) tryOpeningTap(); }   // 키보드는 Enter 로만 넘김 (꾹 눌러도 한 번만)
-      else if (e.key === ' ' || e.key.indexOf('Arrow') === 0) e.preventDefault();   // 방향키·스페이스는 넘기지 않고, 페이지만 움직이지 않게 막음
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) tryOpeningTap(); }   // Enter·Space 로 넘김 (꾹 눌러도 한 번만)
+      else if (e.key.indexOf('Arrow') === 0) e.preventDefault();   // 방향키는 넘기지 않고, 페이지만 움직이지 않게 막음
       return;
     }
     if (S.phase === 'question') {
