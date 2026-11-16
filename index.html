@@ -102,7 +102,8 @@ html.is-iphone #board-bg { background-image: url('images/back/back_2_s.webp'); }
 /* 깨진 코드네임(@#%$): 타임 홀 오프닝의 깨진 글자와 같은 효과. 흰색 그라데이션 글자가 1초 뒤 지직거리며 색이 갈라지고 3.6초마다 반복 */
 #intro-line .intro-garble { display: inline-block; color: transparent;
   background: linear-gradient(90deg, rgba(255, 255, 255, .35) 0%, rgba(255, 255, 255, 1) 100%); -webkit-background-clip: text; background-clip: text;
-  animation: intro-garble 3.6s steps(1, end) 1s infinite; }
+}
+#intro-line .intro-garble-on { animation: intro-garble 3.6s steps(1, end) infinite; }   /* 단어가 다 쓰인 순간부터 바로 시작 (이후 3.6초마다 반복) */
 @keyframes intro-garble {
   0%     { filter: drop-shadow(4px 0 rgba(255, 0, 80, .9)) drop-shadow(-4px 0 rgba(0, 255, 255, .9)); transform: translateX(-3px) skewX(-6deg); opacity: .5; }
   3.3%   { filter: drop-shadow(-5px 0 rgba(255, 0, 80, .9)) drop-shadow(5px 0 rgba(0, 255, 255, .9)); transform: translateX(4px); opacity: 1; }
@@ -111,7 +112,7 @@ html.is-iphone #board-bg { background-image: url('images/back/back_2_s.webp'); }
   16.5%  { filter: drop-shadow(2px 0 rgba(255, 0, 80, .5)) drop-shadow(-2px 0 rgba(0, 255, 255, .5)); }
   22%, 100% { filter: none; transform: none; opacity: 1; }
 }
-html.calm-mode #intro-line .intro-garble { animation: none; }   /* 움직임 줄이기: 깜빡임 없이 정적인 깨진 글자 */
+html.calm-mode #intro-line .intro-garble-on { animation: none; }   /* 움직임 줄이기: 깜빡임 없이 정적인 깨진 글자 */
 #intro-next {
   position: absolute; right: 26px; bottom: 14px; color: #5fd4e0; font-size: 26px; display: none;
   animation: intro-blink 1s steps(2, start) infinite;
@@ -1917,12 +1918,20 @@ var Intro = (function () {
   }
 
   var HL_CLASS = { y: 'intro-hl', r: 'intro-hr', k: 'intro-hk', g: 'intro-garble' };
+  var gEnd = -1, gStart = 0;   // 깨진 글자 단어가 다 쓰이는 글자 수 / 그 순간의 시각
   function render(chars) {
     line.textContent = '';
     var span = null, run = null, kind = null;
     chars.forEach(function (ch) {
       if (ch.hl) {
-        if (!span || kind !== ch.hl) { span = document.createElement('span'); span.className = HL_CLASS[ch.hl]; line.appendChild(span); kind = ch.hl; }
+        if (!span || kind !== ch.hl) {
+          span = document.createElement('span'); span.className = HL_CLASS[ch.hl]; line.appendChild(span); kind = ch.hl;
+          if (ch.hl === 'g' && gEnd >= 0 && chars.length >= gEnd) {   // 단어가 완성됨: 줄이 다시 그려져도 끊기지 않게 시작 시각 기준으로 이어서 재생
+            if (!gStart) gStart = performance.now();
+            span.classList.add('intro-garble-on');
+            span.style.animationDelay = '-' + ((performance.now() - gStart) / 1000).toFixed(3) + 's';
+          }
+        }
         span.textContent += ch.c;
         run = null;
       } else {
@@ -1945,6 +1954,8 @@ var Intro = (function () {
     bg2.classList.toggle('intro-on', item.action === 'orb');   // 타임 코스모스 안내 대사에서 배경이 코스모스가 있는 복도로 서서히 바뀜
     var full = parseLine(item.text);
     var plain = full.map(function (x) { return x.c; }).join('');
+    gEnd = -1; gStart = 0;
+    full.forEach(function (x, j) { if (x.hl === 'g') gEnd = j + 1; });
     var triggers = [], typedChars = Array.from(plain);
     if (item.poseAt) {
       for (var k in item.poseAt) {
