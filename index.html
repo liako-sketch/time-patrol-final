@@ -4369,6 +4369,11 @@ var Flow = (function () {
     if (window.TimeHole) window.TimeHole.refit();
   }
   addEventListener('resize', fitHole);
+  // 아이폰은 회전 직후 창 크기를 늦게(또는 예전 값으로) 알려 줘서, 회전·보이는 영역 변화 뒤 몇 번 더 맞춤 (가로로 돌렸을 때 위쪽이 잘리던 문제)
+  function fitHoleLater() { fitHole(); [120, 400, 900, 1800].forEach(function (ms) { setTimeout(fitHole, ms); }); }
+  addEventListener('orientationchange', fitHoleLater);
+  addEventListener('pageshow', fitHoleLater);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitHole);
   fitHole();
   var introStage = $('intro-stage');
   var locked = false;

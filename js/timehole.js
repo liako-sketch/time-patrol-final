@@ -1361,7 +1361,7 @@
     S.lastK = K; S.lastLightPx = Math.max(4 * dpr, minS * S.light);   // 마지막 출구를 지금 빛 크기에 맞춰 놓을 때 씀
 
     // 투영: 카메라 위치·방향 + 아주 작은 흔들림(살아 있는 느낌)
-    var swayYaw = S.reduced ? 0 : Math.sin(S.sway * 0.35) * 0.012;
+    var swayYaw = (S.reduced || H > W) ? 0 : Math.sin(S.sway * 0.35) * 0.012;   // 세로 화면은 시야 기준이 긴 변(높이)이라 좌우 흔들림이 크게 보여 터널 끝 빛이 가운데 칸에서 벗어남 → 세로에서는 좌우 흔들림을 끔
     var swayPitch = S.reduced ? 0 : Math.sin(S.sway * 0.27 + 1) * 0.006;
     var c = S.cam, yawP = c.yaw + swayYaw, cY = Math.cos(yawP), sY = Math.sin(yawP), camx = c.x, camz = c.z;
     var P = { x: 0, y: 0, z: 0 };   // 투영 결과 재사용
