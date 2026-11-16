@@ -129,10 +129,15 @@
 .th-opt-text { flex: 1 1 auto; text-align: center; font-family: var(--th-font-title); font-weight: 600; font-size: max(15px, 3.8cqmin); line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere; }
 .th-root.th-tutorial .th-opt-text { font-size: max(12px, 3.2cqmin); }   /* 수도원(첫 문제) 선택지만 글자를 조금 줄여 한 줄에 맞춤 */
 .th-opt-arrow { flex: none; width: max(24px, 5cqmin); height: max(24px, 5cqmin); fill: none; stroke: var(--th-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; transition: stroke .2s; }
-/* 마우스를 올리거나 키보드로 고르면 노란 빛 */
-.th-opt.th-on:hover, .th-opt.th-on:focus-visible { border-color: var(--th-hl); background-color: rgba(60, 46, 8, .82);
+/* 마우스를 올리거나 키보드로 고르면 노란 빛. 호버는 마우스가 있는 기기에서만 (터치 기기는 손가락을 뗀 자리에 :hover 가 남아, 슬라이드한 방향의 다음 선택지가 노랗게 켜지는 문제가 있었음) */
+.th-opt.th-on:focus-visible { border-color: var(--th-hl); background-color: rgba(60, 46, 8, .82);
   box-shadow: 0 0 26px rgba(255, 213, 74, .55), inset 0 0 18px rgba(255, 213, 74, .18); }
-.th-opt.th-on:hover .th-opt-arrow, .th-opt.th-on:focus-visible .th-opt-arrow { stroke: var(--th-hl); }
+.th-opt.th-on:focus-visible .th-opt-arrow { stroke: var(--th-hl); }
+@media (hover: hover) and (pointer: fine) {
+  .th-opt.th-on:hover { border-color: var(--th-hl); background-color: rgba(60, 46, 8, .82);
+    box-shadow: 0 0 26px rgba(255, 213, 74, .55), inset 0 0 18px rgba(255, 213, 74, .18); }
+  .th-opt.th-on:hover .th-opt-arrow { stroke: var(--th-hl); }
+}
 .th-opt:focus-visible { outline: none; }
 .th-opt.th-picked { border-color: var(--th-hl); background-color: rgba(60, 46, 8, .82); box-shadow: 0 0 30px rgba(255, 213, 74, .65); transform: scale(1.05); }
 .th-opt.th-picked .th-opt-arrow { stroke: var(--th-hl); }
@@ -284,6 +289,7 @@
 .th-btn:hover, .th-btn:focus-visible { background: #8de8f0; outline: none; }
 @container (max-aspect-ratio: 4/5) {          /* 세로 화면: 가이드 칸을 세로로 */
   .th-guide-rows { grid-template-columns: 1fr; }
+  .th-opts { top: 70%; }   /* 세로 화면에서는 선택지를 조금 더 아래로 */
   .th-opt { flex-basis: 43cqw; min-height: max(96px, 22cqmin); padding: 10px 8px; }
   .th-opt-text { font-size: max(14px, 3.6cqmin); }
   .th-radio { --av: max(54px, 16cqw); }

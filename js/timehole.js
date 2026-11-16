@@ -916,6 +916,7 @@
     [S.els.optL.btn, S.els.optR.btn].forEach(function (b) { b.classList.add(b === picked ? 'th-picked' : 'th-dim'); });
     S.lightTarget = 0.05;
     // 고르면 정답·오답 상관없이 갈림길까지 가속 (속도로 정답이 미리 드러나지 않게). 시간 초과는 평소 속도로 직진
+    try { S.els.optL.btn.blur(); S.els.optR.btn.blur(); } catch (_) { /* 포커스를 못 풀어도 계속 */ }   // 눌렀던 선택지에 포커스·강조가 남지 않게
     S.targetSpeed = side ? boostSpeed() : CONFIG.CRUISE_SPEED;   // 고르면 바로 확 가속 (시간 초과는 평소 속도로 직진)
     if (side) sfx('holeBoost', 1);   // 가속하며 빨려 들어가는 소리 (정답·오답 같은 소리: 소리로 정답이 드러나지 않게)
     if (side) {

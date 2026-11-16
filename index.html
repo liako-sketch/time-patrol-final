@@ -4321,16 +4321,19 @@ var Board = (function () {
         if (calm || !c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
         setTimeout(function () {
           SFX.play('cardFlip');   // 카드마다 뒤집히는 순간에 한 번씩 (왼쪽부터 차례로)
-          // 제자리 뒤집기가 아니라 휘리릭: 위로 튀어 오르며 옆으로 얇아지고(약간 기울며), 꼭대기에서 앞면으로 바뀐 뒤 통통 내려앉음. 이동·기울기는 카드 위치(transform)와 따로 쓰는 개별 속성
-          var hop = Math.round((c.h || 300) * 0.22);
-          c.el.style.zIndex = '40';   // 튀어 오르는 동안 이웃 카드 위로
-          var a1 = c.el.animate([{ translate: '0 0', rotate: '0deg', scale: '1 1' }, { translate: '0 ' + (-hop) + 'px', rotate: '-7deg', scale: '0 1' }], { duration: 210, easing: 'cubic-bezier(.3, .6, .6, 1)', fill: 'forwards' });
-          a1.onfinish = function () {
-            if (c._bk) { c._bk.remove(); c._bk = null; }
-            var a2 = c.el.animate([{ translate: '0 ' + (-hop) + 'px', rotate: '7deg', scale: '0 1' }, { translate: '0 0', rotate: '0deg', scale: '1 1' }], { duration: 260, easing: 'cubic-bezier(.3, 1.5, .55, 1)' });
-            a1.cancel();
-            a2.onfinish = a2.oncancel = function () { c.el.style.zIndex = ''; res(); };
-          };
+          // 제자리 뒤집기가 아니라 휘리릭: 위로 튀어 오르며 옆으로 얇아지고(약간 기울며), 꼭대기에서 앞면으로 바뀐 뒤 통통 내려앉음.
+          // 애니메이션 하나(transform: 아이폰도 GPU 로 처리)로 이어서 재생: 둘로 나눠 이어 붙이거나 개별 속성(scale·translate·rotate)을 쓰면 아이폰에서 끊겨 보임
+          var hop = Math.round((c.h || 300) * 0.22), D = 470, up = 210;
+          c.el.style.zIndex = '40';        // 튀어 오르는 동안 이웃 카드 위로
+          c.el.style.willChange = 'transform';   // 미리 따로 그려 둠
+          var apex = 'translate3d(0,' + (-hop) + 'px,0) rotate(-7deg) scaleX(0.02)';
+          var fl = c.el.animate([
+            { transform: 'translate3d(0,0,0) rotate(0deg) scaleX(1)', offset: 0, easing: 'cubic-bezier(.3, .6, .6, 1)' },
+            { transform: apex, offset: up / D, easing: 'cubic-bezier(.3, 1.5, .55, 1)' },
+            { transform: 'translate3d(0,0,0) rotate(0deg) scaleX(1)', offset: 1 }
+          ], { duration: D, easing: 'linear' });
+          setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } }, up - 10);   // 거의 얇아진 순간에 물음표를 걷어 앞면이 보이게
+          fl.onfinish = fl.oncancel = function () { c.el.style.zIndex = ''; c.el.style.willChange = ''; if (c._bk) { c._bk.remove(); c._bk = null; } res(); };
         }, i * 130);
       });
     })); });
