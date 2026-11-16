@@ -261,7 +261,8 @@
 .th-q-art { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: inline-size;
   /* 타임라인의 물음표 카드(.board-back)와 같은 바탕·글자: 남색 방사형 + 비스듬한 남색 바탕, 하늘색으로 빛나는 큰 ? (글자 크기는 카드 너비에 비례) */
   background: radial-gradient(circle at 50% 45%, rgba(40, 96, 140, .55), rgba(7, 18, 42, 1) 70%), linear-gradient(160deg, #10264a, #07122a);
-  color: #8ff3fa; font-family: var(--th-font-title); font-weight: 600; font-size: 46cqw; line-height: 1; text-shadow: 0 0 .22em rgba(110, 230, 240, .8); }
+  overflow: hidden; }
+.th-q-mark { color: #8ff3fa; font-family: var(--th-font-title); font-weight: 600; font-size: 46cqw; line-height: 1; text-shadow: 0 0 .22em rgba(110, 230, 240, .8); }   /* cqw 는 자기 자신이 아닌 바깥 컨테이너(.th-q-art)의 너비 기준 */
 /* ---------- 하단 HUD: 획득 카드 칸 6개 ---------- */
 .th-hud { position: absolute; left: 50%; bottom: max(10px, 2.4cqh); transform: translateX(-50%); display: flex; gap: max(6px, 1.2cqmin);
   padding: max(6px, 1cqmin); border-radius: max(10px, 1.6cqmin); background: rgba(4, 12, 22, .25); border: 1px solid rgba(var(--th-line-rgb), .3);

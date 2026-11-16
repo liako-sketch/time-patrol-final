@@ -204,7 +204,8 @@
 
   /* ---------------- 카드 DOM ---------------- */
   function questionArt() {   // 타임라인의 물음표 카드(손패 뒷면)와 같은 모양: 어두운 남색 바탕 + 하늘색으로 빛나는 큰 '?' (모양은 css 의 .th-q-art)
-    var w = el('div', 'th-q-art', '?');
+    var w = el('div', 'th-q-art');
+    w.appendChild(el('span', 'th-q-mark', '?'));   // 글자 크기는 .th-q-art(컨테이너) 너비 기준이라 안쪽 요소에 줌
     w.setAttribute('aria-hidden', 'true');
     return w;
   }
