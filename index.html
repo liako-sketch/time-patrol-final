@@ -4519,6 +4519,11 @@ var Flow = (function () {
             white.style.display = 'none';
             locked = false;                       // 입력 잠금 해제
           });
+      })
+      .catch(function () {                        // 도중에 무엇이 실패해도 흰 화면에서 멈추지 않게: 흰 막을 걷고 입력을 풂
+        try { white.getAnimations().forEach(function (a) { a.cancel(); }); } catch (_) { /* 계속 */ }
+        white.style.display = 'none';
+        locked = false;
       });
   }
 
