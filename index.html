@@ -3542,6 +3542,7 @@ var Board = (function () {
     var gr = document.createElement('div'); gr.className = 'board-rkgrade'; var gn = document.createElement('span'); gn.className = 'board-rkgname'; gn.textContent = GRADE_NAMES[grade]; gr.appendChild(gn); var b = document.createElement('b'); b.textContent = grade; gr.appendChild(b); row.appendChild(gr);
     var ar = document.createElement('span'); ar.className = 'board-rkarrow'; ar.setAttribute('aria-hidden', 'true'); ar.textContent = '▾'; row.appendChild(ar);   // 펼침 표시 (답안이 없는 줄은 자리만 차지)
     var ans = typeof answer === 'string' ? answer.slice(0, 300) : '';
+    if (ans.indexOf('[가림]') >= 0) ans = ans.replace('[가림]', '[가림] (개인정보가 있을 수 있어서 가렸어요)');   // 서버가 전화번호·이메일처럼 보여 가린 부분: 놀라지 않게 이유를 한 번만 덧붙여 보여 줌 (화면에서만, 저장된 글은 그대로)
     if (ans) {   // 답안은 textContent 로만 넣음
       var pn = document.createElement('div'); pn.className = 'board-rkans'; var inner = document.createElement('div'); inner.className = 'board-rkansin'; var tx = document.createElement('div'); tx.className = 'board-rkanstxt'; tx.textContent = ans; inner.appendChild(tx); pn.appendChild(inner); row.appendChild(pn);
       row.classList.add('board-rkcan'); row.setAttribute('role', 'button'); row.setAttribute('tabindex', '0'); row.setAttribute('aria-expanded', 'false');

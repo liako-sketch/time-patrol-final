@@ -111,7 +111,7 @@
     beforeQuestion: ['앞에 문제가 기다리고 있어요. 잘 들어 주세요!', '다음 길이에요. 집중해 주세요!'],
     wrong: '앗, 이 길이 아니었어요.',
     cardGet: '정답이에요. 사료 카드를 얻었어요!',
-    tunnelEnd: '카드를 다 모았어요! 저 빛을 향해 나가요!'
+    tunnelEnd: '카드를 다 모았어요! 이제 타임홀에서 나갈 수 있어요!'
   };
   var UI_TEXT = {
     wrongTitle: '길을 잘못 들었어요!',
@@ -710,13 +710,13 @@
     var sec = Math.round(CONFIG.QUESTION_TIME_MS / 1000);
     var T = {
       radio: { pose: 'hint', text: '먼저 위를 봐 주세요!\n여기서는 문제를 확인할 수 있어요.' },
-      slots: { pose: 'happy', text: '아래는 사료 카드 보관함이에요.\n맞힐 때마다 카드가 한 장씩 채워져요!' },
+      slots: { pose: 'default', text: '아래는 사료 카드 보관함이에요.\n맞힐 때마다 카드가 한 장씩 채워져요!' },
       timer: { pose: 'what', text: '여기 보이는 눈금은 제한시간으로, 문제마다 ' + sec + '초예요.\n눈금이 꺼지기 전에 길을 골라 주세요!' },
       opts: { pose: 'hint', text: '양쪽으로 보이는 선택지예요.\n정답이라고 생각하는 쪽을 골라 주세요!' },
       keys: { pose: 'default', text: '키보드 ←, → 키로 고를 수 있어요.\n왼쪽 선택지는 ←, 오른쪽 선택지는 → 키예요!' },
       click: { pose: 'default', text: '마우스로 글을 {y}클릭{/y}해도 돼요.\n고르고 싶은 선택지를 {y}클릭{/y}해 주세요!' },
       tap: { pose: 'default', text: '손가락으로 글을 {y}터치{/y}해도 돼요.\n고르고 싶은 선택지를 {y}터치{/y}해 주세요!' },
-      swipe: { pose: 'hint', text: '화면을 좌우로 {y}슬라이드{/y}해도 돼요.\n{y}슬라이드{/y}한 방향으로 달려갑니다!' },
+      swipe: { pose: 'default', text: '화면을 좌우로 {y}슬라이드{/y}해도 돼요.\n{y}슬라이드{/y}한 방향으로 달려갑니다!' },
       ready: { pose: 'happy', text: '이제 선택지를 직접 골라 보세요!' }
     };
     // 방향키는 모든 기기에서(블루투스 키보드). 그다음 터치 기기(지금은 모든 기기)는 누르기·슬라이드, TUTORIAL_PC_CURSOR 가 켜지면 PC 는 커서 클릭만
@@ -873,7 +873,7 @@
     S.els.root.classList.toggle('th-tutorial', !!S.current.tutorial);
     if (!S.current.tutorial) {   // 수도원(튜토리얼) 문제 직전에는 대사 없음
       var lines = TORI_LINES.beforeQuestion;
-      say(lines[Math.floor(Math.random() * lines.length)], 'roading');
+      say(lines[Math.floor(Math.random() * lines.length)], 'default');
     }
     after(CONFIG.APPROACH_MS, askQuestion);
   }
@@ -977,7 +977,7 @@
     cg.appendChild(open ? openCardEl(q.card) : hiddenCardEl());
     cg.appendChild(burstEl());   // 팝! 하고 터지는 빛과 파티클 (짧은 한 번짜리라 '움직임 줄이기'여도 보여 줌)
     cg.classList.add('th-on');
-    after(450, function () { say(TORI_LINES.cardGet, 'sup'); });
+    after(450, function () { say(TORI_LINES.cardGet, 'happy'); });
     after(CONFIG.CARD_SHOW_MS, function () { flyCardToSlot(cg, S.obtained.length - 1); });
     after(CONFIG.CARD_SHOW_MS + CONFIG.CARD_FLY_MS, function () {
       cg.classList.remove('th-on', 'th-out', 'th-fly');
