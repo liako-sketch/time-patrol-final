@@ -99,6 +99,19 @@ html.is-iphone #board-bg { background-image: url('images/back/back_2_s.webp'); }
 #intro-line .intro-hl { color: var(--tori-hl); }
 #intro-line .intro-hr { color: var(--tori-warn); }
 #intro-line .intro-hk { color: var(--tori-key); }
+/* 깨진 코드네임(@#%$): 타임 홀 오프닝의 깨진 글자와 같은 효과. 흰색 그라데이션 글자가 1초 뒤 지직거리며 색이 갈라지고 3.6초마다 반복 */
+#intro-line .intro-garble { display: inline-block; color: transparent;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .35) 0%, rgba(255, 255, 255, 1) 100%); -webkit-background-clip: text; background-clip: text;
+  animation: intro-garble 3.6s steps(1, end) 1s infinite; }
+@keyframes intro-garble {
+  0%     { filter: drop-shadow(4px 0 rgba(255, 0, 80, .9)) drop-shadow(-4px 0 rgba(0, 255, 255, .9)); transform: translateX(-3px) skewX(-6deg); opacity: .5; }
+  3.3%   { filter: drop-shadow(-5px 0 rgba(255, 0, 80, .9)) drop-shadow(5px 0 rgba(0, 255, 255, .9)); transform: translateX(4px); opacity: 1; }
+  6.6%   { filter: drop-shadow(3px 0 rgba(255, 0, 80, .8)) drop-shadow(-3px 0 rgba(0, 255, 255, .8)); transform: translateX(-2px) skewX(5deg); opacity: .6; }
+  11%    { filter: drop-shadow(-3px 0 rgba(255, 0, 80, .7)) drop-shadow(3px 0 rgba(0, 255, 255, .7)); transform: none; opacity: 1; }
+  16.5%  { filter: drop-shadow(2px 0 rgba(255, 0, 80, .5)) drop-shadow(-2px 0 rgba(0, 255, 255, .5)); }
+  22%, 100% { filter: none; transform: none; opacity: 1; }
+}
+html.calm-mode #intro-line .intro-garble { animation: none; }   /* 움직임 줄이기: 깜빡임 없이 정적인 깨진 글자 */
 #intro-next {
   position: absolute; right: 26px; bottom: 14px; color: #5fd4e0; font-size: 26px; display: none;
   animation: intro-blink 1s steps(2, start) infinite;
@@ -1590,7 +1603,7 @@ var BGM = (function () {
   var DIR = 'audio/';
   var TRACKS = { intro: 'bgm_1.mp3', quake: 'bgm_2.mp3', board: 'bgm_3.mp3', clear: 'bgm_4.mp3', hole: 'bgm_5.mp3' };   // 인트로 / 흔들림 뒤 / 타임라인 / 분석 성공 / 타임 홀
   var LEVEL = 0.216;        // 배경음 크기 (효과음·말소리보다 작게). 여기 한 곳에서 조절 (0.35 에서 낮춤)
-  var TRACK_GAIN = { hole: 0.26 };   // 곡별 크기 보정: 타임 홀 곡 원본이 다른 곡보다 약 12dB 커서(평균 -7.7dB 대 -19.5dB) 다른 곡과 같은 체감이 되도록 0.26배
+  var TRACK_GAIN = { hole: 0.286 };   // 곡별 크기 보정: 타임 홀 곡 원본이 다른 곡보다 약 12dB 커서(평균 -7.7dB 대 -19.5dB) 다른 곡과 같은 체감이 되도록 0.26배로 맞춘 뒤 10% 높여 0.286배
   function lv() { return LEVEL * (TRACK_GAIN[cur] || 1); }
   var LOOP_FADE = 1.5;     // 반복할 때 곡 끝에서 줄어드는 시간(초)
   var muted = false, bm = null;   // 배경음 끄기 (효과음 끄기와 따로)
@@ -1765,7 +1778,7 @@ var Intro = (function () {
     { text: "우리 타임패트롤은 무너진 타임라인을 지키는 막중한 임무를 맡고 있어요.", pose: 'default' },
     { text: "타임라인이 무너지면 <r>역사적 사실들이 뒤섞이거나</r>, 종종 <r>오류가 발생해서 없는 사실이 나타나기도 해요.</r>", pose: 'what' },
     { text: "우리는 사료를 바탕으로 [[역사적 사실을 순서에 맞게 배치하고]],\n[[오류 사료를 찾아내면서]] 타임라인을 복구하는 거죠.", pose: 'hint' },
-    { text: "오늘 신입이 온다고 들었는데, 신입 맞죠? 코드네임이 분명 @#%$라고 들었어요...", pose: 'what' },
+    { text: "오늘 신입이 온다고 들었는데, 신입 맞죠? 코드네임이 분명 <g>@#%$</g>라고 들었어요...", pose: 'what' },
     { text: "이런, 파일이 깨진 것 같아요. [[코드네임을 알려 주시겠어요?]]", pose: 'sad', action: 'askName' },
     { text: "{이름}님이시군요. 반가워요!", pose: 'happy' },
     { text: "세상에! 이 정도 진동은... 아무래도 타임라인이 무너진 것 같아요!", pose: 'sup', action: 'shake' },
@@ -1868,11 +1881,12 @@ var Intro = (function () {
   // [[강조]] 표기를 글자 배열로 풀기. {이름}은 파싱 뒤에 일반 글자로만 끼워 넣음(입력값은 강조·마크업 해석 안 함)
   function parseLine(text) {
     var chars = [], kind = '';
-    text.split(/(\[\[|\]\]|<r>|<\/r>|<k>|<\/k>)/).forEach(function (part) {
+    text.split(/(\[\[|\]\]|<r>|<\/r>|<k>|<\/k>|<g>|<\/g>)/).forEach(function (part) {
       if (part === '[[') { kind = 'y'; return; }
       if (part === '<r>') { kind = 'r'; return; }
       if (part === '<k>') { kind = 'k'; return; }
-      if (part === ']]' || part === '</r>' || part === '</k>') { kind = ''; return; }
+      if (part === '<g>') { kind = 'g'; return; }
+      if (part === ']]' || part === '</r>' || part === '</k>' || part === '</g>') { kind = ''; return; }
       Array.from(part.replace('{이름}', '\u0000')).forEach(function (c) {
         if (c === '\u0000') Array.from(codename).forEach(function (n) { chars.push({ c: n, hl: kind || 'k' }); });   // 코드네임은 하늘색 (다른 강조 안에 있으면 그 강조가 우선)
         else chars.push({ c: c, hl: kind });
@@ -1881,7 +1895,7 @@ var Intro = (function () {
     return chars;
   }
 
-  var HL_CLASS = { y: 'intro-hl', r: 'intro-hr', k: 'intro-hk' };
+  var HL_CLASS = { y: 'intro-hl', r: 'intro-hr', k: 'intro-hk', g: 'intro-garble' };
   function render(chars) {
     line.textContent = '';
     var span = null, run = null, kind = null;

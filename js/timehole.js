@@ -934,9 +934,9 @@
     }
     var stage = p > 0.75 ? 2 : p > 0.5 ? 1 : 0;   // 0 하늘색 / 1 노랑(주황) / 2 빨강
     if (stage !== S.timerStage) { S.timerStage = stage; applyTimerStage(); }
-    if (S.phase === 'question') {   // 눈금이 두 개 꺼질 때마다(1초에 한 번) 작은 똑 소리 (절반 지나면 조금 크게, 마지막 구간은 높고 또렷하게). 튜토리얼 시범 눈금에서는 울리지 않음
+    if (S.phase === 'question') {   // (소리 높이는 그대로 크기만 키움) 눈금이 두 개 꺼질 때마다(1초에 한 번) 작은 똑 소리 (절반 지나면 조금 크게, 마지막 구간은 높고 또렷하게). 튜토리얼 시범 눈금에서는 울리지 않음
       var gi = Math.floor(gone);
-      if (gi > (S.tickIdx || 0)) { S.tickIdx = gi; if (gi % 2 === 0 || stage >= 1) sfx(stage === 2 ? 'holeTickHurry' : 'holeTick', stage === 1 ? 1.3 : 1); }
+      if (gi > (S.tickIdx || 0)) { S.tickIdx = gi; if (gi % 2 === 0 || stage >= 1) sfx(stage === 2 ? 'holeTickHurry' : 'holeTick', stage === 1 ? 2.1 : 1.6); }
     }
     S.els.timer.setAttribute('aria-valuenow', String(Math.round((1 - p) * 100)));
     S.els.timer.classList.toggle('th-warn', p > 0.5 && p <= 0.75);   // 절반 지나면 노랑
