@@ -79,7 +79,7 @@ button { font-family: var(--font-title); font-weight: 600; }
 #intro-bg { position: absolute; inset: -20px; background: url('images/back/back_0.webp') center / 100% 100% no-repeat; }   /* 처음 배경: 타임 코스모스가 없는 복도 */
 #intro-bg2 { position: absolute; inset: -20px; background: url('images/back/back1.webp') center / 100% 100% no-repeat; opacity: 0; transition: opacity 1.6s ease; pointer-events: none; }   /* 타임 코스모스가 나타난 복도: 해당 대사에서 서서히 겹쳐 나타남 */
 #intro-bg2.intro-on { opacity: 1; }
-html.calm-mode #intro-bg2 { transition: none; }
+/* 움직임 줄이기에서도 타임 코스모스 배경은 서서히 겹치며 나타남 (부드러운 전환이라 어지럽지 않음) */
 html.is-iphone #intro-bg { background-image: url('images/back/back_0_s.webp'); }   /* 아이폰: 가로 1920 으로 줄인 배경 (메모리 절약). 큰 그림은 받지 않음 */
 html.is-iphone #intro-bg2 { background-image: url('images/back/back1_s.webp'); }
 html.is-iphone #board-bg { background-image: url('images/back/back_2_s.webp'); }
@@ -185,7 +185,6 @@ html.calm-mode #intro-namePanel.intro-pop { animation: intro-popfade .2s ease-ou
 #intro-netbtns .board-wbtn { border-color: var(--tori-warn); color: #fafafa; background: rgb(10, 25, 45); box-shadow: none; }
 #intro-orb { opacity: 0; transition: opacity 1.6s ease; }   /* 타임 코스모스 빛: 배경이 복도로 바뀌는 때(#intro-bg2 와 같은 시간)에 함께 서서히 나타남 */
 #intro-orb.intro-show { opacity: 1; }
-html.calm-mode #intro-orb { transition: none; }
 #intro-orb::before {
   content: ''; position: absolute; inset: 0; border-radius: 50%; opacity: 0;
   box-shadow: 0 0 var(--orb-glow-r) var(--orb-glow-s) rgba(95, 212, 224, 0.9),
@@ -4363,7 +4362,7 @@ var Board = (function () {
     var ready = Promise.all([warmUp(), new Promise(function (res) { setTimeout(res, FLIP_DELAY); })]);   // 준비가 끝나고 정해진 시간이 지난 뒤에 뒤집기 시작
     return ready.then(function () { return Promise.all(list.map(function (c, i) {
       return new Promise(function (res) {
-        if (calm || !c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
+        if (!c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
         setTimeout(function () {
           SFX.play('cardFlip');   // 카드마다 뒤집히는 순간에 한 번씩 (왼쪽부터 차례로)
           // 제자리 뒤집기가 아니라 휘리릭: 위로 튀어 오르며 옆으로 얇아지고(약간 기울며), 꼭대기에서 앞면으로 바뀐 뒤 통통 내려앉음.
@@ -4371,7 +4370,7 @@ var Board = (function () {
           var hop = Math.round((c.h || 300) * 0.22), D = 470, up = 210;
           c.el.style.zIndex = '40';        // 튀어 오르는 동안 이웃 카드 위로
           c.el.style.willChange = 'transform';   // 미리 따로 그려 둠
-          var apex = 'translate3d(0,' + (-hop) + 'px,0) rotate(-7deg) scaleX(0.02)';
+          var apex = calm ? 'translate3d(0,0,0) rotate(0deg) scaleX(0.02)' : 'translate3d(0,' + (-hop) + 'px,0) rotate(-7deg) scaleX(0.02)';   // 움직임 줄이기: 튀어 오르거나 기울지 않고 제자리에서 돌며 뒤집힘
           var fl = c.el.animate([
             { transform: 'translate3d(0,0,0) rotate(0deg) scaleX(1)', offset: 0, easing: 'cubic-bezier(.3, .6, .6, 1)' },
             { transform: apex, offset: up / D, easing: 'cubic-bezier(.3, 1.5, .55, 1)' },
