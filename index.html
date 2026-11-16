@@ -1604,6 +1604,17 @@ var BGM = (function () {
   var TRACKS = { intro: 'bgm_1.mp3', quake: 'bgm_2.mp3', board: 'bgm_3.mp3', clear: 'bgm_4.mp3', hole: 'bgm_5.mp3' };   // 인트로 / 흔들림 뒤 / 타임라인 / 분석 성공 / 타임 홀
   var LEVEL = 0.216;        // 배경음 크기 (효과음·말소리보다 작게). 여기 한 곳에서 조절 (0.35 에서 낮춤)
   var TRACK_GAIN = { hole: 0.286 };   // 곡별 크기 보정: 타임 홀 곡 원본이 다른 곡보다 약 12dB 커서(평균 -7.7dB 대 -19.5dB) 다른 곡과 같은 체감이 되도록 0.26배로 맞춘 뒤 10% 높여 0.286배
+  // 곡 안에서 시간에 따라 크기를 조절하는 곡선 { 곡: [[초, 배율], ...] } (사이는 직선으로 이어짐). 오래 이어지는 큰 구간만 낮추고 작은 도입부는 그대로 둠
+  var CURVES = { hole: [[0, 1], [8, 1], [20, 0.7]] };   // 타임 홀 곡: 도입부 8초까지는 그대로, 20초까지 서서히 내려가 이후는 0.7배(약 -3dB)
+  function curveMul(name, sec) {
+    var c = CURVES[name]; if (!c) return 1;
+    if (sec <= c[0][0]) return c[0][1];
+    for (var i = 1; i < c.length; i++) {
+      if (sec <= c[i][0]) { var a = c[i - 1], b = c[i]; return a[1] + (b[1] - a[1]) * (sec - a[0]) / (b[0] - a[0]); }
+    }
+    return c[c.length - 1][1];
+  }
+  var env = null;   // 곡선용 소리 조절 노드 (페이드·낮추기와 겹치지 않게 따로 둠)
   var duckMul = 1;   // 타임 홀 튜토리얼 구간에서만 곡을 잠깐 낮춤 (타임 홀 곡에만 적용)
   function lv() { return LEVEL * (TRACK_GAIN[cur] || 1) * (cur === 'hole' ? duckMul : 1); }
   var LOOP_FADE = 1.5;     // 반복할 때 곡 끝에서 줄어드는 시간(초)
@@ -1619,7 +1630,8 @@ var BGM = (function () {
       var s = SFX.ctx.createMediaElementSource(el);
       gain = SFX.ctx.createGain(); gain.gain.value = lv();
       bm = SFX.ctx.createGain(); bm.gain.value = muted ? 0 : 1;   // 배경음 끄기 출구
-      s.connect(gain); gain.connect(bm); bm.connect(SFX.ctx.destination);
+      env = SFX.ctx.createGain(); env.gain.value = 1;
+      s.connect(env); env.connect(gain); gain.connect(bm); bm.connect(SFX.ctx.destination);
     } catch (_) { gain = null; el.volume = lv(); }
     el.addEventListener('ended', function () {   // 반복: 처음부터 바로 이어서 (끝에서 이미 줄어 있었으므로 크기는 즉시 복구)
       if (!cur) return;
@@ -1651,6 +1663,7 @@ var BGM = (function () {
   }
   function tick() {
     if (!el) return;
+    if (env && cur && SFX.ctx && !el.paused && CURVES[cur]) { try { env.gain.setTargetAtTime(curveMul(cur, el.currentTime), SFX.ctx.currentTime, 0.4); } catch (_) {} }   // 곡 위치에 맞춰 부드럽게 크기 조절
     if (!gain) el.muted = muted;
     if (el.paused || !cur || !isFinite(el.duration) || el.duration < LOOP_FADE * 3) return;
     var rem = el.duration - el.currentTime;
@@ -1664,6 +1677,7 @@ var BGM = (function () {
     tok++; clearTimeout(stopT); ending = false; hiddenPaused = false;
     cur = name;
     if (name !== 'hole') duckMul = 1;
+    if (env && SFX.ctx) { try { env.gain.cancelScheduledValues(SFX.ctx.currentTime); env.gain.setValueAtTime(curveMul(name, 0), SFX.ctx.currentTime); } catch (_) {} }   // 새 곡은 처음 위치의 크기로 시작
     el.src = DIR + TRACKS[name];
     if (!gain) el.muted = muted;
     if (fade > 0) {
