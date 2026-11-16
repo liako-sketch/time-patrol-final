@@ -488,8 +488,10 @@
 
 /* ---------- 수도원 문제 설명용 가운데 무전창 (오답 안내와 같은 글리치 등장, 색은 하늘색) ---------- */
 .th-tutbox { --th-line: #5fd4e0; --th-line-rgb: 95, 212, 224; top: 41%; }
+/* 진행 안내 글이 대사와 붙어 갑갑하지 않게, 안내 상자는 아래쪽에 안내 글 전용 줄을 따로 둠 */
+.th-tutbox .th-hint { bottom: max(9px, 1.8cqmin); }
 .th-tutbox .th-radio-fill { background: linear-gradient(180deg, rgba(14, 34, 58, .74), rgba(7, 18, 33, .74)); }
-.th-tutbox .th-banner-body { padding: max(16px, 3cqmin) max(22px, 4cqmin); }
+.th-tutbox .th-banner-body { padding: max(16px, 3cqmin) max(22px, 4cqmin) calc(max(16px, 3cqmin) + max(16px, 3.2cqmin)); }   /* 아래에 진행 안내 글 전용 줄을 따로 둠 */
 .th-tutbox .th-banner-note { color: #fff; font-family: var(--th-font-tori); font-size: max(17px, 3.9cqmin); line-height: 1.5; white-space: pre-wrap; }
 .th-tutbox .th-banner-body::after { background: linear-gradient(180deg, transparent, rgba(190, 240, 255, .5), transparent); }
 
