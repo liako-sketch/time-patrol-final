@@ -1070,10 +1070,11 @@
   function exitReached() {   // 출구에 거의 닿음: 하얗게 밝아진 뒤 끝
     S.exit.white = true;
     S.els.root.classList.add('th-exiting');   // 말풍선·카드 칸도 흰 빛과 함께 바로 사라짐
+    S.els.white.style.transition = 'opacity 1.4s ease-out';   // 천천히 하얘짐 (바깥 창의 흰 화면과 같은 시간)
     S.els.white.classList.add('th-on');
     sfx('holeBoost', 0.8);   // 출구가 하얗게 밝아지는 순간에 가속음 (위로 솟는 음은 쓰지 않음)
     if (S.onExit) { try { S.onExit(); } catch (_) { /* 바깥 연출이 실패해도 계속 */ } }
-    after(1100, function () {
+    after(1700, function () {   // 흰 화면이 충분히 덮인 뒤 넘김
       S.phase = 'done';
       var cb = S.onComplete, ids = S.obtained.slice();
       if (cb) cb(ids);

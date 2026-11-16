@@ -1099,7 +1099,7 @@ function checkCodename(name) {   // 코드네임이 이미 시트에 있는지 �
 // ===== 본 활동 토리 대사 (나중에 여기만 고치면 됨) =====
 var BOARD_LINES = {
   // 안내 대사: 두 줄. <y>..</y> 노랑 강조, <r>..</r> 붉은 강조 (글자는 그대로, 색만)
-  idle: '획득한 카드에는 <r>오류카드</r>가 섞여 있을 수 있으니 조심하세요!\n<y>카드를 눌러</y> 내용을 읽고, <y>타임라인에 끌어다 놓아</y> 주세요!',
+  idle: '획득한 카드에는 <r>오류카드</r>가 섞여 있으니 조심하세요!\n<y>카드를 눌러</y> 내용을 읽고, <y>타임라인에 끌어다 놓아</y> 주세요!',
   solved: '<g>타임라인이 안정되었어요!</g> 첫날이라고는 믿을 수 없는걸요? {이름}님 대단해요!',   // 타임라인 맞춤 성공 후 안내 대사(한 줄, 녹색 강조 <g>). 성공했을 때만 안내 대사 대신 쓰임
 };
 // 토리 포즈 이름 (images/tori/tori_<이름>.webp) — 포즈는 여기서만 관리
@@ -4219,6 +4219,20 @@ var Board = (function () {
       if (shown && !solvedLine) { clearTimeout(revertTimer); if (s) sayHint(); else sayGuide(); }
     }
     function sayIdle() { clearTimeout(revertTimer); sayGuide(); }
+    // 타임 홀을 나온 직후의 첫 대사: UI가 나타나고 대사가 타이핑된 뒤, INTRO_LOCK_MS 가 지나야 '진행' 안내가 뜨며 넘길 수 있음 (그때 Promise 가 끝남). 넘기는 입력은 Flow 가 받음
+    function intro(text, lockMs) {
+      return new Promise(function (res) {
+        shown = true; clearTimeout(startTimer);
+        startTimer = setTimeout(function () {
+          root.classList.add('board-comm-in');
+          startTimer = setTimeout(function () {
+            say(text, TORI_POSE.right, 'idle', true);
+            var t0 = Date.now();
+            (function chk() { if (typingNow || Date.now() - t0 < lockMs) { setTimeout(chk, 50); return; } showNext(true); res(); })();
+          }, C.startDelayMs);
+        }, C.fadeInDelayMs);
+      });
+    }
 
     // 설명 패널이 열린 카드의 토리 해설 (mode 'explain' 이라 패널을 닫으면 cardDown 이 평소 안내로 되돌림)
     function note(text) {
@@ -4258,7 +4272,7 @@ var Board = (function () {
     portrait.addEventListener('pointerdown', function (e) { if (noteOn) e.stopPropagation(); });
     bubble.addEventListener('click', function (e) { if (noteOn) { e.stopPropagation(); noteAdvance(); } });
     portrait.addEventListener('click', function (e) { if (noteOn) { e.stopPropagation(); noteAdvance(); } });
-    return { frame: frame, show: show, reset: reset, note: note, noteAdvance: noteAdvance, noteActive: function () { return noteOn; }, splitNote: splitNote, cardDown: cardDown, setSolved: setSolved, setHint: setHint };
+    return { frame: frame, show: show, intro: intro, guide: sayGuide, reset: reset, note: note, noteAdvance: noteAdvance, noteActive: function () { return noteOn; }, splitNote: splitNote, cardDown: cardDown, setSolved: setSolved, setHint: setHint };
   })();
 
   // '사료카드 재배치'와 접근성 버튼 상태: 타임라인을 고치는 중(처음, 실패 뒤 다시 고칠 때)에만 재배치 가능
@@ -4285,13 +4299,26 @@ var Board = (function () {
       c.el.appendChild(b); c._bk = b;
     });
   }
-  var FLIP_DELAY = 500;   // 타임라인이 뜬 뒤 카드가 뒤집히기 전 잠깐 멈춤(ms)
+  var FLIP_DELAY = 0;   // 넘기는 입력을 받은 뒤 바로 뒤집음(ms). 대사 대기 1.2초 동안 그림은 이미 준비됨
+  function warmUp() {   // 카드 앞면 그림을 미리 불러와 디코딩: 뒤집히는 순간 그림이 늦게 뜨거나 깜빡이지 않게
+    var urls = [];
+    handCards.forEach(function (c) { if (c.data && c.data.image && CARD_IMAGES_AVAILABLE[c.data.image] && urls.indexOf(c.data.image) < 0) urls.push(c.data.image); });
+    return Promise.all(urls.map(function (u) {
+      return new Promise(function (res) {
+        var im = new Image(); imageKeep.push(im);
+        im.onerror = function () { res(); };
+        im.src = u;
+        if (im.decode) im.decode().then(res, res); else im.onload = function () { res(); };
+      });
+    }));
+  }
   function flipHand() {
     var list = handCards.filter(function (c) { return c._bk; }).sort(function (a, b) { return a.home - b.home; });
     var calm = document.documentElement.classList.contains('calm-mode');
-    return Promise.all(list.map(function (c, i) {
+    var ready = Promise.all([warmUp(), new Promise(function (res) { setTimeout(res, FLIP_DELAY); })]);   // 준비가 끝나고 정해진 시간이 지난 뒤에 뒤집기 시작
+    return ready.then(function () { return Promise.all(list.map(function (c, i) {
       return new Promise(function (res) {
-        if (calm || !c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, FLIP_DELAY); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
+        if (calm || !c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
         setTimeout(function () {
           SFX.play('cardFlip');   // 카드마다 뒤집히는 순간에 한 번씩 (왼쪽부터 차례로)
           var a1 =c.el.animate([{ scale: '1 1' }, { scale: '0 1' }], { duration: 170, easing: 'ease-in', fill: 'forwards' });
@@ -4301,11 +4328,11 @@ var Board = (function () {
             a1.cancel();
             a2.onfinish = a2.oncancel = function () { res(); };
           };
-        }, FLIP_DELAY + i * 130);
+        }, i * 130);
       });
-    }));
+    })); });
   }
-  return { fit: fit, on: on, reset: reset, stage: stage, showComm: Comm.show, hideHand: hideHand, flipHand: flipHand };
+  return { fit: fit, on: on, reset: reset, stage: stage, showComm: Comm.show, introLine: Comm.intro, guide: Comm.guide, hideHand: hideHand, warmUp: warmUp, flipHand: flipHand };
 })();
 
 // ============================================================
@@ -4325,6 +4352,16 @@ var Flow = (function () {
   var introStage = $('intro-stage');
   var locked = false;
   var FADE_IN_MS = 900, HOLD_MS = 300, FADE_OUT_MS = 1000;
+  function exitLine() {   // 타임 홀을 나온 직후 토리 대사. 코드네임은 하늘색으로만 표시하고(<> 는 제거해 표시 기호로 해석되지 않게), 없으면 '○○님' 부분을 뺌
+    var nm = String(TORI_CODENAME || '').replace(/[<>]/g, '');
+    return '<k>타임홀</k>을 무사히 빠져나왔어요' + (nm ? ' <k>' + nm + '</k>님' : '') + '!\n<y>획득한 사료카드</y>를 뒤집어 보세요.';
+  }
+  var EXIT_LOCK_MS = 1200;   // 이 대사는 나온 뒤 이 시간 동안 넘길 수 없음
+  var advCb = null;   // 넘기는 입력(터치·Enter·Space)을 기다리는 중일 때만 채워짐
+  function waitAdvance() { return new Promise(function (res) { advCb = res; }); }
+  function takeAdvance() { if (advCb) { var f = advCb; advCb = null; f(); } }
+  white.addEventListener('click', takeAdvance);   // 흰 오버레이(투명)가 화면 전체를 덮고 있으므로 어디를 터치해도 됨
+  var HOLE_HOLD_MS = 600, HOLE_REVEAL_MS = 2000, HOLE_EXIT_MS = 1400;   // 타임 홀 드나들 때는 인식이 잘 되도록 더 천천히: 들어간 뒤 흰 화면 걷힘 / 나올 때 하얘지는 시간 (타임 홀 안 흰 화면 1.4초와 같음)
 
   // 본 활동 자원 미리 불러오기 (전환 중 깜빡임·빈 화면 방지)
   var keep = [];
@@ -4342,7 +4379,12 @@ var Flow = (function () {
   function wait(ms) { return new Promise(function (res) { setTimeout(res, ms); }); }
 
   // 전환 중 모든 입력 잠금 (포인터는 흰 오버레이가 막고, 키·휠은 여기서 막음)
-  function stopKey(e) { if (locked) { e.preventDefault(); e.stopImmediatePropagation(); } }
+  function stopKey(e) {
+    if (locked) {
+      if (advCb && e.type === 'keydown' && !e.repeat && (e.key === 'Enter' || e.key === ' ')) takeAdvance();   // 대사 대기 중에는 Enter·Space 로 넘김 (그 밖의 키는 막음)
+      e.preventDefault(); e.stopImmediatePropagation();
+    }
+  }
   window.addEventListener('keydown', stopKey, true);
   window.addEventListener('keyup', stopKey, true);
   window.addEventListener('wheel', stopKey, { capture: true, passive: false });
@@ -4383,10 +4425,10 @@ var Flow = (function () {
         fitHole();
         TimeHole.start({ onExit: startExitWhite, onComplete: function () { toBoard(true); } });   // 얻은 카드 목록은 타임라인에 넘기지 않음
         BGM.play('hole', { fade: 4 });            // 타임 홀 배경음 (반복). 4초에 걸쳐 서서히 커짐
-        return wait(HOLD_MS);
+        return wait(HOLE_HOLD_MS);
       })
       .then(function () {
-        var fadeOut = white.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_OUT_MS, easing: 'ease-out', fill: 'forwards' });
+        var fadeOut = white.animate([{ opacity: 1 }, { opacity: 0 }], { duration: HOLE_REVEAL_MS, easing: 'ease-in-out', fill: 'forwards' });
         return fadeOut.finished;
       })
       .then(function () {
@@ -4399,8 +4441,8 @@ var Flow = (function () {
   var exitWhite = null;
   function startExitWhite() {                     // 타임 홀 출구가 밝아지는 순간, 비율 바깥 창도 같은 속도로 서서히 하얘짐
     white.style.display = 'block';
-    exitWhite = white.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out', fill: 'forwards' });
-    BGM.stop(0.9);                                  // 타임 홀 배경음도 흰 화면과 함께 줄어듦
+    exitWhite = white.animate([{ opacity: 0 }, { opacity: 1 }], { duration: HOLE_EXIT_MS, easing: 'ease-out', fill: 'forwards' });
+    BGM.stop(HOLE_EXIT_MS / 1000);                                  // 타임 홀 배경음도 흰 화면과 함께 줄어듦
   }
   function toBoard(fromHole) {
     if (locked) return;
@@ -4421,22 +4463,35 @@ var Flow = (function () {
       .then(function () { return preload; })   // 완전히 하얘진 순간 ("퓻" 소리는 뺌)
       .then(function () {
         enterBoard();                             // 완전히 하얗게 덮인 순간에 화면 교체
-        return wait(HOLD_MS);
+        return wait(fromHole ? HOLE_HOLD_MS : HOLD_MS);
       })
       .then(function () {
         SFX.play('breath');                       // 걷히는 동안 아주 작은 숨소리
         BGM.play('board', { fade: 1.5 });         // 타임라인이 보이면 세 번째 배경음 (반복)
-        var fadeOut = white.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_OUT_MS, easing: 'ease-out', fill: 'forwards' });
+        var fadeOut = white.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fromHole ? HOLE_REVEAL_MS : FADE_OUT_MS, easing: fromHole ? 'ease-in-out' : 'ease-out', fill: 'forwards' });
         return fadeOut.finished;
       })
       .then(function () {
         white.getAnimations().forEach(function (a) { a.cancel(); });   // 흰 오버레이는 투명한 채로 남겨 두어 마우스·터치를 막고, 키보드는 locked 가 막음
-        return Board.flipHand();                  // 손패 물음표 카드가 휘리릭 뒤집혀 앞면이 보임 (그동안 조작 금지)
-      })
-      .then(function () {
-        white.style.display = 'none';
-        Board.showComm();                         // 상단 토리 UI가 부드럽게 나타남
-        locked = false;                           // 입력 잠금 해제
+        if (!fromHole) {
+          return Board.flipHand().then(function () {
+            white.style.display = 'none';
+            Board.showComm();                     // 상단 토리 UI가 부드럽게 나타남
+            locked = false;                       // 입력 잠금 해제
+          });
+        }
+        Board.warmUp();                           // 카드 앞면 그림을 미리 준비 (대기 중에)
+        return Board.introLine(exitLine(), EXIT_LOCK_MS)   // 토리 대사가 먼저 나오고, 1.2초 동안은 넘길 수 없음
+          .then(waitAdvance)                      // 그 뒤 터치·Enter·Space 를 눌러야 다음으로
+          .then(function () {
+            SFX.play('advance');
+            Board.guide();                        // 다음 대사(평소 안내)가 나오면서
+            return Board.flipHand();              // 손패 물음표 카드가 휘리릭 뒤집혀 앞면이 보임 (그동안 조작 금지)
+          })
+          .then(function () {
+            white.style.display = 'none';
+            locked = false;                       // 입력 잠금 해제
+          });
       });
   }
 
