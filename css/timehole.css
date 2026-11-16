@@ -408,10 +408,10 @@
 .th-pointer-svg { position: absolute; width: var(--pw); height: auto; overflow: visible; filter: drop-shadow(0 0 5px rgba(95, 212, 224, .85)); }
 .th-pointer-finger .th-pointer-svg { left: calc(var(--pw) * -0.455); top: calc(var(--pw) * -0.232); }
 .th-pointer-cursor .th-pointer-svg { left: calc(var(--pw) * -0.083); top: calc(var(--pw) * -0.083); }
-.th-demo-tap .th-pointer { animation: th-pointer-tap 3.2s linear infinite; }
-@keyframes th-pointer-tap {   /* 왼쪽 글 누르고 → 오른쪽 글로 가서 누르고 → 돌아옴 */
-  0%   { translate: var(--lx) var(--ly); opacity: 0; scale: 1; }
-  5%   { opacity: 1; }
+.th-demo-tap .th-pointer { animation: th-pointer-tap 3.2s linear infinite, th-pointer-in .25s ease-out both; }   /* 처음 나타날 때만 한 번 서서히 보이고, 이후에는 사라지지 않고 계속 이어서 반복 */
+@keyframes th-pointer-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes th-pointer-tap {   /* 왼쪽 글 누르고 → 오른쪽 글로 가서 누르고 → 왼쪽으로 돌아와 끊김 없이 다음 반복 (시작·끝 자리·크기가 같음) */
+  0%   { translate: var(--lx) var(--ly); scale: 1; }
   9%   { scale: 1; }
   12%  { scale: .82; }
   22%  { scale: 1; }
@@ -421,8 +421,7 @@
   57%  { scale: .82; }
   67%  { scale: 1; }
   78%  { translate: var(--rx) var(--ry); animation-timing-function: ease-in-out; }
-  96%  { translate: var(--lx) var(--ly); opacity: 1; }
-  100% { translate: var(--lx) var(--ly); opacity: 0; }
+  100% { translate: var(--lx) var(--ly); scale: 1; }
 }
 /* 눌린 자리의 동그란 링 */
 .th-ripple { position: absolute; width: calc(var(--pw) * 1.1); height: calc(var(--pw) * 1.1); margin: calc(var(--pw) * -0.55) 0 0 calc(var(--pw) * -0.55);
@@ -507,6 +506,8 @@
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }
+.th-note-g { display: block; margin: .7em 0 .35em; font-size: .82em; line-height: 1.4; color: rgba(255, 255, 255, .5); }   /* 보조 안내: 회색 반투명, 위 설명과 간격을 둠 */
+.th-hl-k { color: var(--tori-key, #5fd4e0); }   /* 타임홀 이름: 타임라인의 "타임홀을 무사히…" 대사와 같은 하늘색 */
 .th-hl-c { color: #b8f1fa; }   /* 하늘색 강조 */
 .th-tutbox .th-kbd rect, .th-tutbox .th-kbd path { stroke: var(--th-hl); }
 /* 해설이 없으면 제목 아래 여백도 없앰 */

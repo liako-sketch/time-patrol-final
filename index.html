@@ -740,7 +740,7 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 #board-rkmain { margin: 0; font-family: var(--font-title); font-weight: 600; font-size: 44px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
 #board-rknote { white-space: pre-line; margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
 #board-rkwrap { position: relative; margin-top: 16px; }
-#board-rklist { position: relative; min-height: 120px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#board-rklist { position: relative; min-height: 120px; overflow-anchor: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 #board-rklist::-webkit-scrollbar { display: none; }
 #board-rksb { position: absolute; right: -22px; top: 0; bottom: 0; width: 5px; border-radius: 3px; background: rgba(150, 220, 230, .15); pointer-events: none; display: none; }   /* 타임라인 아래 막대와 같은 색·굵기의 세로 선 */
 #board-rksb i { position: absolute; left: 0; width: 100%; border-radius: 3px; background: rgba(150, 235, 240, .6); }
@@ -771,7 +771,7 @@ html.calm-mode .board-rkans, html.calm-mode .board-rkarrow { transition: none; }
 #board-rkme .board-rkrow { flex: 1 1 0; min-width: 0; margin-top: 0; }
 .board-rkmenone { font-family: var(--font-title); font-weight: 600; font-size: 26px; color: #eefcff; }
 #board-rkme[hidden] { display: none; }
-#board-rkbtns { display: flex; justify-content: flex-start; margin-top: 20px; }
+#board-rkbtns { display: flex; justify-content: center; margin-top: 20px; }
 /* ===== 접근성 버튼 + 설정 팝업 (스케일 무대 밖에 두되, right·bottom 은 스크립트가 무대 안쪽 오른쪽 아래 모서리로 맞춤) ===== */
 #a11y-btn { position: absolute; right: 24px; bottom: 24px; z-index: 40; width: 64px; height: 64px; box-sizing: border-box; margin: 0; padding: 4px 0 0; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
@@ -970,7 +970,7 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
           </div>
           <div id="board-abottom">
             <div id="board-aqrow"><p id="board-aq">이 사료가 오류라고 생각한 이유를 제출해 주세요.</p><span id="board-aqnote"></span></div>
-            <textarea id="board-ainput" maxlength="300" autocomplete="off" spellcheck="false" aria-labelledby="board-aq" placeholder="예) 앞 사료에서는 ~했는데, 이 사료에서는 ~라고 되어 있어서 오류라고 생각했어요."></textarea>
+            <textarea id="board-ainput" maxlength="300" autocomplete="off" spellcheck="false" aria-labelledby="board-aq" placeholder="최소 10자 이상 적어주세요."></textarea>
             <div id="board-ameta"><div id="board-anote"></div><span id="board-acount">0 / 300</span></div>
             <p id="board-adone" hidden></p>
             <div id="board-abtns">
@@ -1045,7 +1045,7 @@ html.calm-mode #board-scene .board-card.board-hl.board-hl-pulse { animation: non
   <div id="a11y-row"><span id="a11y-label">색약 도움 모드</span><button id="a11y-sw" type="button" role="switch" aria-checked="false" aria-labelledby="a11y-label"><span id="a11y-track"></span><span id="a11y-state">꺼짐</span></button></div>
   <p id="a11y-desc">붉은색과 녹색이 헷갈리는 친구를 위해 모양과 색을 바꿔 보여 줘요.</p>
   <div id="a11y-row2"><span id="a11y-label2">흔들림·움직임 줄이기</span><button id="a11y-sw2" type="button" role="switch" aria-checked="false" aria-labelledby="a11y-label2"><span id="a11y-track2"></span><span id="a11y-state2">꺼짐</span></button></div>
-  <p id="a11y-desc2">어지러움을 유발할 수 있는 화면 동작을 멈춰요.</p>
+  <p id="a11y-desc2">어지러움을 유발할 수 있는 화면 동작을 멈춰요.<br>일부 기능이 작동하지 않고, 화면이 부드럽지 않을 수 있어요.</p>
   <div id="a11y-row3"><span id="a11y-label3">소리 없애기 (음소거)</span><button id="a11y-sw3" type="button" role="switch" aria-checked="false" aria-labelledby="a11y-label3"><span id="a11y-track3"></span><span id="a11y-state3">꺼짐</span></button></div>
   <div class="a11y-sub"><div class="a11y-subrow"><span id="a11y-label4" class="a11y-sublabel">배경음 없애기</span><button id="a11y-sw4" class="a11y-subsw" type="button" role="switch" aria-checked="false" aria-labelledby="a11y-label4"><span class="a11y-subtrack"></span><span id="a11y-state4">꺼짐</span></button></div>
   <div class="a11y-subrow"><span id="a11y-label5" class="a11y-sublabel">효과음 없애기</span><button id="a11y-sw5" class="a11y-subsw" type="button" role="switch" aria-checked="false" aria-labelledby="a11y-label5"><span class="a11y-subtrack"></span><span id="a11y-state5">꺼짐</span></button></div></div>
@@ -1111,7 +1111,7 @@ function checkCodename(name) {   // 코드네임이 이미 시트에 있는지 �
 // ===== 본 활동 토리 대사 (나중에 여기만 고치면 됨) =====
 var BOARD_LINES = {
   // 안내 대사: 두 줄. <y>..</y> 노랑 강조, <r>..</r> 붉은 강조 (글자는 그대로, 색만)
-  idle: '획득한 카드에는 <r>오류카드</r>가 섞여 있으니 조심하세요!\n<y>카드를 눌러</y> 내용을 읽고, <y>타임라인에 끌어다 놓아</y> 주세요!',
+  idle: '획득한 카드에는 <r>오류카드</r>가 섞여 있으니 조심하세요!\n<y>카드를 눌러</y> 내용을 읽고, 시간 순서에 맞게 <y>타임라인에 끌어다 놓아</y> 주세요!',
   solved: '<g>타임라인이 안정되었어요!</g> 첫날이라고는 믿을 수 없는걸요? {이름}님 대단해요!',   // 타임라인 맞춤 성공 후 안내 대사(한 줄, 녹색 강조 <g>). 성공했을 때만 안내 대사 대신 쓰임
 };
 // 토리 포즈 이름 (images/tori/tori_<이름>.webp) — 포즈는 여기서만 관리
@@ -2717,6 +2717,15 @@ var Board = (function () {
     [(d.source || '') + SOURCE_NOTE, SOURCE_LINE2].forEach(function (t) { var sp = document.createElement('span'); sp.textContent = t || ''; srcEl.appendChild(sp); });
     $('board-apanel').scrollTop = 0;
   }
+  function fitAuditBody(d) {   // 사료 본문이 길어도 오른쪽 위 설명 칸에서 스크롤 없이 다 보이도록 글자 크기를 줄임 (카드마다 처음 크기에서 시작해 맞을 때까지 1px씩, 줄 간격도 마지막에 조금)
+    var panel = $('board-apanel'), bodyEl = $('board-abody'), px = d.bodyPx || 34, lh = d.bodyLine || 1.85, MIN_PX = 18;
+    function apply() { bodyEl.style.setProperty('--dbody-px', px + 'px'); bodyEl.style.setProperty('--dbody-lh', lh); }
+    function over() { return panel.scrollHeight > panel.clientHeight + 1; }
+    apply();
+    while (over() && px > MIN_PX) { px -= 1; apply(); }
+    while (over() && lh > 1.45) { lh = Math.max(1.45, lh - 0.05); apply(); }
+    panel.scrollTop = 0;
+  }
   function openAudit() {
     var c = occupant(ERR); if (!c || !c.data || auditOpen) return;
     var d = c.data;
@@ -2740,6 +2749,8 @@ var Board = (function () {
     updateAuditCount();
     auditOpen = true; auditEl.classList.add('board-open'); sceneEl.classList.add('board-auditing');
     sizeCard(); updateKeyboard();
+    fitAuditBody(d);
+    setTimeout(function () { if (auditOpen) fitAuditBody(d); }, 350);   // 열리는 동안 글꼴·배치가 자리 잡은 뒤 한 번 더
   }
   function closeAudit() {
     if (!auditOpen) return;
@@ -3016,7 +3027,13 @@ var Board = (function () {
   var REAL_SOURCE_SRC = ['하인리히 4세가 그레고리우스 7세에게 한 서약 (사료를 바탕으로 재구성)', '자료: Fordham University, Internet Medieval Sourcebook'];
   // 바뀐 곳 강조: 문장별 구절 목록 (글자는 바꾸지 않고 감싸기만 함). 위조(붉은) / 원래(녹색)
   var REAL_IMAGE_SRC = 'images/card/card_R.webp';   // 원 사료 이미지 파일 (CARD_IMAGES_AVAILABLE 에도 같은 경로가 true 로 등록되어 있어야 보임. 파일이 없으면 자리표시자)
-  if (CARD_IMAGES_AVAILABLE[REAL_IMAGE_SRC]) { var realIm = new Image(); imageKeep.push(realIm); realIm.src = REAL_IMAGE_SRC; if (realIm.decode) realIm.decode().catch(function () {}); }   // 비교 창이 열릴 때 늦게 뜨지 않게 미리 불러 둠
+  var realKeep = null;
+  function warmReal() {   // 원 사료 이미지를 다시 디코딩해 둠: 오래 안 쓰면 브라우저가 디코딩된 그림을 버려서, 비교 화면에 처음 뜰 때 아주 조금 늦게 보이는 것을 막음
+    if (!CARD_IMAGES_AVAILABLE[REAL_IMAGE_SRC]) return;
+    var im = new Image(); im.src = REAL_IMAGE_SRC; realKeep = im;   // 마지막 하나만 붙잡아 둠
+    if (im.decode) im.decode().catch(function () {});
+  }
+  warmReal();
   var BAD_MARKS = [['그레고리우스', '파문의 일로', '왕 하인리히에게 용서를 구하며'], ['저에게', '왕이 정한 기한'], ['왕이 독일이나 다른 땅을', '제가'], ['왕을 방해하는', '왕에게 맞서면']];
   var REAL_MARKS = [['하인리히'], ['저에게', '교황이 정한 기한'], ['교황이 독일이나 다른 땅을', '제가'], ['교황을 방해하는', '교황에게 맞서면']];
 
@@ -3285,6 +3302,7 @@ var Board = (function () {
     return box.firstChild;
   }
   function openRes(mode, img, title, buildBody, buttons) {
+    warmReal();   // 결과 창이 열릴 때 비교 화면에 쓸 원 사료 그림을 미리 준비
     resMode = mode; resEl.classList.toggle('board-fail', mode === 'fail'); resEl.classList.toggle('board-ok', mode === 'ok'); $('board-rimg').src = img; $('board-rmain').textContent = title; $('board-rgrade').hidden = true;   // 등급 배지는 성공 팝업이 채울 때만 보임
     var body = $('board-rbody'); body.textContent = ''; body.style.overflowY = ''; buildBody(body); body.scrollTop = 0;
     if (body.scrollHeight <= body.clientHeight + 2) body.style.overflowY = 'visible';   // 내용이 다 들어가면 스크롤 칸으로 두지 않음: 아이폰 사파리가 스크롤 칸 아래 가장자리의 가는 선(마지막 칸의 아래 테두리)을 잘라 냈음
@@ -3522,17 +3540,10 @@ var Board = (function () {
     });
   }
   function rkMsg(list, text) { list.textContent = ''; var p = document.createElement('p'); p.className = 'board-rkempty'; p.textContent = text; list.appendChild(p); }
-  var rkOpenRow = null;   // 지금 펼쳐진 줄 (한 번에 하나만)
-  function rkToggle(row) {   // 줄을 누르면 그 줄 아래로 답안이 늘어나며 펼쳐짐. 다른 줄이 펼쳐져 있으면 접음
+  function rkToggle(row) {   // 줄을 누르면 그 줄 아래로 답안이 늘어나며 펼쳐지고, 다시 누르기 전까지는 다른 줄을 눌러도 접히지 않음 (여러 답안을 놓고 비교, 내 순위 줄 포함)
     var open = !row.classList.contains('board-rkopen');
-    if (rkOpenRow && rkOpenRow !== row) { rkOpenRow.classList.remove('board-rkopen'); rkOpenRow.setAttribute('aria-expanded', 'false'); }
     row.classList.toggle('board-rkopen', open); row.setAttribute('aria-expanded', open ? 'true' : 'false');
-    rkOpenRow = open ? row : null;
-    setTimeout(function () {   // 펼침이 끝난 뒤: 목록 안이면 펼친 줄이 다 보이게 스크롤하고 오른쪽 막대를 맞춤
-      var list = $('board-rklist');
-      if (open && list.contains(row)) { var bottom = row.offsetTop + row.offsetHeight; if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight; }
-      syncRankBar();
-    }, 340);
+    setTimeout(syncRankBar, 340);   // 오른쪽 막대만 맞춤. 스크롤 위치는 건드리지 않음 (스크롤은 전적으로 사용자가 움직임)
   }
   function rkRow(rankNo, name, grade, self, answer) {   // 순위 줄과 내 순위 줄이 같은 구성(등수·코드네임·등급)이라 한눈에 비교됨. 글은 textContent 로만 넣음
     var row = document.createElement('div'); row.className = 'board-rkrow' + (self ? ' board-rkself' : '');
@@ -3551,7 +3562,7 @@ var Board = (function () {
     return row;
   }
   function renderRank(j, mine) {   // 형식이 맞는 줄만 보여 줌. mine: 창을 열 때의 내 코드네임
-    var list = $('board-rklist'), me = $('board-rkme'); me.hidden = true; me.textContent = ''; rkOpenRow = null;
+    var list = $('board-rklist'), me = $('board-rkme'); me.hidden = true; me.textContent = '';
     if (!j || !Array.isArray(j.list)) { rkMsg(list, RK_FAIL); return; }
     var rows = j.list.filter(function (x) { return x && typeof x.rank === 'number' && typeof x.nickname === 'string' && NAME_RE.test(x.nickname) && GRADE_NAMES[x.grade]; }).slice(0, 10);
     if (!rows.length) rkMsg(list, RK_EMPTY);
@@ -3707,6 +3718,7 @@ var Board = (function () {
     while (fs > 16 && bodies.some(function (b) { return b.scrollHeight > b.clientHeight + 1; })) { fs -= 1; cmpEl.style.setProperty('--cmp-fs', fs + 'px'); }
   }
   function openCmp() {
+    warmReal();
     if (cmpOpen) return;
     anaRelease();   // 성공: 톺아보기를 누르면 배경이 돌아옴
     var forged = CARD_DATA.filter(function (d) { return d.isForged; })[0] || {};
@@ -4316,7 +4328,7 @@ var Board = (function () {
     portrait.addEventListener('pointerdown', function (e) { if (noteOn) e.stopPropagation(); });
     bubble.addEventListener('click', function (e) { if (noteOn) { e.stopPropagation(); noteAdvance(); } });
     portrait.addEventListener('click', function (e) { if (noteOn) { e.stopPropagation(); noteAdvance(); } });
-    return { frame: frame, show: show, intro: intro, guide: sayGuide, reset: reset, note: note, noteAdvance: noteAdvance, noteActive: function () { return noteOn; }, splitNote: splitNote, cardDown: cardDown, setSolved: setSolved, setHint: setHint };
+    return { frame: frame, show: show, intro: intro, guide: sayGuide, reset: reset, note: note, noteAdvance: noteAdvance, noteActive: function () { return noteOn; }, splitNote: splitNote, cardDown: cardDown, setSolved: setSolved, setHint: setHint, setPose: setPose };
   })();
 
   // '사료카드 재배치'와 접근성 버튼 상태: 타임라인을 고치는 중(처음, 실패 뒤 다시 고칠 때)에만 재배치 가능
@@ -4382,7 +4394,7 @@ var Board = (function () {
       });
     })); });
   }
-  return { fit: fit, on: on, reset: reset, stage: stage, showComm: Comm.show, introLine: Comm.intro, guide: Comm.guide, hideHand: hideHand, warmUp: warmUp, flipHand: flipHand };
+  return { fit: fit, on: on, reset: reset, stage: stage, showComm: Comm.show, introLine: Comm.intro, guide: Comm.guide, hideHand: hideHand, warmUp: warmUp, flipHand: flipHand, presetPose: Comm.setPose };
 })();
 
 // ============================================================
@@ -4456,10 +4468,11 @@ var Flow = (function () {
     A11y.mount(host);
   }
 
-  function enterBoard() {
+  function enterBoard(fromHole) {
     Intro.off();
     TimeHole.destroy();                           // 타임 홀 정리 (이미 정리돼 있어도 안전)
     Board.reset();
+    if (fromHole) Board.presetPose('happy');      // 타임홀을 나온 첫 대사가 나오기 전부터 happy (대사가 뜨면서 표정이 바뀌지 않게). 다음 대사로 넘어가면 평소 표정으로
     Board.hideHand();                             // 손패 카드는 물음표 뒷면으로 시작
     showScene('board');
     Board.fit();
@@ -4481,7 +4494,7 @@ var Flow = (function () {
         fitHole();                                // 화면이 보이게 된 뒤에 크기를 다시 맞춤
         TimeHole.mount(holeStage, { assetBase: '' });
         fitHole();
-        TimeHole.start({ onExit: startExitWhite, onComplete: function () { toBoard(true); } });   // 얻은 카드 목록은 타임라인에 넘기지 않음
+        TimeHole.start({ codename: String(TORI_CODENAME || '').trim(), onExit: startExitWhite, onComplete: function () { toBoard(true); } });   // 얻은 카드 목록은 타임라인에 넘기지 않음
         BGM.play('hole', { fade: 4 });            // 타임 홀 배경음 (반복). 4초에 걸쳐 서서히 커짐
         return wait(HOLE_HOLD_MS);
       })
@@ -4520,7 +4533,7 @@ var Flow = (function () {
     fadeIn.finished
       .then(function () { return preload; })   // 완전히 하얘진 순간 ("퓻" 소리는 뺌)
       .then(function () {
-        enterBoard();                             // 완전히 하얗게 덮인 순간에 화면 교체
+        enterBoard(fromHole);                     // 완전히 하얗게 덮인 순간에 화면 교체
         return wait(fromHole ? HOLE_HOLD_MS : HOLD_MS);
       })
       .then(function () {

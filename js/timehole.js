@@ -26,6 +26,8 @@
     DEMO_TIMER_MS: 5000,         // 튜토리얼에서 시간 눈금이 한 바퀴 꺼지는 시간 (시범용, 실제 제한 시간과 별개)
     TUTORIAL_PC_CURSOR: true,    // 튜토리얼 조작법: 방향키는 모든 기기에서 보여 줌(블루투스 키보드). true(지금) 면 PC 는 터치 대신 '마우스 커서 클릭'을 보여 주고, 슬라이드 설명은 '모바일과 태블릿에서는' 을 붙여 남김. false 면 모든 기기에서 손가락 누르기·슬라이드
     SHOW_GUIDE: false,         // true 면 오프닝 뒤에 '타임 홀 달리는 법' 안내 패널을 보여 줌 (지금은 뺌)
+    OPENING_LOCK_MS: 1000,       // 오프닝 대사 네 줄: 뜬 뒤 이 시간이 지나야 넘길 수 있음
+    OPENING_GLITCH_LOCK_MS: 1500,   // 맨 앞의 깨진 글자(글리치) 대사는 글리치가 보일 시간을 고려해 더 길게
     OPENING_TAP_LOCK_MS: 400,    // 오프닝 대사가 뜬 직후 이 시간 동안은 터치해도 넘어가지 않음 (실수로 건너뛰기 방지)
     APPROACH_MS: 1700,           // 문제 직전 대사가 보이는 시간
     TURN_MS: 1200,               // 시간 초과 때 직진한 뒤 결과가 나올 때까지 시간
@@ -103,13 +105,14 @@
     // 오프닝: 터치할 때마다 한 줄씩. {이름} 은 코드네임(합칠 때 start({ codename }) 으로 받음, 없으면 '패트롤')
     //   parts 의 inline 은 앞 조각과 같은 줄에 이어 붙임, glitch 는 깨진 글자 효과
     opening: [   // 두 줄 이상이 되는 대사는 뜻 단위로 줄바꿈해서 말풍선에서 어색하게 꺾이지 않게 함
-      { pose: 'happy', parts: [{ text: '치ㅊㅈ.. 들ㄹIㄴrㅛ?', glitch: true }, { text: '{이름}님, 타임 홀 진입에 성공했어요!' }] },
-      { pose: 'default', parts: [{ text: '여기는 붕괴된 타임라인으로 이어지는 시간의 터널이에요.\n이곳에서 흩어진 사료 카드를 모아야 타임라인을 복구할 수 있어요.' }] },
-      { pose: 'hint', parts: [{ text: '제가 문제를 내면, 정답이 있는 쪽 길로 달려 주세요.\n사실을 하나씩 찾을 때마다 카드가 모일 거예요. 제 무전을 잘 들어 주세요!' }] },
+      { pose: 'happy', parts: [{ text: '치ㅊㅈ.. 들ㄹIㄴrㅛ?', glitch: true }, { text: '{이름}님, {k}타임홀{/k} 진입에 성공했어요!' }] },
+      { pose: 'default', parts: [{ text: '여기는 붕괴된 타임라인으로 이어지는 시간의 터널이에요.\n이곳에서 {y}흩어진 사료 카드를 모아{/y}야 {y}타임라인을 복구{/y}할 수 있어요.' }] },
+      { pose: 'hint', parts: [{ text: '제가 문제를 내면, 정답이 있는 쪽 길로 달려 주세요.\n사실을 하나씩 맞힐 때마다 카드가 모일 거예요. 제 무전을 잘 들어 주세요!' }] },
       { pose: 'what', parts: [{ text: '어... 처음이라서 잘 모르시겠다고요?\n그렇다면, 먼저 연습부터 해 볼게요!' }] }
     ],
     beforeQuestion: ['앞에 문제가 기다리고 있어요. 잘 들어 주세요!', '다음 길이에요. 집중해 주세요!'],
     wrong: '앗, 이 길이 아니었어요.',
+    timeout: '앗, 시간이 다 되어 버렸어요.',   // 시간 초과일 때 (가운데 창은 '시간이 지났어요!')
     cardGet: '정답이에요. 사료 카드를 얻었어요!',
     tunnelEnd: '카드를 다 모았어요! 이제 타임홀에서 나갈 수 있어요!'
   };
@@ -533,12 +536,16 @@
   }
   // 글 속의 ← → 는 평면 방향키 아이콘으로 바꿔 넣음
   function fillArrows(node, text) {
-    String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|[←→])/).forEach(function (seg) {
+    String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|\{k\}.*?\{\/k\}|\{g\}.*?\{\/g\}|[←→])/).forEach(function (seg) {
       if (seg === '←' || seg === '→') {
         node.appendChild(svg('0 0 24 24', 'th-kbd', [['rect', { x: 1.5, y: 1.5, width: 21, height: 21, rx: 4.5 }],
           ['path', { d: seg === '←' ? 'M17 12 H7.5 M11 8.5 L7.5 12 L11 15.5' : 'M7 12 H16.5 M13 8.5 L16.5 12 L13 15.5' }]]));
       } else if (seg.indexOf('{y}') === 0) {
         node.appendChild(el('span', 'th-hl-y', seg.slice(3, -4)));   // 노란 글씨 강조
+      } else if (seg.indexOf('{g}') === 0) {
+        node.appendChild(el('span', 'th-note-g', seg.slice(3, -4)));   // 회색 반투명 보조 안내 (따로 한 줄)
+      } else if (seg.indexOf('{k}') === 0) {
+        node.appendChild(el('span', 'th-hl-k', seg.slice(3, -4)));   // 하늘색 강조 (타임홀 이름)
       } else if (seg.indexOf('{c}') === 0) {
         node.appendChild(el('span', 'th-hl-c', seg.slice(3, -4)));   // 하늘색 강조
       } else if (seg) node.appendChild(document.createTextNode(seg));
@@ -633,7 +640,9 @@
     if (ln.parts.some(function (p) { return p.glitch; })) garbleSfx(S.speakSeq, 1000);   // 글자가 처음 깨지는 시점(1초 뒤)에 작은 글리치 소리 한 번
     S.openReady = true;
     S.openAt = performance.now();
-    S.els.bubble.classList.add('th-await');
+    S.openLock = ln.parts.some(function (p) { return p.glitch; }) ? CONFIG.OPENING_GLITCH_LOCK_MS : CONFIG.OPENING_LOCK_MS;
+    var seqNow = S.speakSeq;
+    after(S.openLock, function () { if (S && S.speakSeq === seqNow && S.phase === 'opening') S.els.bubble.classList.add('th-await'); });   // 넘길 수 있게 되는 순간부터 ▼·안내 글이 보임
   }
   function garbleSfx(seq, delay) {
     after(delay, function () {
@@ -643,7 +652,7 @@
   }
   function tryOpeningTap() {
     if (S && S.phase === 'explain' && S.expReady && performance.now() - S.expAt >= CONFIG.OPENING_TAP_LOCK_MS) { explainNext(); return true; }
-    if (S && S.phase === 'opening' && S.openReady && performance.now() - S.openAt >= CONFIG.OPENING_TAP_LOCK_MS) { openingNext(); return true; }
+    if (S && S.phase === 'opening' && S.openReady && performance.now() - S.openAt >= (S.openLock || CONFIG.OPENING_LOCK_MS)) { openingNext(); return true; }
     return false;
   }
 
@@ -721,7 +730,7 @@
     };
     // 방향키는 모든 기기에서(블루투스 키보드). 그다음 터치 기기(지금은 모든 기기)는 누르기·슬라이드, TUTORIAL_PC_CURSOR 가 켜지면 PC 는 커서 클릭만
     var pcCursor = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();
-    if (pcCursor) T.swipe.text = '{c}모바일과 태블릿에서는{/c} ' + T.swipe.text;   // PC 에서는 슬라이드 설명을 남기되 어느 기기 얘기인지 앞에 붙임
+    if (pcCursor) T.swipe.text = '{c}모바일과 태블릿에서는{/c} ' + T.swipe.text + '{g}※ PC에서는 슬라이드를 지원하지 않아요.{/g}';   // PC 에서는 슬라이드 설명을 남기되 어느 기기 얘기인지 앞에 붙임
     var order = ['radio', 'slots', 'timer', 'opts', 'keys'].concat(pcCursor ? ['click', 'swipe'] : ['tap', 'swipe'], ['ready']);
     return order.map(function (k) { return { pose: T[k].pose, parts: [{ text: T[k].text }], focus: k }; });
   }
@@ -1036,7 +1045,7 @@
     var q = S.current;
     S.phase = 'wrong';
     S.targetSpeed = CONFIG.CRUISE_SPEED;   // 안내가 떠 있는 동안 평소 속도로 서서히 돌아옴
-    say([{ text: TORI_LINES.wrong, cls: 'th-w' }], 'sad');
+    say([{ text: timeout ? TORI_LINES.timeout : TORI_LINES.wrong, cls: 'th-w' }], 'sad');
     S.els.bTitle.textContent = timeout ? UI_TEXT.timeoutTitle : UI_TEXT.wrongTitle;
     S.els.bNote.textContent = UI_TEXT.wrongRetry;   // 문제 해설은 일단 띄우지 않음 (q.wrongNote 데이터는 남겨 둠)
     S.wrongBy = S.wrongBy || {};
