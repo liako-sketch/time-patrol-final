@@ -4321,12 +4321,15 @@ var Board = (function () {
         if (calm || !c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
         setTimeout(function () {
           SFX.play('cardFlip');   // 카드마다 뒤집히는 순간에 한 번씩 (왼쪽부터 차례로)
-          var a1 =c.el.animate([{ scale: '1 1' }, { scale: '0 1' }], { duration: 170, easing: 'ease-in', fill: 'forwards' });
+          // 제자리 뒤집기가 아니라 휘리릭: 위로 튀어 오르며 옆으로 얇아지고(약간 기울며), 꼭대기에서 앞면으로 바뀐 뒤 통통 내려앉음. 이동·기울기는 카드 위치(transform)와 따로 쓰는 개별 속성
+          var hop = Math.round((c.h || 300) * 0.22);
+          c.el.style.zIndex = '40';   // 튀어 오르는 동안 이웃 카드 위로
+          var a1 = c.el.animate([{ translate: '0 0', rotate: '0deg', scale: '1 1' }, { translate: '0 ' + (-hop) + 'px', rotate: '-7deg', scale: '0 1' }], { duration: 210, easing: 'cubic-bezier(.3, .6, .6, 1)', fill: 'forwards' });
           a1.onfinish = function () {
             if (c._bk) { c._bk.remove(); c._bk = null; }
-            var a2 = c.el.animate([{ scale: '0 1' }, { scale: '1 1' }], { duration: 170, easing: 'ease-out' });
+            var a2 = c.el.animate([{ translate: '0 ' + (-hop) + 'px', rotate: '7deg', scale: '0 1' }, { translate: '0 0', rotate: '0deg', scale: '1 1' }], { duration: 260, easing: 'cubic-bezier(.3, 1.5, .55, 1)' });
             a1.cancel();
-            a2.onfinish = a2.oncancel = function () { res(); };
+            a2.onfinish = a2.oncancel = function () { c.el.style.zIndex = ''; res(); };
           };
         }, i * 130);
       });
@@ -4342,9 +4345,12 @@ var Flow = (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var introScene = $('intro-scene'), boardScene = $('board-scene'), holeScene = $('flow-hole'), holeStage = $('hole-stage'), white = $('flow-white');
-  function fitHole() {   // 인트로 fit() 과 같은 계산: 1920×1080 무대를 창에 맞춰 가운데에 축소
-    var V = viewSize(), s = Math.min(V.w / 1920, V.h / 1080);
-    holeStage.style.transform = 'translate(' + ((V.w - 1920 * s) / 2) + 'px,' + ((V.h - 1080 * s) / 2) + 'px) scale(' + s + ')';
+  function fitHole() {   // 인트로 fit() 과 같은 방식: 무대를 창에 맞춰 가운데에 축소. 가로 화면은 1920×1080, 세로 화면(폰·태블릿)은 타임 홀에서만 가로 1080 에 세로를 화면 비율에 맞춰(1440~2400) 세로 무대로
+    var V = viewSize(), portrait = V.h > V.w;
+    var W = portrait ? 1080 : 1920, H = portrait ? Math.min(2400, Math.max(1440, Math.round(1080 * V.h / V.w))) : 1080;
+    var s = Math.min(V.w / W, V.h / H);
+    holeStage.style.width = W + 'px'; holeStage.style.height = H + 'px';
+    holeStage.style.transform = 'translate(' + ((V.w - W * s) / 2) + 'px,' + ((V.h - H * s) / 2) + 'px) scale(' + s + ')';
     if (window.TimeHole) window.TimeHole.refit();
   }
   addEventListener('resize', fitHole);

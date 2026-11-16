@@ -203,12 +203,9 @@
   }
 
   /* ---------------- 카드 DOM ---------------- */
-  function questionArt() {
-    var w = el('div', 'th-q-art');
-    w.appendChild(svg('0 0 100 100', '', [
-      ['circle', { cx: 50, cy: 50, r: 42, fill: 'rgba(95,212,224,0.08)', stroke: '#5fd4e0', 'stroke-width': 3, 'stroke-dasharray': '6 5' }],
-      ['text', { x: 50, y: 66, 'text-anchor': 'middle', 'font-size': 50, 'font-weight': 700, fill: '#5fd4e0', 'font-family': 'sans-serif' }, '?']
-    ]));
+  function questionArt() {   // 타임라인의 물음표 카드(손패 뒷면)와 같은 모양: 어두운 남색 바탕 + 하늘색으로 빛나는 큰 '?' (모양은 css 의 .th-q-art)
+    var w = el('div', 'th-q-art', '?');
+    w.setAttribute('aria-hidden', 'true');
     return w;
   }
   function hiddenCardEl() {
@@ -1090,8 +1087,9 @@
       return;
     }
     if (S.phase === 'question') {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); choose('left'); }
-      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); choose('right'); }
+      if (e.repeat) { e.preventDefault(); return; }   // 키를 계속 누르고 있어도 자동 반복은 무시: 다음 문제에서도 떼었다가 다시 눌러야 선택됨
+      if (e.key === 'ArrowLeft') { e.preventDefault(); choose('left'); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); choose('right'); }
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === ' ') {
       if (S.phase !== 'guide' && S.phase !== 'idle') e.preventDefault();   // 게임 중 화살표·스페이스로 페이지가 움직이지 않게
     }
