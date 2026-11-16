@@ -1590,6 +1590,8 @@ var BGM = (function () {
   var DIR = 'audio/';
   var TRACKS = { intro: 'bgm_1.mp3', quake: 'bgm_2.mp3', board: 'bgm_3.mp3', clear: 'bgm_4.mp3', hole: 'bgm_5.mp3' };   // 인트로 / 흔들림 뒤 / 타임라인 / 분석 성공 / 타임 홀
   var LEVEL = 0.216;        // 배경음 크기 (효과음·말소리보다 작게). 여기 한 곳에서 조절 (0.35 에서 낮춤)
+  var TRACK_GAIN = { hole: 0.8 };   // 곡별 크기 보정 (타임 홀 곡은 기준보다 20% 작게)
+  function lv() { return LEVEL * (TRACK_GAIN[cur] || 1); }
   var LOOP_FADE = 1.5;     // 반복할 때 곡 끝에서 줄어드는 시간(초)
   var muted = false, bm = null;   // 배경음 끄기 (효과음 끄기와 따로)
   var fadeWant = null;            // 소리가 실제로 나기 시작할 때 걸 페이드인 시간(초)
@@ -1601,13 +1603,13 @@ var BGM = (function () {
     el = new Audio(); el.preload = 'auto';
     try {
       var s = SFX.ctx.createMediaElementSource(el);
-      gain = SFX.ctx.createGain(); gain.gain.value = LEVEL;
+      gain = SFX.ctx.createGain(); gain.gain.value = lv();
       bm = SFX.ctx.createGain(); bm.gain.value = muted ? 0 : 1;   // 배경음 끄기 출구
       s.connect(gain); gain.connect(bm); bm.connect(SFX.ctx.destination);
-    } catch (_) { gain = null; el.volume = LEVEL; }
+    } catch (_) { gain = null; el.volume = lv(); }
     el.addEventListener('ended', function () {   // 반복: 처음부터 바로 이어서 (끝에서 이미 줄어 있었으므로 크기는 즉시 복구)
       if (!cur) return;
-      ending = false; ramp(LEVEL, 0);
+      ending = false; ramp(lv(), 0);
       try { el.currentTime = 0; } catch (_) {}
       kick();
     });
@@ -1615,7 +1617,7 @@ var BGM = (function () {
     setInterval(tick, 100);
     return true;
   }
-  function startFade() { if (fadeWant == null) return; var f = fadeWant; fadeWant = null; ramp(LEVEL, f, 0); }
+  function startFade() { if (fadeWant == null) return; var f = fadeWant; fadeWant = null; ramp(lv(), f, 0); }
   function kick() { try { var p = el.play(); if (p && p.catch) p.catch(function () {}); } catch (_) {} }
   function ramp(to, sec, from) {
     if (!el) return;
@@ -1652,7 +1654,7 @@ var BGM = (function () {
     if (fade > 0) {
       ramp(0, 0, 0); fadeWant = fade;           // 소리가 시작되기 전까지는 0 으로 두었다가 시작되면 서서히 키움
       var my = tok; setTimeout(function () { if (my === tok) startFade(); }, 4000);   // 혹시 시작 신호가 안 오면 4초 뒤에는 어쨌든 켬
-    } else { fadeWant = null; ramp(LEVEL, 0); }
+    } else { fadeWant = null; ramp(lv(), 0); }
     kick();
   }
   function stop(sec) {       // sec 초 동안 줄이며 끄기 (0 이면 뚝 끊음)
@@ -4345,7 +4347,7 @@ var Flow = (function () {
         TimeHole.mount(holeStage, { assetBase: '' });
         fitHole();
         TimeHole.start({ onExit: startExitWhite, onComplete: function () { toBoard(true); } });   // 얻은 카드 목록은 타임라인에 넘기지 않음
-        BGM.play('hole', { fade: 1.5 });          // 타임 홀 배경음 (반복). 흰 화면이 걷히는 동안 서서히 커짐
+        BGM.play('hole', { fade: 4 });            // 타임 홀 배경음 (반복). 4초에 걸쳐 서서히 커짐
         return wait(HOLD_MS);
       })
       .then(function () {
