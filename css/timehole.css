@@ -499,6 +499,7 @@
   filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .55)) drop-shadow(0 0 22px rgba(95, 212, 224, .28)); }   /* 그림자와 은은한 빛으로 입체감 */
 /* 진행 안내 글이 대사와 붙어 갑갑하지 않게, 안내 상자는 아래쪽에 안내 글 전용 줄을 따로 둠 */
 .th-tutbox .th-hint { right: auto; left: 50%; transform: translateX(-50%); bottom: max(9px, 1.7cqmin); }   /* 안내 글은 가운데 아래 줄 (▼ 는 오른쪽 그대로) */
+.th-tutbox .th-hint .th-next { position: static; display: inline-block; margin-left: .55em; vertical-align: middle; }   /* ▼ 를 안내 글 옆에 */
 .th-tutbox .th-radio-fill { background: linear-gradient(180deg, rgba(20, 46, 76, .94), rgba(8, 20, 38, .94)); }   /* 뒤가 비치지 않게 더 진하게 */
 .th-tutbox .th-banner-body { padding: max(26px, 5cqmin) max(26px, 4.5cqmin) calc(max(26px, 5cqmin) + max(16px, 2.8cqmin)); }   /* 위·아래를 넉넉하게 (높이 늘림) */   /* 위·아래 여백을 고르게, 아래에는 진행 안내 글 전용 줄 */
 .th-tutbox .th-banner-note { color: #fff; font-family: var(--th-font-tori); font-size: max(17px, 3.9cqmin); line-height: 1.5; white-space: pre-wrap; }

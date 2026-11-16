@@ -416,9 +416,9 @@
     tutbox.appendChild(tbody);
     var tnext = el('span', 'th-next', '▼');
     tnext.setAttribute('aria-hidden', 'true');
-    tutbox.appendChild(tnext);
     var thint = el('span', 'th-hint', (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ? UI_TEXT.nextHint : UI_TEXT.nextHintPc);
     thint.setAttribute('aria-hidden', 'true');
+    thint.appendChild(tnext);   // ▼ 는 안내 글 바로 옆에 붙임
     tutbox.appendChild(thint);
     root.appendChild(tutbox);
 
