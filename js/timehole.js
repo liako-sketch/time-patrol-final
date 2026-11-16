@@ -165,7 +165,7 @@
   }
   // 효과음: 앱(index.html)에 SFX 가 있을 때만 울림. 시험 페이지처럼 없으면 소리 없이 지나감 (오류를 화면·로그에 내보내지 않음)
   function sfx(name, vol) { try { if (window.SFX && typeof window.SFX.play === 'function') window.SFX.play(name, vol); } catch (_) { /* 소리가 안 나도 게임은 계속 */ } }
-  function bgmDuck(on) { try { if (window.BGM && typeof window.BGM.duck === 'function') window.BGM.duck(on ? 0.8 : 1, 1.2); } catch (_) { /* 소리 조절이 안 되어도 게임은 계속 */ } }   // 튜토리얼 구간 동안 배경음을 20% 낮춤
+  function bgmDuck(on) { try { if (window.BGM && typeof window.BGM.duck === 'function') window.BGM.duck(on ? 0.7 : 1, 1.2); } catch (_) { /* 소리 조절이 안 되어도 게임은 계속 */ } }   // 튜토리얼 구간 동안 배경음을 30% 낮춤
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function qById(id) { for (var i = 0; i < QUESTIONS.length; i++) if (QUESTIONS[i].id === id) return QUESTIONS[i]; return null; }
   function src(path) { return CONFIG.ASSET_BASE + path; }
