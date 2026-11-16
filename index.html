@@ -1590,7 +1590,7 @@ var BGM = (function () {
   var DIR = 'audio/';
   var TRACKS = { intro: 'bgm_1.mp3', quake: 'bgm_2.mp3', board: 'bgm_3.mp3', clear: 'bgm_4.mp3', hole: 'bgm_5.mp3' };   // 인트로 / 흔들림 뒤 / 타임라인 / 분석 성공 / 타임 홀
   var LEVEL = 0.216;        // 배경음 크기 (효과음·말소리보다 작게). 여기 한 곳에서 조절 (0.35 에서 낮춤)
-  var TRACK_GAIN = { hole: 0.8 };   // 곡별 크기 보정 (타임 홀 곡은 기준보다 20% 작게)
+  var TRACK_GAIN = { hole: 0.56 };   // 곡별 크기 보정 (타임 홀 곡: 기준의 0.56배 = 20% 줄인 뒤 다시 30% 줄임)
   function lv() { return LEVEL * (TRACK_GAIN[cur] || 1); }
   var LOOP_FADE = 1.5;     // 반복할 때 곡 끝에서 줄어드는 시간(초)
   var muted = false, bm = null;   // 배경음 끄기 (효과음 끄기와 따로)
