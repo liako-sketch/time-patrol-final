@@ -1918,6 +1918,7 @@ var Intro = (function () {
   }
 
   var HL_CLASS = { y: 'intro-hl', r: 'intro-hr', k: 'intro-hk', g: 'intro-garble' };
+  var GLITCH_LAG = 350;   // 단어가 다 쓰인 뒤 글리치가 시작하기까지 (ms)
   var gEnd = -1, gStart = 0;   // 깨진 글자 단어가 다 쓰이는 글자 수 / 그 순간의 시각
   function render(chars) {
     line.textContent = '';
@@ -1927,9 +1928,9 @@ var Intro = (function () {
         if (!span || kind !== ch.hl) {
           span = document.createElement('span'); span.className = HL_CLASS[ch.hl]; line.appendChild(span); kind = ch.hl;
           if (ch.hl === 'g' && gEnd >= 0 && chars.length >= gEnd) {   // 단어가 완성됨: 줄이 다시 그려져도 끊기지 않게 시작 시각 기준으로 이어서 재생
-            if (!gStart) gStart = performance.now();
+            if (!gStart) gStart = performance.now() + GLITCH_LAG;   // 단어가 다 쓰이고 조금 뒤에 시작
             span.classList.add('intro-garble-on');
-            span.style.animationDelay = '-' + ((performance.now() - gStart) / 1000).toFixed(3) + 's';
+            span.style.animationDelay = ((gStart - performance.now()) / 1000).toFixed(3) + 's';   // 아직 시작 전이면 남은 시간만큼 기다렸다가, 시작 뒤면 이어서 재생
           }
         }
         span.textContent += ch.c;

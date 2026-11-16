@@ -24,7 +24,7 @@
     OPENING_FADE_MS: 1400,       // 시작할 때 흰 화면이 걷히는 시간
     FIRST_BUBBLE_DELAY_MS: 1000, // 흰 화면이 걷힌 뒤 첫 토리 말풍선이 켜지기까지 기다리는 시간
     DEMO_TIMER_MS: 5000,         // 튜토리얼에서 시간 눈금이 한 바퀴 꺼지는 시간 (시범용, 실제 제한 시간과 별개)
-    TUTORIAL_PC_CURSOR: false,   // 튜토리얼 조작법: 방향키는 모든 기기에서 보여 줌(블루투스 키보드). false(지금) 면 모든 기기에서 손가락 누르기·슬라이드. true 면 PC 만 '마우스 커서 클릭'으로 바꾸고 슬라이드는 뺌
+    TUTORIAL_PC_CURSOR: true,    // 튜토리얼 조작법: 방향키는 모든 기기에서 보여 줌(블루투스 키보드). true(지금) 면 PC 는 터치 대신 '마우스 커서 클릭'을 보여 주고, 슬라이드 설명은 '모바일과 태블릿에서는' 을 붙여 남김. false 면 모든 기기에서 손가락 누르기·슬라이드
     SHOW_GUIDE: false,         // true 면 오프닝 뒤에 '타임 홀 달리는 법' 안내 패널을 보여 줌 (지금은 뺌)
     OPENING_TAP_LOCK_MS: 400,    // 오프닝 대사가 뜬 직후 이 시간 동안은 터치해도 넘어가지 않음 (실수로 건너뛰기 방지)
     APPROACH_MS: 1700,           // 문제 직전 대사가 보이는 시간
@@ -118,6 +118,7 @@
     timeoutTitle: '시간이 지났어요!',
     wrongRetry: '잠시 뒤에 다시 도전해보아요.',
     nextHint: 'Enter·Space 또는 터치로 진행해 주세요.',
+    nextHintPc: 'Enter·Space 또는 클릭으로 진행해 주세요.',   // 마우스가 주 입력인 기기(PC)
     guideTitle: '타임 홀 달리는 법',
     guideRows: { keys: '키보드 ← → 키', click: '왼쪽·오른쪽 글 클릭하기', swipe: '왼쪽·오른쪽으로 슬라이드', tap: '왼쪽·오른쪽 글 누르기' },
     guideNote: '토리가 문제를 내면 15초 안에 정답이 있는 쪽을 골라. 토리 둘레 눈금이 다 꺼지면 시간이 끝난 거야.',
@@ -323,7 +324,7 @@
     var nextMark = el('span', 'th-next', '\u25BC');   // 터치해서 넘기라는 표시 (오프닝 대사 동안)
     nextMark.setAttribute('aria-hidden', 'true');
     bubble.appendChild(nextMark);
-    var nextHint = el('span', 'th-hint', UI_TEXT.nextHint);   // 진행 안내 (Enter·Space 또는 터치)
+    var nextHint = el('span', 'th-hint', (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ? UI_TEXT.nextHint : UI_TEXT.nextHintPc);   // 진행 안내 (Enter·Space 또는 터치)
     nextHint.setAttribute('aria-hidden', 'true');
     bubble.appendChild(nextHint);
     top.appendChild(bubble);
@@ -416,7 +417,7 @@
     var tnext = el('span', 'th-next', '▼');
     tnext.setAttribute('aria-hidden', 'true');
     tutbox.appendChild(tnext);
-    var thint = el('span', 'th-hint', UI_TEXT.nextHint);
+    var thint = el('span', 'th-hint', (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ? UI_TEXT.nextHint : UI_TEXT.nextHintPc);
     thint.setAttribute('aria-hidden', 'true');
     tutbox.appendChild(thint);
     root.appendChild(tutbox);
@@ -532,12 +533,14 @@
   }
   // 글 속의 ← → 는 평면 방향키 아이콘으로 바꿔 넣음
   function fillArrows(node, text) {
-    String(text).split(/(\{y\}.*?\{\/y\}|[←→])/).forEach(function (seg) {
+    String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|[←→])/).forEach(function (seg) {
       if (seg === '←' || seg === '→') {
         node.appendChild(svg('0 0 24 24', 'th-kbd', [['rect', { x: 1.5, y: 1.5, width: 21, height: 21, rx: 4.5 }],
           ['path', { d: seg === '←' ? 'M17 12 H7.5 M11 8.5 L7.5 12 L11 15.5' : 'M7 12 H16.5 M13 8.5 L16.5 12 L13 15.5' }]]));
       } else if (seg.indexOf('{y}') === 0) {
         node.appendChild(el('span', 'th-hl-y', seg.slice(3, -4)));   // 노란 글씨 강조
+      } else if (seg.indexOf('{c}') === 0) {
+        node.appendChild(el('span', 'th-hl-c', seg.slice(3, -4)));   // 하늘색 강조
       } else if (seg) node.appendChild(document.createTextNode(seg));
     });
     return node;
@@ -718,7 +721,8 @@
     };
     // 방향키는 모든 기기에서(블루투스 키보드). 그다음 터치 기기(지금은 모든 기기)는 누르기·슬라이드, TUTORIAL_PC_CURSOR 가 켜지면 PC 는 커서 클릭만
     var pcCursor = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();
-    var order = ['radio', 'slots', 'timer', 'opts', 'keys'].concat(pcCursor ? ['click'] : ['tap', 'swipe'], ['ready']);
+    if (pcCursor) T.swipe.text = '{c}모바일과 태블릿에서는{/c} ' + T.swipe.text;   // PC 에서는 슬라이드 설명을 남기되 어느 기기 얘기인지 앞에 붙임
+    var order = ['radio', 'slots', 'timer', 'opts', 'keys'].concat(pcCursor ? ['click', 'swipe'] : ['tap', 'swipe'], ['ready']);
     return order.map(function (k) { return { pose: T[k].pose, parts: [{ text: T[k].text }], focus: k }; });
   }
 

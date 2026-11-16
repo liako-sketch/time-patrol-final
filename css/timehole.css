@@ -495,16 +495,18 @@
 .th-kbd path { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- 수도원 문제 설명용 가운데 무전창 (오답 안내와 같은 글리치 등장, 색은 하늘색) ---------- */
-.th-tutbox { --th-line: #5fd4e0; --th-line-rgb: 95, 212, 224; top: 40.6%; width: min(86cqw, 840px); }   /* 위 문제창과 아래 선택지 사이 한가운데(위·아래 간격 같게), 두 선택지 사이 칸에 맞춰 조금 넓게 */
+.th-tutbox { --th-line: #5fd4e0; --th-line-rgb: 95, 212, 224; top: 50%; width: min(80cqw, 780px); z-index: 8;   /* 화면 한가운데, 두 선택지 사이 칸에 맞춰 다른 칸들보다 위에 떠 보이게 */
+  filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .55)) drop-shadow(0 0 22px rgba(95, 212, 224, .28)); }   /* 그림자와 은은한 빛으로 입체감 */
 /* 진행 안내 글이 대사와 붙어 갑갑하지 않게, 안내 상자는 아래쪽에 안내 글 전용 줄을 따로 둠 */
 .th-tutbox .th-hint { right: auto; left: 50%; transform: translateX(-50%); bottom: max(9px, 1.7cqmin); }   /* 안내 글은 가운데 아래 줄 (▼ 는 오른쪽 그대로) */
-.th-tutbox .th-radio-fill { background: linear-gradient(180deg, rgba(14, 34, 58, .74), rgba(7, 18, 33, .74)); }
-.th-tutbox .th-banner-body { padding: max(14px, 2.6cqmin) max(22px, 4cqmin) calc(max(14px, 2.6cqmin) + max(16px, 2.8cqmin)); }   /* 위·아래 여백을 고르게, 아래에는 진행 안내 글 전용 줄 */
+.th-tutbox .th-radio-fill { background: linear-gradient(180deg, rgba(20, 46, 76, .94), rgba(8, 20, 38, .94)); }   /* 뒤가 비치지 않게 더 진하게 */
+.th-tutbox .th-banner-body { padding: max(26px, 5cqmin) max(26px, 4.5cqmin) calc(max(26px, 5cqmin) + max(16px, 2.8cqmin)); }   /* 위·아래를 넉넉하게 (높이 늘림) */   /* 위·아래 여백을 고르게, 아래에는 진행 안내 글 전용 줄 */
 .th-tutbox .th-banner-note { color: #fff; font-family: var(--th-font-tori); font-size: max(17px, 3.9cqmin); line-height: 1.5; white-space: pre-wrap; }
 .th-tutbox .th-banner-body::after { background: linear-gradient(180deg, transparent, rgba(190, 240, 255, .5), transparent); }
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }
+.th-hl-c { color: #5fd4e0; }   /* 하늘색 강조 */
 .th-tutbox .th-kbd rect, .th-tutbox .th-kbd path { stroke: var(--th-hl); }
 /* 해설이 없으면 제목 아래 여백도 없앰 */
 .th-banner-note:empty { display: none; }
