@@ -573,7 +573,6 @@
     S.onExit = typeof opts.onExit === 'function' ? opts.onExit : null;   // 출구가 하얗게 밝아지기 시작하는 순간 (바깥 화면도 같이 하얘지게)
     clearTimers();
     S.queue = ['tutorial'].concat(makeOrder());
-    bgmDuck(true);   // 튜토리얼 시작
     S.obtained = [];
     S.current = null;
     S.exit = null;
@@ -677,6 +676,7 @@
       sfx('holeGlitchOut', 1);
       after(500, function () { tb.classList.remove('th-on', 'th-off'); });
       clearDemo(true);
+      bgmDuck(false);   // 안내 상자가 사라질 때 원래 크기로 (종료)
       S.phase = 'question';
       S.qElapsed = 0; S.tickIdx = 0;
       setTimer(0);
@@ -692,6 +692,7 @@
       e.tutbox.classList.remove('th-on', 'th-off');
       void e.tutbox.offsetWidth;
       sfx('holeGlitchSoft', 1);   // 안내 상자용: 오류 글리치보다 부드러운 소리
+      bgmDuck(true);   // 어두운 남색 안내 상자가 떠 있는 동안만 배경음을 낮춤 (시작)
     }
     e.tutbox.classList.add('th-on', 'th-await');
     fitBubble(e.tutnote);
@@ -868,7 +869,6 @@
     S.targetSpeed = CONFIG.CRUISE_SPEED;
     S.lightTarget = 0.05;
     S.els.root.classList.toggle('th-tutorial', !!S.current.tutorial);
-    bgmDuck(!!S.current.tutorial);   // 튜토리얼 문제가 끝나 첫 정식 문제로 넘어가면 원래 크기로
     if (!S.current.tutorial) {   // 수도원(튜토리얼) 문제 직전에는 대사 없음
       var lines = TORI_LINES.beforeQuestion;
       say(lines[Math.floor(Math.random() * lines.length)], 'roading');
