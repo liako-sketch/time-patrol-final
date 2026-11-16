@@ -4629,9 +4629,11 @@ var A11y = (function () {
   function setMute(v) { muteS = muteB = !!v; writeK(KEY3, muteS); writeK(KEY4, muteB); applyMute(); }
   var popBox = document.getElementById('a11y-box');
   function fitPop() {   // 설정 창을 비율은 그대로 두고 화면에 들어가도록 줄임 (커질 일은 없음). 스크롤 없이 한 화면에 다 보임
-    popBox.style.transform = '';
+    popBox.style.transform = ''; popBox.style.zoom = '';
     var V = viewSize(), s = Math.min(1, (V.w - 24) / popBox.offsetWidth, (V.h - 24) / popBox.offsetHeight);
-    if (s < 1) popBox.style.transform = 'scale(' + s.toFixed(4) + ')';
+    if (s >= 1) return;
+    if ('zoom' in popBox.style) popBox.style.zoom = s.toFixed(4);   // zoom 은 글자를 줄어든 크기로 다시 그려 또렷함 (transform 은 이미 그린 글자를 늘려 줄여서 모바일에서 글꼴이 흐리고 달라 보임)
+    else popBox.style.transform = 'scale(' + s.toFixed(4) + ')';
   }
   addEventListener('resize', function () { if (open) fitPop(); });
   addEventListener('orientationchange', function () { if (open) { fitPop(); setTimeout(fitPop, 300); } });
