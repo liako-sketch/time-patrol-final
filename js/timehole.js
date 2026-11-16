@@ -444,7 +444,7 @@
       click: [['rect', { x: 3, y: 8, width: 19, height: 26, rx: 4 }], ['rect', { x: 34, y: 8, width: 19, height: 26, rx: 4 }], ['path', { d: 'M8 17 L17 17 M8 23 L15 23 M39 17 L48 17 M39 23 L46 23' }],
         ['path', { d: 'M40 24 L40 44 L44.5 39.5 L48 46.5 L51 45 L47.5 38 L53 38 Z', fill: '#ffffff', stroke: '#0a1a2c', 'stroke-width': 1.6 }]],
       swipe: [['path', { d: 'M4 10 L17 10 M9 5 L4 10 L9 15 M39 10 L52 10 M47 5 L52 10 L47 15' }],
-        ['path', { d: 'M23 40 L23 22 C23 18.5 28 18.5 28 22 L28 28 C28 25.5 32 25.5 32 28 L32 30 C32 27.5 36 27.5 36 30 L36 32 C36 29.5 40 29.5 40 32 L40 38 C40 42.5 37 45.5 32.5 45.5 L27 45.5 C24 45.5 22 43.5 20 40.5 L15.5 34 C13.5 30 16.5 27.5 19 29.5 L23 33.5', fill: HAND_FILL }]],
+        ['path', { d: 'M23 35 L23 16 C23 12.5 28 12.5 28 16 L28 28 C28 25.5 32 25.5 32 28 L32 30 C32 27.5 36 27.5 36 30 L36 32 C36 29.5 40 29.5 40 32 L40 38 C40 42.5 37 45.5 32.5 45.5 L27 45.5 C24 45.5 22 43.5 20 40.5 L15.5 34 C14 31.5 17 29 19 31 L23 35', fill: HAND_FILL }]],
       tap: [['rect', { x: 3, y: 8, width: 19, height: 26, rx: 4 }], ['rect', { x: 34, y: 8, width: 19, height: 26, rx: 4 }], ['circle', { cx: 12.5, cy: 21, r: 4, fill: HAND_FILL }], ['circle', { cx: 12.5, cy: 21, r: 8, opacity: 0.5 }], ['circle', { cx: 43.5, cy: 21, r: 4, fill: HAND_FILL }], ['circle', { cx: 43.5, cy: 21, r: 8, opacity: 0.5 }]]
     };
     var touchFirst = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);   // 손가락이 주 입력인 기기
@@ -788,7 +788,7 @@
     s.appendChild(g);
     return s;
   }
-  var HAND_PATH = 'M23 40 L23 22 C23 18.5 28 18.5 28 22 L28 28 C28 25.5 32 25.5 32 28 L32 30 C32 27.5 36 27.5 36 30 L36 32 C36 29.5 40 29.5 40 32 L40 38 C40 42.5 37 45.5 32.5 45.5 L27 45.5 C24 45.5 22 43.5 20 40.5 L15.5 34 C13.5 30 16.5 27.5 19 29.5 L23 33.5';
+  var HAND_PATH = 'M23 35 L23 16 C23 12.5 28 12.5 28 16 L28 28 C28 25.5 32 25.5 32 28 L32 30 C32 27.5 36 27.5 36 30 L36 32 C36 29.5 40 29.5 40 32 L40 38 C40 42.5 37 45.5 32.5 45.5 L27 45.5 C24 45.5 22 43.5 20 40.5 L15.5 34 C14 31.5 17 29 19 31 L23 35';
   function pointerEl(kind, trails) {   // 손가락(터치) 또는 마우스 커서. 끝점이 (0,0) 에 오게 놓음
     var w = el('div', 'th-pointer th-pointer-' + kind);
     if (kind === 'cursor') w.appendChild(svg('0 0 24 28', 'th-pointer-svg', [['path', { d: 'M2 2 L2 22 L7 17.5 L10.5 25 L13.5 23.6 L10 16.4 L16.5 16.4 Z', fill: 'rgba(8,24,44,0.55)', stroke: '#8ff0fa', 'stroke-width': 1.8, 'stroke-linejoin': 'round' }]]));

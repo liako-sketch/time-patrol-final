@@ -406,7 +406,7 @@
 /* 손가락·커서: 끝점이 위치 기준. 위치는 --lx/--rx/--cx/--ly/--cy (px), 크기는 --pw */
 .th-pointer { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; translate: var(--lx) var(--ly); }
 .th-pointer-svg { position: absolute; width: var(--pw); height: auto; overflow: visible; filter: drop-shadow(0 0 5px rgba(95, 212, 224, .85)); }
-.th-pointer-finger .th-pointer-svg { left: calc(var(--pw) * -0.455); top: calc(var(--pw) * -0.347); }   /* 검지를 짧게 해서 끝점 높이를 맞춤 */
+.th-pointer-finger .th-pointer-svg { left: calc(var(--pw) * -0.455); top: calc(var(--pw) * -0.232); }
 .th-pointer-cursor .th-pointer-svg { left: calc(var(--pw) * -0.083); top: calc(var(--pw) * -0.083); }
 .th-demo-tap .th-pointer { animation: th-pointer-tap 3.2s linear infinite; }
 @keyframes th-pointer-tap {   /* 왼쪽 글 누르고 → 오른쪽 글로 가서 누르고 → 돌아옴 */
