@@ -114,7 +114,6 @@ html.is-iphone #board-bg { background-image: url('images/back/back_2_s.webp'); }
   16.5%  { filter: drop-shadow(2px 0 rgba(255, 0, 80, .5)) drop-shadow(-2px 0 rgba(0, 255, 255, .5)); }
   22%, 100% { filter: none; transform: none; opacity: 1; }
 }
-html.calm-mode #intro-line .intro-garble-on { animation: none; }   /* 움직임 줄이기: 깜빡임 없이 정적인 깨진 글자 */
 #intro-next {
   position: absolute; right: 26px; bottom: 14px; color: #5fd4e0; font-size: 26px; display: none;
   animation: intro-blink 1s steps(2, start) infinite;
@@ -764,7 +763,6 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 .board-rkopen .board-rkans { grid-template-rows: 1fr; }
 .board-rkansin { min-height: 0; overflow: hidden; }
 .board-rkanstxt { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(110, 230, 240, .25); white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-body); font-weight: 400; font-size: 22px; line-height: 1.6; color: rgba(238, 252, 255, .92); cursor: text; }
-html.calm-mode .board-rkans, html.calm-mode .board-rkarrow { transition: none; }
 .board-rkself { border-color: #ffe27a; box-shadow: 0 0 14px rgba(255, 226, 122, .3); }   /* 내 줄 (내 화면에서만 표시) */
 .board-rkempty { margin: 0; font-family: var(--font-body); font-weight: 400; font-size: 24px; color: rgba(200, 235, 240, .7); }
 #board-rklist .board-rkrow { margin-left: 110px; }   /* 내 순위 줄과 같은 열에 맞추려고 왼쪽 라벨 자리만큼 비움 */
@@ -3603,11 +3601,11 @@ var Board = (function () {
     for (i = 0; i < nos.length; i++) w = Math.max(w, nos[i].offsetWidth);
     for (i = 0; i < nos.length; i++) { nos[i].style.minWidth = ''; nos[i].style.width = w + 'px'; }
   }
-  function swapRank(j, mine) {   // 불러오는 중 → 결과로 바뀔 때 창이 위아래로 부드럽게 늘어남 (움직임 줄이기가 켜져 있으면 바로 바뀜)
+  function swapRank(j, mine) {   // 불러오는 중 → 결과로 바뀔 때 창이 위아래로 부드럽게 늘어남 (어지러움 방지 모드와 상관없이 항상 부드럽게)
     var box = $('board-rkbox'), h0 = box.offsetHeight;
     renderRank(j, mine);
     var h1 = box.offsetHeight;
-    if (h0 === h1 || !box.animate || document.documentElement.classList.contains('calm-mode')) return;
+    if (h0 === h1 || !box.animate) return;
     box.animate([{ height: h0 + 'px', overflow: 'hidden' }, { height: h1 + 'px', overflow: 'hidden' }], { duration: 380, easing: 'cubic-bezier(.22, .61, .36, 1)' });
     var body = $('board-rkcontent');
     body.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, delay: 100, easing: 'ease-out', fill: 'backwards' });   // 새 내용은 창이 늘어나는 동안 서서히 나타남

@@ -85,7 +85,7 @@
   /* 왼쪽 여백 = 시간 눈금이 말풍선 밖으로 삐져나오지 않을 만큼, 오른쪽 여백 = 왼쪽 여백 + 토리 원 + 간격 (글자가 가운데 오게) */
   --padl: calc(var(--av) * .13 + max(6px, 1.2cqmin));
   padding: max(16px, 3cqmin) calc(var(--padl) + var(--av) + max(12px, 2.8cqmin)) max(16px, 3cqmin) var(--padl); }
-.th-bubble-text { flex: 1 1 auto; margin: 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(19px, 5.6cqmin); line-height: 1.4;
+.th-bubble-text { flex: 1 1 auto; margin: 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(18px, 5cqmin); line-height: 1.4;
   white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; }
 .th-bubble-text .th-q { color: var(--th-hl); }
 .th-bubble-text .th-w { color: var(--th-warn); }
@@ -291,12 +291,12 @@
 @container (max-aspect-ratio: 4/5) {          /* 세로 화면: 가이드 칸을 세로로 */
   .th-guide-rows { grid-template-columns: 1fr; }
   .th-opts { top: 70%; }   /* 세로 화면에서는 선택지를 조금 더 아래로 */
-  .th-top { left: max(10px, 1.6cqw); right: max(10px, 1.6cqw); }   /* 무전창 폭을 조금 넓힘 */
-  .th-opt { flex-basis: 39cqw; min-height: max(88px, 20cqmin); padding: 10px 8px; }   /* 선택창을 조금 줄임 */
+  .th-top .th-radio { min-height: max(120px, 28cqmin); }   /* 무전창 세로 길이를 늘림: 글자는 줄이지 않고 줄 수만큼 칸이 커짐 */
+  .th-opt { flex-basis: 36cqw; min-height: max(80px, 18cqmin); padding: 10px 8px; }   /* 선택창을 조금 줄임 */
   .th-opt-text { font-size: max(14px, 3.6cqmin); }
   .th-radio { --av: max(54px, 16cqw); }
   .th-radio-body { padding-right: max(16px, 3cqmin); }   /* 좁은 화면: 글자 칸을 넓게 */
-  .th-bubble-text { font-size: max(17px, 4.6cqmin); }
+  .th-bubble-text { font-size: max(15px, 4cqmin); }   /* 세로 화면 무전 대사: 글자 크기는 고정이라 조금 작게 */
 }
 
 /* ---------- 종료: 빛으로 나가기 ---------- */
@@ -530,11 +530,7 @@
 .th-cardget .th-card, .th-cardglow, .th-flash, .th-particle { will-change: transform, opacity; }
 
 
-/* 흔들림·움직임 줄이기(html.calm-mode): 깜빡이는 글리치·섬광·파티클·카드 빛을 멈춘 정적인 표시로 */
-html.calm-mode .th-banner.th-on, html.calm-mode .th-banner.th-on .th-banner-title, html.calm-mode .th-banner.th-on .th-banner-note,
-html.calm-mode .th-banner.th-on .th-banner-body::after, html.calm-mode .th-banner.th-on .th-sig i,
-html.calm-mode .th-tutbox.th-on, html.calm-mode .th-garble { animation: none; }
-html.calm-mode .th-garble { filter: none; transform: none; opacity: 1; }
+/* 흔들림·움직임 줄이기(html.calm-mode): 섬광·파티클·카드 빛을 숨김 (안내창 글리치·깨진 글자는 모드와 상관없이 그대로) */
 html.calm-mode .th-flash, html.calm-mode .th-particle, html.calm-mode .th-cardglow { display: none; }
 
 /* 줄 구분을 따로 넣지 않은 글: 자동 줄바꿈이 끝에 한두 글자만 덩그러니 남기지 않게 줄 길이를 고르게 나눔 (세로 화면 등 폭이 좁을 때) */

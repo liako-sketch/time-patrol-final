@@ -106,8 +106,8 @@
     //   parts 의 inline 은 앞 조각과 같은 줄에 이어 붙임, glitch 는 깨진 글자 효과
     opening: [   // 두 줄 이상이 되는 대사는 뜻 단위로 줄바꿈해서 말풍선에서 어색하게 꺾이지 않게 함
       { pose: 'happy', parts: [{ text: '치ㅊㅈ.. 들ㄹIㄴrㅛ?', glitch: true }, { text: '{n}{이름}{/n}님, {k}타임홀{/k} 진입에 성공했어요!' }] },
-      { pose: 'default', parts: [{ text: '여기는 붕괴된 타임라인으로 이어지는 시간의 터널이에요.\n이곳에서 {y}흩어진 사료 카드를 모아{/y}야 {y}타임라인을 복구{/y}할 수 있어요.' }] },
-      { pose: 'hint', parts: [{ text: '제가 문제를 내면, 정답이 있는 쪽 길로 달려 주세요.\n사실을 하나씩 맞힐 때마다 카드가 모일 거예요. 제 무전을 잘 들어 주세요!' }] },
+      { pose: 'default', parts: [{ text: '여기는 붕괴된 타임라인으로 이어지는 시간의 터널이에요. 이곳에서 {y}흩어진 사료 카드를 모아{/y}야 {y}타임라인을 복구{/y}할 수 있어요.' }] },
+      { pose: 'hint', parts: [{ text: '제가 문제를 내면, 정답이 있는 쪽 길로 달려 주세요. 사실을 하나씩 맞힐 때마다 카드가 모일 거예요. 제 무전을 잘 들어 주세요!' }] },
       { pose: 'what', parts: [{ text: '어... 처음이라서 잘 모르시겠다고요?\n그렇다면, 먼저 연습부터 해 볼게요!' }] }
     ],
     beforeQuestion: ['앞에 문제가 기다리고 있어요. 잘 들어 주세요!', '다음 길이에요. 집중해 주세요!'],
@@ -510,7 +510,7 @@
     S.els.canvas.height = Math.max(1, Math.round(h * S.dpr));
     if (S.phase === 'idle') draw();
     if (S.phase === 'opening') fitBubble();
-    if (S.phase === 'explain') fitBubble(S.els.tutnote);
+    if (S.phase === 'explain') fitTutNote(S.els.tutnote);   // 안내 상자는 처음 그릴 때와 같은 방식으로 다시 맞춤(두 줄 기준으로 줄이면 화면을 돌릴 때 급히 작아짐)
     if (S.demoFocus) layoutDemo(S.demoFocus);   // 튜토리얼 시범은 크기가 바뀌면 다시 배치
   }
 
@@ -525,7 +525,10 @@
   function fitBubble(node, maxLines) {
     var t = node || S.els.btext;
     t.style.fontSize = '';
-    if (!node && S.phase !== 'opening') return;
+    if (!node) {   // 무전 대사는 글자 크기를 대사마다 바꾸지 않음(긴 대사는 줄 수가 늘고 무전창이 아래로 커짐). 줄바꿈 표시가 있는 짧은 두 줄 대사만 세로에서 조금(85%까지) 줄여 한 줄씩 보이게 함
+      if (S.phase === 'opening' && S.els.root.clientWidth < S.els.root.clientHeight && t.textContent.indexOf('\n') >= 0) fitLines(t, 0.85);
+      return;
+    }
     var lh, n = 0, fs = parseFloat(getComputedStyle(t).fontSize) || 20;
     while (n++ < 14 && fs > 10) {
       lh = parseFloat(getComputedStyle(t).lineHeight) || fs * 1.4;
@@ -533,6 +536,13 @@
       fs *= 0.92;
       t.style.fontSize = fs + 'px';
     }
+  }
+  // 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 floor(기본 크기의 비율)까지만 줄임. 그래도 넘치면 원래 크기로 두고 자동 줄바꿈
+  function fitLines(t, floor) {
+    t.style.whiteSpace = 'pre';
+    var base = parseFloat(getComputedStyle(t).fontSize) || 20, fs = base, n = 0;
+    while (n++ < 30 && t.scrollWidth > t.clientWidth + 1 && fs > base * floor) { fs *= 0.97; t.style.fontSize = fs + 'px'; }
+    t.style.whiteSpace = '';
   }
   // 안내 상자 글: 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 줄여 맞춤(너무 작아지면 자동 줄바꿈 허용)
   function fitTutNote(t) {
@@ -564,7 +574,8 @@
     return node;
   }
   function say(text, pose, cls) {
-    var t = S.els.btext;
+    var t = S.els.btext, bb0 = S.els.bubble, h0 = bb0.offsetHeight;   // 대사가 바뀌기 전 무전창 높이
+    bb0.style.transition = 'none'; bb0.style.height = '';
     t.textContent = '';
     if (Array.isArray(text)) {
       text.forEach(function (part, i) {
@@ -576,6 +587,13 @@
     }
     if (pose) { S.curPose = pose; setTori(pose); }
     fitBubble();
+    var h1 = bb0.offsetHeight;   // 새 대사에 맞는 높이: 줄 수가 달라지면 무전창이 아래로 늘었다 줄어듦
+    if (h0 && h1 && Math.abs(h1 - h0) > 2 && !bb0.classList.contains('th-crt-off')) {   // 어지러움 방지 모드와 상관없이 항상 부드럽게 늘었다 줄어듦
+      bb0.style.height = h0 + 'px'; void bb0.offsetHeight;
+      bb0.style.transition = 'height .25s ease'; bb0.style.height = h1 + 'px';
+      var sq = S.hSeq = (S.hSeq || 0) + 1;
+      setTimeout(function () { if (S && S.hSeq === sq) { bb0.style.transition = ''; bb0.style.height = ''; } }, 320);
+    } else bb0.style.transition = '';
     // 새 대사가 들어올 때: 꼬리표의 신호 막대만 움직임 (말풍선은 깜빡이지 않음)
     var bb = S.els.bubble;
     bb.classList.add('th-speaking');
@@ -843,7 +861,7 @@
       d.style.setProperty('--lx', lx + 'px'); d.style.setProperty('--rx', rx + 'px');
       d.style.setProperty('--ly', ly + 'px'); d.style.setProperty('--ry', ly + 'px');
       d.style.setProperty('--cx', ((lx + rx) / 2) + 'px'); d.style.setProperty('--cy', ly + 'px');
-      d.style.setProperty('--pw', (f === 'click' ? Math.max(34, L.h * 0.36) : Math.max(58, L.h * 0.8)) + 'px');   // 마우스 커서는 실제 커서처럼 작게 (손가락은 그대로)
+      d.style.setProperty('--pw', (f === 'click' ? Math.max(34, L.h * 0.36) : Math.max(52, L.h * 0.8 * (f === 'tap' ? 0.82 : 1) * (e.root.clientWidth < e.root.clientHeight ? 0.88 : 1))) + 'px');   // 터치(누르기)는 슬라이드 손가락이 보이는 크기(누른 상태 0.82배)에 맞춤, 세로 화면은 조금 작게   // 마우스 커서는 실제 커서처럼 작게 (손가락은 그대로)
       if (f !== 'swipe') {   // 누른 자리에 동그란 링
         [['th-ripple-l', lx], ['th-ripple-r', rx]].forEach(function (p) {
           var rp = el('span', 'th-ripple ' + p[0]);
