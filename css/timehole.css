@@ -375,7 +375,6 @@
    ===================================================================== */
 .th-demo-layer { position: absolute; inset: 0; pointer-events: none; }   /* 층 자체는 쌓임 맥락을 만들지 않아, 안의 요소가 각자 순서를 가짐 */
 .th-demo-layer > * { z-index: 6; }   /* 어두운 막·강조 테두리·키: 설명창(8)보다 뒤 → 설명창은 어두워지지 않음 */
-.th-demo-layer > .th-pointer { z-index: 9; }   /* 손가락·커서만 설명창보다 앞 */
 .th-root.th-demo .th-opt { pointer-events: none; }
 
 /* 강조 말고는 어두운 남색 반투명으로 덮음 (구멍은 clip-path 로 뚫음) */
@@ -396,12 +395,12 @@
   12%, 22% { border-color: #ffd54a; background-color: rgba(60, 46, 8, .62); box-shadow: 0 0 26px rgba(255, 213, 74, .55), inset 0 0 18px rgba(255, 213, 74, .18); }
   30%, 100% { border-color: rgba(95, 212, 224, .75); background-color: rgba(10, 25, 45, .42); box-shadow: 0 0 18px rgba(95, 212, 224, .3); }
 }
-.th-demo-keys .th-opt-left { animation: th-opt-hit 2.4s ease-in-out infinite; }
-.th-demo-keys .th-opt-right { animation: th-opt-hit 2.4s ease-in-out 1.2s infinite; }
-.th-demo-tap .th-opt-left { animation: th-opt-hit 3.2s ease-in-out infinite; }
-.th-demo-tap .th-opt-right { animation: th-opt-hit 3.2s ease-in-out 1.4s infinite; }
-.th-demo-swipe .th-opt-left { animation: th-opt-hit 4s ease-in-out .08s infinite; }
-.th-demo-swipe .th-opt-right { animation: th-opt-hit 4s ease-in-out 1.92s infinite; }
+.th-gstage-keys .th-gbox-l { animation: th-opt-hit 2.4s ease-in-out infinite; }
+.th-gstage-keys .th-gbox-r { animation: th-opt-hit 2.4s ease-in-out 1.2s infinite; }
+.th-gstage-tap .th-gbox-l { animation: th-opt-hit 3.2s ease-in-out infinite; }
+.th-gstage-tap .th-gbox-r { animation: th-opt-hit 3.2s ease-in-out 1.4s infinite; }
+.th-gstage-swipe .th-gbox-l { animation: th-opt-hit 4s ease-in-out .08s infinite; }
+.th-gstage-swipe .th-gbox-r { animation: th-opt-hit 4s ease-in-out 1.92s infinite; }
 
 /* 방향키 아이콘 (선으로 그린 입체 키캡) */
 .th-key { position: absolute; overflow: visible; filter: drop-shadow(0 0 6px rgba(95, 212, 224, .6)); }
@@ -421,7 +420,7 @@
 .th-pointer-svg { position: absolute; width: var(--pw); height: auto; overflow: visible; filter: drop-shadow(0 0 5px rgba(95, 212, 224, .85)); }
 .th-pointer-finger .th-pointer-svg { left: calc(var(--pw) * -0.455); top: calc(var(--pw) * -0.232); }
 .th-pointer-cursor .th-pointer-svg { left: calc(var(--pw) * -0.083); top: calc(var(--pw) * -0.083); }
-.th-demo-tap .th-pointer { animation: th-pointer-tap 3.2s linear infinite, th-pointer-in .25s ease-out both; }   /* 처음 나타날 때만 한 번 서서히 보이고, 이후에는 사라지지 않고 계속 이어서 반복 */
+.th-gstage-tap .th-pointer { animation: th-pointer-tap 3.2s linear infinite, th-pointer-in .25s ease-out both; }   /* 처음 나타날 때만 한 번 서서히 보이고, 이후에는 사라지지 않고 계속 이어서 반복 */
 @keyframes th-pointer-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes th-pointer-tap {   /* 왼쪽 글 누르고 → 오른쪽 글로 가서 누르고 → 왼쪽으로 돌아와 끊김 없이 다음 반복 (시작·끝 자리·크기가 같음) */
   0%   { translate: var(--lx) var(--ly); scale: 1; }
@@ -449,7 +448,7 @@
 }
 
 /* 슬라이드: 손가락이 꾹 누른 채 선택지 쪽으로 짧고 빠르게 휙 치고 나가 끝에서 살짝만 느려짐(약 0.36초). 끝에 닿을 때 선택지에 노란 불이 들어옴 */
-.th-demo-swipe .th-pointer { animation: th-pointer-swipe 4s linear infinite, th-pointer-fade 4s linear infinite; }
+.th-gstage-swipe .th-pointer { animation: th-pointer-swipe 4s linear infinite, th-pointer-fade 4s linear infinite; }
 /* 위치·크기: 누른 채 휙 치고 나가 선택지를 지나 끝까지 계속 감 (멈추지 않음). 가는 방향으로 손가락을 살짝 기울임. 크기는 누를 때만 변함 */
 @keyframes th-pointer-swipe {
   0%   { translate: var(--cx) var(--cy); scale: 1; rotate: 0deg; }
@@ -516,6 +515,33 @@
 .th-tutbox .th-banner-body { padding: max(26px, 5cqmin) max(26px, 4.5cqmin) calc(max(26px, 5cqmin) + max(16px, 2.8cqmin)); }   /* 위·아래를 넉넉하게 (높이 늘림) */   /* 위·아래 여백을 고르게, 아래에는 진행 안내 글 전용 줄 */
 .th-tutbox .th-banner-note { color: #fff; font-family: var(--th-font-tori); font-size: max(17px, 3.9cqmin); line-height: 1.5; white-space: pre-wrap; }
 .th-tutbox .th-banner-body::after { background: linear-gradient(180deg, transparent, rgba(190, 240, 255, .5), transparent); }
+
+/* ---------- 조작법 안내 팝업: 화면 거의 전체를 덮는 글리치 창 (같은 등장·퇴장 연출), 안은 3칸 ---------- */
+.th-guidebox { width: min(97cqw, 1500px); min-height: min(88cqh, 62cqw); display: flex; flex-direction: column; justify-content: center; }   /* 가로 화면에서는 화면 높이의 거의 전부, 폭이 좁은 세로 화면은 내용만큼 */
+.th-guidebox .th-banner-body { padding: max(34px, 6cqmin) max(14px, 2.6cqmin) max(20px, 3.4cqmin); }
+.th-gcols { display: flex; gap: max(8px, 1.6cqmin); }
+.th-gcol { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.th-gcol + .th-gcol::before { content: ''; position: absolute; left: calc(max(8px, 1.6cqmin) / -2); top: 4%; bottom: 4%; border-left: 1px dashed rgba(95, 212, 224, .4); }   /* 칸 사이 점선 (칸을 실제로 나눈 것은 아님) */
+.th-gstage { position: relative; width: min(100%, 52cqh); aspect-ratio: 1 / 1.05; }   /* 키 큰 가로 화면에서도 팝업이 화면 높이를 넘지 않게 */
+.th-gbox { position: absolute; top: 30%; height: 38%; width: 42%; box-sizing: border-box; border: 2px solid rgba(95, 212, 224, .75); border-radius: max(8px, 1.4cqmin);
+  background-color: rgba(10, 25, 45, .42); box-shadow: 0 0 18px rgba(95, 212, 224, .3); }
+.th-gbox-l { left: 4%; }
+.th-gbox-r { left: 54%; }
+.th-gstage-keys .th-gbox { top: 6%; }   /* 키보드 칸: 상자 아래에 키캡 */
+.th-gbox i { position: absolute; left: 18%; right: 18%; top: 30%; height: 13%; border-radius: 99px; background: rgba(255, 255, 255, .32); }
+.th-gbox i + i { top: 56%; right: 36%; }
+.th-gstage .th-key { top: 54%; width: 34%; height: auto; }
+.th-gstage .th-key-left { left: 8%; }
+.th-gstage .th-key-right { left: 58%; }
+.th-gcap { margin: max(8px, 1.6cqmin) 0 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(14px, 3cqmin); line-height: 1.45; word-break: keep-all; text-wrap: balance; }
+.th-gcap .th-note-g { font-size: .78em; margin: .5em 0 0; }
+.th-banner.th-on .th-gcap { animation: th-glitch-text .75s steps(1, end) both; }
+.th-banner.th-on.th-off .th-gcap { animation: none; }
+.th-gstart { display: block; margin: max(14px, 2.6cqmin) auto 0; height: max(42px, 7cqmin); padding: 0 max(22px, 4.4cqmin); box-sizing: border-box;
+  border: 2px solid var(--th-hl, #ffd54a); border-radius: max(10px, 1.6cqmin); background: rgba(60, 46, 8, .78); color: #fff; box-shadow: 0 0 18px rgba(255, 213, 74, .4);
+  font-family: var(--th-font-tori); font-size: max(16px, 3.4cqmin); cursor: pointer; pointer-events: none; }
+.th-guidebox.th-on .th-gstart { pointer-events: auto; }   /* 팝업이 떠 있을 때만 누를 수 있음 */
+.th-gstart:hover, .th-gstart:focus-visible { background: rgba(96, 74, 14, .9); outline: none; }
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }

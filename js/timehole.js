@@ -126,6 +126,7 @@
     guideRows: { keys: '키보드 ← → 키', click: '왼쪽·오른쪽 글 클릭하기', swipe: '왼쪽·오른쪽으로 슬라이드', tap: '왼쪽·오른쪽 글 누르기' },
     guideNote: '토리가 문제를 내면 15초 안에 정답이 있는 쪽을 골라. 토리 둘레 눈금이 다 꺼지면 시간이 끝난 거야.',
     guideStart: '출발!',
+    tutStart: '이제 선택지를 직접 골라 보세요!',   // 조작법 안내 팝업 아래의 시작 버튼
     hiddenLabel: '아직 모르는 카드',
     timeLabel: '남은 시간',
     demoLeft: '왼쪽 글', demoRight: '오른쪽 글',   // 튜토리얼 시범용 선택지 (정답이 드러나지 않게 중립 문구)
@@ -425,6 +426,34 @@
     tutbox.appendChild(thint);
     root.appendChild(tutbox);
 
+    // 조작법 안내 팝업: 타이머 설명 다음에 화면 거의 전체를 덮는 글리치 창으로 뜸. 안은 3칸(키보드 · 클릭/터치 · 슬라이드)이고 칸 내용은 열 때 채움
+    var gbox = el('div', 'th-banner th-tutbox th-guidebox th-radio');
+    gbox.setAttribute('role', 'group');
+    gbox.setAttribute('aria-label', '조작법 안내');
+    var gbg = el('div', 'th-radio-bg');
+    gbg.appendChild(el('div', 'th-radio-frame'));
+    gbg.appendChild(el('div', 'th-radio-fill'));
+    gbox.appendChild(gbg);
+    ['l', 'r', 't1', 'b2'].forEach(function (pos) {
+      gbox.appendChild(svg('0 0 22 16', 'th-spike th-spike-' + pos, [['path', { d: 'M22 8 L13 6 L9 1 L7 6 L0 8 L7 10 L9 15 L13 10 Z' }]]));
+    });
+    var gtag = el('div', 'th-radio-tag');
+    gtag.setAttribute('aria-hidden', 'true');
+    gtag.appendChild(svg('0 0 16 16', 'th-radio-ant', [['path', { d: 'M8 15 L8 7 M4.5 4.5 A5 5 0 0 1 11.5 4.5 M2.5 2.5 A8 8 0 0 1 13.5 2.5' }], ['circle', { cx: 8, cy: 7, r: 1.6 }]]));
+    gtag.appendChild(el('span', '', UI_TEXT.radioTag));
+    var gsig = el('span', 'th-sig');
+    for (var ggi = 0; ggi < 3; ggi++) gsig.appendChild(el('i'));
+    gtag.appendChild(gsig);
+    gbox.appendChild(gtag);
+    var gbody = el('div', 'th-banner-body');
+    var gcols = el('div', 'th-gcols');
+    gbody.appendChild(gcols);
+    var gstart = el('button', 'th-gstart', UI_TEXT.tutStart);
+    gstart.type = 'button';
+    gbody.appendChild(gstart);
+    gbox.appendChild(gbody);
+    root.appendChild(gbox);
+
     var cardget = el('div', 'th-cardget');
     root.appendChild(cardget);
 
@@ -474,7 +503,7 @@
 
     container.appendChild(root);
     S.els = { root: root, canvas: canvas, ctx: canvas.getContext('2d'), timer: timer, ticks: Array.prototype.slice.call(timer.querySelectorAll('.th-tick')), tori: tori, toriWrap: toriWrap, bubble: bubble, btext: btext,
-      optL: optL, optR: optR, banner: banner, tutbox: tutbox, tutnote: tutnote, bTitle: bTitle, bNote: bNote, cardget: cardget, slots: slots, guide: guide, gbtn: gbtn, white: white, demo: demo, hud: hud, toriBox: toriBox };
+      optL: optL, optR: optR, banner: banner, tutbox: tutbox, tutnote: tutnote, guidebox: gbox, gcols: gcols, gstart: gstart, bTitle: bTitle, bNote: bNote, cardget: cardget, slots: slots, guide: guide, gbtn: gbtn, white: white, demo: demo, hud: hud, toriBox: toriBox };
 
     // 입력
     on(window, 'keydown', onKey);
@@ -486,6 +515,7 @@
     on(optL.btn, 'click', function () { onOptClick('left'); });
     on(optR.btn, 'click', function () { onOptClick('right'); });
     on(gbtn, 'click', startFromGuide);
+    on(gstart, 'click', function () { tryOpeningTap(true); });   // 조작법 안내 팝업의 시작 버튼 (지금 단계가 이 팝업일 때만 열려 있음)
 
     // 크기
     if (window.ResizeObserver) {
@@ -638,6 +668,7 @@
     S.seq = TORI_LINES.opening;   // 오프닝 대사 → 첫 문제(수도원)가 뜨면 가운데 무전창으로 화면·조작법 설명
     S.tutDone = false; S.steps = null;
     S.els.tutbox.classList.remove('th-on', 'th-off', 'th-await');
+    S.els.guidebox.classList.remove('th-on', 'th-off');
     clearDemo();
     S.targetSpeed = CONFIG.CRUISE_SPEED;
     S.els.bubble.classList.remove('th-crt-on', 'th-crt-closing', 'th-await');
@@ -695,8 +726,12 @@
       sfx('holeGlitch', 0.5);   // 한 번만 (글자는 계속 깨져도 소리는 반복하지 않음)
     });
   }
-  function tryOpeningTap() {
-    if (S && S.phase === 'explain' && S.expReady && performance.now() - S.expAt >= CONFIG.OPENING_TAP_LOCK_MS) { explainNext(); return true; }
+  function tryOpeningTap(solid) {   // solid: Enter·Space·시작 버튼처럼 뜻을 가지고 한 입력 (화면 아무 데나 닿은 터치는 아님)
+    if (S && S.phase === 'explain' && S.expReady && performance.now() - S.expAt >= CONFIG.OPENING_TAP_LOCK_MS) {
+      var cur = S.steps && S.steps[S.expIdx];
+      if (cur && cur.focus === 'guide' && !solid) return false;   // 조작법 안내 팝업은 화면을 아무 데나 눌러서는 넘어가지 않고, 시작 버튼(또는 Enter·Space)으로만 시작
+      explainNext(); return true;
+    }
     if (S && S.phase === 'opening' && S.openReady && performance.now() - S.openAt >= (S.openLock || CONFIG.OPENING_LOCK_MS)) { openingNext(); return true; }
     return false;
   }
@@ -725,11 +760,14 @@
     S.expIdx++;
     if (S.expIdx >= S.steps.length) {
       S.expReady = false;
-      var tb = e.tutbox;
-      tb.classList.remove('th-await');
-      tb.classList.add('th-off');
+      [e.tutbox, e.guidebox].forEach(function (tb) {   // 떠 있는 안내 상자(설명 상자 또는 조작법 팝업)를 TV 꺼지듯 닫음
+        if (!tb.classList.contains('th-on')) return;
+        tb.classList.remove('th-await');
+        tb.classList.add('th-off');
+        after(500, function () { tb.classList.remove('th-on', 'th-off'); });
+      });
       sfx('holeGlitchOut', 1);
-      after(500, function () { tb.classList.remove('th-on', 'th-off'); });
+      try { e.gstart.blur(); } catch (_) { /* 포커스를 못 풀어도 계속 */ }   // 눌렀던 시작 버튼에 포커스가 남지 않게
       clearDemo(true);
       bgmDuck(false);   // 안내 상자가 사라질 때 원래 크기로 (종료)
       S.phase = 'question';
@@ -741,6 +779,7 @@
       return;
     }
     var st = S.steps[S.expIdx];
+    if (st.focus === 'guide') { showGuide(); return; }
     e.tutnote.textContent = '';
     fillArrows(e.tutnote, st.parts[0].text);
     if (S.expIdx === 0) {   // 글리치는 처음 나타날 때 한 번만
@@ -757,6 +796,68 @@
     S.expAt = performance.now();
   }
 
+  // 조작법 안내 팝업: 설명 상자를 닫고 화면 거의 전체를 덮는 글리치 창을 엶. 세 칸에 키보드 · 클릭(터치) · 슬라이드 시범이 반복되고, 아래 버튼을 누르면 바로 시작
+  function showGuide() {
+    var e = S.els;
+    e.tutbox.classList.remove('th-on', 'th-off', 'th-await');
+    fillGuide();
+    e.guidebox.classList.remove('th-on', 'th-off');
+    void e.guidebox.offsetWidth;
+    e.guidebox.classList.add('th-on');
+    sfx('holeGlitchSoft', 1);
+    applyFocus('guide');   // 위 선택지 쪽은 어둡게 덮고 눈금은 끔
+    S.expReady = true;
+    S.expAt = performance.now();
+  }
+  function guideMini(side) {   // 시범용 작은 선택지 상자
+    var b = el('div', 'th-gbox th-gbox-' + side);
+    b.appendChild(el('i'));
+    b.appendChild(el('i'));
+    return b;
+  }
+  function fillGuide() {
+    var pc = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();   // PC 는 터치 대신 마우스 커서 클릭을 보여 주고, 슬라이드 칸에는 회색 보조 안내를 붙임
+    var cols = [
+      { kind: 'keys', cap: '키보드 ← → 키' },
+      { kind: pc ? 'click' : 'tap', cap: pc ? '글을 {y}클릭{/y}하기' : '글을 {y}터치{/y}하기' },
+      { kind: 'swipe', cap: '좌우로 {y}슬라이드{/y}' + (pc ? '{g}※ PC에서는 지원하지 않아요{/g}' : '') }
+    ];
+    S.els.gcols.textContent = '';
+    cols.forEach(function (c) {
+      var col = el('div', 'th-gcol');
+      var stage = el('div', 'th-gstage th-gstage-' + (c.kind === 'click' ? 'tap' : c.kind));
+      stage.setAttribute('data-kind', c.kind);
+      stage.setAttribute('aria-hidden', 'true');
+      stage.appendChild(guideMini('l'));
+      stage.appendChild(guideMini('r'));
+      if (c.kind === 'keys') {
+        stage.appendChild(keyIconEl('left'));
+        stage.appendChild(keyIconEl('right'));
+      } else {
+        if (c.kind !== 'swipe') { stage.appendChild(el('span', 'th-ripple th-ripple-l')); stage.appendChild(el('span', 'th-ripple th-ripple-r')); }
+        stage.appendChild(pointerEl(c.kind === 'click' ? 'cursor' : 'finger', c.kind === 'swipe'));
+      }
+      col.appendChild(stage);
+      col.appendChild(fillArrows(el('p', 'th-gcap'), c.cap));
+      S.els.gcols.appendChild(col);
+    });
+  }
+  function layoutGuide() {   // 칸 안 손가락·커서가 움직일 자리를 칸 크기에 맞춰 잡음
+    Array.prototype.forEach.call(S.els.gcols.querySelectorAll('.th-gstage'), function (st) {
+      var w = st.clientWidth, h = st.clientHeight, kind = st.getAttribute('data-kind');
+      if (!w || !h) return;
+      var bt = kind === 'keys' ? 0.06 : 0.3, bw = w * 0.42, bh = h * 0.38;   // CSS 의 상자 자리(.th-gbox)와 같은 비율
+      var lx = w * 0.04 + bw / 2, rx = w * 0.96 - bw / 2, ly = h * bt + bh / 2;
+      st.style.setProperty('--lx', lx + 'px'); st.style.setProperty('--rx', rx + 'px');
+      st.style.setProperty('--ly', ly + 'px'); st.style.setProperty('--ry', ly + 'px');
+      st.style.setProperty('--cx', ((lx + rx) / 2) + 'px'); st.style.setProperty('--cy', ly + 'px');
+      st.style.setProperty('--pw', (kind === 'click' ? Math.max(16, bh * 0.4) : Math.max(28, bh * (kind === 'tap' ? 0.66 : 0.8))) + 'px');
+      Array.prototype.forEach.call(st.querySelectorAll('.th-ripple'), function (rp) {
+        rp.style.left = (rp.classList.contains('th-ripple-l') ? lx : rx) + 'px'; rp.style.top = ly + 'px';
+      });
+    });
+  }
+
   /* ---------------- 튜토리얼: 첫 문제 전에 화면 구성·조작법 설명 ---------------- */
   // 설명글은 전부 토리 말풍선에 뜨고, 화면에는 강조 테두리·아이콘 시범이 나옴. 터치(클릭·Enter·Space)로 한 단계씩 넘김
   function isTouchFirst() { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
@@ -766,17 +867,9 @@
       radio: { pose: 'hint', text: '먼저 위를 봐 주세요!\n여기서는 문제를 확인할 수 있어요.' },
       slots: { pose: 'default', text: '아래는 사료 카드 보관함이에요.\n맞힐 때마다 카드가 한 장씩 채워져요!' },
       timer: { pose: 'what', text: '여기 보이는 눈금은 제한시간으로,\n문제마다 {y}' + sec + '초{/y}예요.\n눈금이 꺼지기 전에 길을 골라 주세요!' },
-      opts: { pose: 'hint', text: '양쪽으로 보이는 선택지예요.\n정답이라고 생각하는 쪽을 골라 주세요!' },
-      keys: { pose: 'default', text: '키보드 ←, → 키로 고를 수 있어요.\n왼쪽 선택지는 ←, 오른쪽 선택지는 → 키예요!' },
-      click: { pose: 'default', text: '마우스로 글을 {y}클릭{/y}해도 돼요.\n고르고 싶은 선택지를 {y}클릭{/y}해 주세요!' },
-      tap: { pose: 'default', text: '손가락으로 글을 {y}터치{/y}해도 돼요.\n고르고 싶은 선택지를 {y}터치{/y}해 주세요!' },
-      swipe: { pose: 'default', text: '화면을 좌우로 {y}슬라이드{/y}해도 돼요.\n{y}슬라이드{/y}한 방향으로 달려갑니다!' },
-      ready: { pose: 'happy', text: '이제 선택지를 직접 골라 보세요!' }
+      guide: { pose: 'hint', text: '' }   // 선택지·키보드·클릭(터치)·슬라이드 안내는 한 장의 조작법 팝업(showGuide)에 3칸으로 모아 보여 줌
     };
-    // 방향키는 모든 기기에서(블루투스 키보드). 그다음 터치 기기(지금은 모든 기기)는 누르기·슬라이드, TUTORIAL_PC_CURSOR 가 켜지면 PC 는 커서 클릭만
-    var pcCursor = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();
-    if (pcCursor) T.swipe.text = T.swipe.text + '{g}※ PC에서는 슬라이드를 지원하지 않아요.{/g}';   // PC 에서는 슬라이드 설명을 남기되 뒤에 회색 보조 안내를 붙임
-    var order = ['radio', 'slots', 'timer', 'opts', 'keys'].concat(pcCursor ? ['click', 'swipe'] : ['tap', 'swipe'], ['ready']);
+    var order = ['radio', 'slots', 'timer', 'guide'];
     return order.map(function (k) { return { pose: T[k].pose, parts: [{ text: T[k].text }], focus: k }; });
   }
 
@@ -851,43 +944,15 @@
     return w;
   }
 
-  // 튜토리얼 한 단계의 강조·시범을 그림 (크기가 바뀌면 다시 호출)
+  // 튜토리얼 한 단계의 강조를 그림 (크기가 바뀌면 다시 호출). 조작법 안내 팝업 단계는 선택지까지 어둡게 덮고, 시범은 팝업 안 칸에서 보여 줌
   function layoutDemo(f) {
     var e = S.els, d = e.demo;
     d.textContent = '';
     demoHoles = [];
-    e.root.classList.remove('th-demo-keys', 'th-demo-tap', 'th-demo-swipe');
-    var L = relRect(e.optL.btn), R = relRect(e.optR.btn);
-    if (f === 'keys' || f === 'tap' || f === 'click' || f === 'swipe' || f === 'ready') { demoHole(L, 6, false); demoHole(R, 6, false); }   // 마무리 단계도 막을 유지(선택지만 밝게). 설명창이 꺼질 때 같이 걷힘
     if (f === 'radio') demoRing(e.bubble, 10, false);
     else if (f === 'slots') demoRing(e.hud, 6, false);
     else if (f === 'timer') demoRing(e.toriBox, relRect(e.toriBox).w * 0.2, true);
-    else if (f === 'opts') { demoRing(e.optL.btn, 6, false); demoRing(e.optR.btn, 6, false); }
-    else if (f === 'keys') {
-      var ks = Math.max(52, Math.min(96, L.h * 0.75));
-      [['left', L], ['right', R]].forEach(function (p) {
-        var s = keyIconEl(p[0]), r = p[1];
-        s.style.width = ks + 'px'; s.style.height = ks + 'px';
-        s.style.left = (r.x + r.w / 2 - ks / 2) + 'px'; s.style.top = (r.y + r.h + 6) + 'px';
-        d.appendChild(s);
-      });
-      e.root.classList.add('th-demo-keys');
-    } else if (f === 'tap' || f === 'click' || f === 'swipe') {
-      var ly = L.y + L.h / 2, lx = L.x + L.w / 2, rx = R.x + R.w / 2;
-      d.style.setProperty('--lx', lx + 'px'); d.style.setProperty('--rx', rx + 'px');
-      d.style.setProperty('--ly', ly + 'px'); d.style.setProperty('--ry', ly + 'px');
-      d.style.setProperty('--cx', ((lx + rx) / 2) + 'px'); d.style.setProperty('--cy', ly + 'px');
-      d.style.setProperty('--pw', (f === 'click' ? Math.max(34, L.h * 0.36) : Math.max(52, L.h * 0.8 * (f === 'tap' ? 0.82 : 1) * (e.root.clientWidth < e.root.clientHeight ? 0.88 : 1))) + 'px');   // 터치(누르기)는 슬라이드 손가락이 보이는 크기(누른 상태 0.82배)에 맞춤, 세로 화면은 조금 작게   // 마우스 커서는 실제 커서처럼 작게 (손가락은 그대로)
-      if (f !== 'swipe') {   // 누른 자리에 동그란 링
-        [['th-ripple-l', lx], ['th-ripple-r', rx]].forEach(function (p) {
-          var rp = el('span', 'th-ripple ' + p[0]);
-          rp.style.left = p[1] + 'px'; rp.style.top = ly + 'px';
-          d.appendChild(rp);
-        });
-      }
-      d.appendChild(pointerEl(f === 'click' ? 'cursor' : 'finger', f === 'swipe'));
-      e.root.classList.add(f === 'swipe' ? 'th-demo-swipe' : 'th-demo-tap');
-    }
+    else if (f === 'guide') layoutGuide();
     demoDim();
   }
   function applyFocus(f) {
@@ -912,7 +977,7 @@
       dm.classList.remove('th-veil-on');
       setTimeout(function () { if (dm.parentNode) dm.parentNode.removeChild(dm); }, 900);
     }
-    e.root.classList.remove('th-demo','th-demo-keys', 'th-demo-tap', 'th-demo-swipe');
+    e.root.classList.remove('th-demo');
     if (!keepOpts) [e.optL.btn, e.optR.btn].forEach(function (b) { b.classList.remove('th-on'); });
     e.timer.classList.remove('th-on', 'th-warn', 'th-hurry');
     setTimer(0);
@@ -1153,7 +1218,7 @@
   function onKey(e) {
     if (!S) return;
     if (S.phase === 'opening' || S.phase === 'explain') {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) tryOpeningTap(); }   // Enter·Space 로 넘김 (꾹 눌러도 한 번만)
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) tryOpeningTap(true); }   // Enter·Space 로 넘김 (꾹 눌러도 한 번만)
       else if (e.key.indexOf('Arrow') === 0) e.preventDefault();   // 방향키는 넘기지 않고, 페이지만 움직이지 않게 막음
       return;
     }
