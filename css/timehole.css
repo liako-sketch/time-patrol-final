@@ -370,7 +370,9 @@
    튜토리얼 시범 (첫 문제 전): 강조 테두리 / 방향키 / 손가락 누르기 / 손가락 슬라이드
    설명글은 전부 토리 말풍선에 뜬다. 시범 동안 선택지는 보이기만 하고 눌리지 않는다.
    ===================================================================== */
-.th-demo-layer { position: absolute; inset: 0; z-index: 9; pointer-events: none; }
+.th-demo-layer { position: absolute; inset: 0; pointer-events: none; }   /* 층 자체는 쌓임 맥락을 만들지 않아, 안의 요소가 각자 순서를 가짐 */
+.th-demo-layer > * { z-index: 6; }   /* 어두운 막·강조 테두리·키: 설명창(8)보다 뒤 → 설명창은 어두워지지 않음 */
+.th-demo-layer > .th-pointer { z-index: 9; }   /* 손가락·커서만 설명창보다 앞 */
 .th-root.th-demo .th-opt { pointer-events: none; }
 
 /* 강조 말고는 어두운 남색 반투명으로 덮음 (구멍은 clip-path 로 뚫음) */
@@ -460,7 +462,7 @@
   0% { opacity: 0; } 5% { opacity: 1; } 16% { opacity: 1; } 27% { opacity: 0; }
   46% { opacity: 0; } 50% { opacity: 1; } 62% { opacity: 1; } 73%, 100% { opacity: 0; }
 }
-.th-trail { position: absolute; top: calc(var(--pw) * -0.06); height: calc(var(--pw) * 0.4); width: calc(var(--pw) * 2.2); opacity: 0; }
+.th-trail { position: absolute; z-index: -1; top: calc(var(--pw) * 0.04); height: calc(var(--pw) * 0.2); width: calc(var(--pw) * 2.2); opacity: 0; }
 .th-trail-l { left: 0; transform-origin: left center; background: linear-gradient(90deg, rgba(143, 240, 250, .8), rgba(143, 240, 250, 0)); animation: th-trail-l 4s linear infinite, th-trail-rot-l 4s linear infinite; }
 .th-trail-r { right: 0; transform-origin: right center; background: linear-gradient(270deg, rgba(143, 240, 250, .8), rgba(143, 240, 250, 0)); animation: th-trail-r 4s linear infinite, th-trail-rot-r 4s linear infinite; }
 /* 손가락이 기울어도 잔상 네모는 늘 수평: 손가락 기울기와 같은 박자로 반대로 돌려 상쇄 */
@@ -533,3 +535,6 @@ html.calm-mode .th-banner.th-on .th-banner-body::after, html.calm-mode .th-banne
 html.calm-mode .th-tutbox.th-on, html.calm-mode .th-garble { animation: none; }
 html.calm-mode .th-garble { filter: none; transform: none; opacity: 1; }
 html.calm-mode .th-flash, html.calm-mode .th-particle, html.calm-mode .th-cardglow { display: none; }
+
+/* 줄 구분을 따로 넣지 않은 글: 자동 줄바꿈이 끝에 한두 글자만 덩그러니 남기지 않게 줄 길이를 고르게 나눔 (세로 화면 등 폭이 좁을 때) */
+.th-bubble-text, .th-banner-title, .th-banner-note, .th-opt-text, .th-guide-row p, .th-guide-note { text-wrap: balance; }
