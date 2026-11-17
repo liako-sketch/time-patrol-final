@@ -526,9 +526,10 @@
     var t = node || S.els.btext;
     t.style.fontSize = '';
     if (!node) {   // 무전 대사는 글자 크기를 대사마다 바꾸지 않음(긴 대사는 줄 수가 늘고 무전창이 아래로 커짐). 세로 화면의 오프닝 대사만: 세 줄 이상이 되면(대사가 길거나 코드네임이 길 때) 글자를 15% 줄임
+      S.els.bubble.classList.remove('th-3l');
       if (S.phase === 'opening' && S.els.root.clientWidth < S.els.root.clientHeight) {
         var lh0 = parseFloat(getComputedStyle(t).lineHeight) || (parseFloat(getComputedStyle(t).fontSize) || 20) * 1.4;
-        if (t.clientHeight / lh0 > 2.5) t.style.fontSize = (parseFloat(getComputedStyle(t).fontSize) * 0.85) + 'px';
+        if (t.clientHeight / lh0 > 2.5) { t.style.fontSize = (parseFloat(getComputedStyle(t).fontSize) * 0.85) + 'px'; S.els.bubble.classList.add('th-3l'); }   // 3줄: 글자 15% 축소 + 위·아래 여백 추가
       }
       return;
     }
