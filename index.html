@@ -2453,6 +2453,7 @@ var Board = (function () {
   }
   function restBox(c) {
     if (revLayout && c.revIdx != null) return { x: revLayout.x(c.revIdx) - scrollPos, y: revLayout.y, w: revLayout.w, h: revLayout.h };   // 톺아본 뒤 6장 한 줄 배치
+    if (c._intro) { var q = homePos(L.handCount); return { x: q.x, y: q.y, w: L.cardW, h: L.cardH }; }   // 타임홀 직후: 1번 칸 고정 카드(수도원)는 손패 맨 오른쪽 끝에서 뒷면으로 시작
     if (c.where === 'hand') { var p = homePos(c.home); return { x: p.x, y: p.y, w: L.cardW, h: L.cardH }; }
     return { x: slotX(c.where) - scrollPos, y: L.slotTop, w: L.slotW, h: L.slotH };
   }
@@ -2501,7 +2502,7 @@ var Board = (function () {
     setBox(c, b.x, b.y, b.w, b.h);
   }
   function placeAll(mode) { cards.forEach(function (c) { place(c, mode); }); }
-  function occupant(i, except) { for (var j = 0; j < cards.length; j++) if (cards[j].where === i && cards[j] !== except) return cards[j]; return null; }
+  function occupant(i, except) { for (var j = 0; j < cards.length; j++) if (cards[j].where === i && cards[j] !== except && !cards[j]._intro) return cards[j]; return null; }
   function refreshSlots() {
     slots.forEach(function (s, i) { s.classList.toggle('board-empty', !occupant(i)); });
     updateConfirm();
@@ -4054,6 +4055,7 @@ var Board = (function () {
     cards.forEach(function (c) { if (c._fa) { c._fa.cancel(); c._fa = null; } clearTimeout(c._rt); c.returning = false; c.el.classList.remove('board-drag', 'board-anim', 'board-snap', 'board-return'); c.el.style.transform = ''; });
     slots.forEach(function (s) { s.classList.remove('board-ready', 'board-flash'); });
     handCards.forEach(function (c) { if (!c.hlock) c.where = 'hand'; });   // 맞아서 고정된 카드는 화면을 다시 열어도 그대로 (새로고침해야 풀림)
+    fixedCard._intro = false;
     shuffleHand();
     setScroll(0); placeAll(false); refreshSlots();
     Comm.reset();
@@ -4366,6 +4368,12 @@ var Board = (function () {
       var b = document.createElement('div'); b.className = 'board-back'; b.textContent = '?';
       c.el.appendChild(b); c._bk = b;
     });
+    if (!fixedCard._bk) {   // 1번 칸 고정 카드(수도원)도 뒷면으로 손패 맨 끝에 둠 (1번 칸은 빈 칸으로 보임). 마지막에 뒤집힌 뒤 칸으로 날아가 붙음
+      var fb = document.createElement('div'); fb.className = 'board-back'; fb.textContent = '?';
+      fixedCard.el.appendChild(fb); fixedCard._bk = fb;
+    }
+    fixedCard._intro = true;
+    placeAll(false); refreshSlots();
   }
   var FLIP_DELAY = 0;   // 넘기는 입력을 받은 뒤 바로 뒤집음(ms). 대사 대기 1.2초 동안 그림은 이미 준비됨
   function warmUp() {   // 카드 앞면 그림을 미리 불러와 디코딩: 뒤집히는 순간 그림이 늦게 뜨거나 깜빡이지 않게
@@ -4380,13 +4388,43 @@ var Board = (function () {
       });
     }));
   }
+  // 손패 맨 끝에서 뒤집힌 1번 칸 고정 카드(수도원)가 빙글빙글 돌며 1번 칸으로 날아가 딱 붙음. 붙은 뒤에는 평소 고정 카드(눌러서 설명만 볼 수 있고 옮길 수 없음)
+  function landFixed(c, calm, done) {
+    var o = { x: c.x, y: c.y, w: c.w, h: c.h };
+    c._intro = false;
+    var b = restBox(c);
+    setBox(c, b.x, b.y, b.w, b.h);
+    refreshSlots();
+    var finish = function () { c.el.style.zIndex = ''; c.el.style.willChange = ''; c._fa = null; SFX.play('release'); done(); };
+    if (!c.el.animate) { finish(); return; }
+    var dx = (o.x + o.w / 2) - (b.x + b.w / 2), dy = (o.y + o.h / 2) - (b.y + b.h / 2), sx = o.w / b.w, sy = o.h / b.h;
+    var mx = (sx + 1) / 2 + 0.12;   // 날아가는 중간에는 조금 더 크게
+    var T = function (px, py, r, a, e) { return 'translate3d(' + px + 'px,' + py + 'px,0) rotate(' + r + 'deg) scale(' + a + ',' + e + ')'; };
+    var kf, D;
+    if (calm) {   // 움직임 줄이기: 회전·튀어오름 없이 부드럽게 이동만
+      D = 420;
+      kf = [{ transform: T(dx, dy, 0, sx, sy), easing: 'cubic-bezier(.22, .61, .36, 1)' }, { transform: T(0, 0, 0, 1, 1) }];
+    } else {
+      D = 980;
+      kf = [
+        { transform: T(dx, dy, 0, sx, sy), offset: 0, easing: 'cubic-bezier(.3, .5, .5, 1)' },
+        { transform: T(dx * 0.45, dy * 0.45 - 170, 380, mx, mx), offset: 0.5, easing: 'cubic-bezier(.4, 0, .6, 1)' },
+        { transform: T(dx * 0.04, dy * 0.04, 690, 1.1, 1.1), offset: 0.82, easing: 'ease-out' },
+        { transform: T(0, 0, 720, 1, 1), offset: 1 }
+      ];
+    }
+    c.el.style.zIndex = '40'; c.el.style.willChange = 'transform';
+    var an = c.el.animate(kf, { duration: D, easing: 'linear' }); c._fa = an;
+    an.onfinish = an.oncancel = finish;
+  }
   function flipHand() {
     var list = handCards.filter(function (c) { return c._bk; }).sort(function (a, b) { return a.home - b.home; });
+    if (fixedCard._bk) list.push(fixedCard);   // 수도원 카드는 맨 마지막
     var calm = document.documentElement.classList.contains('calm-mode');
     var ready = Promise.all([warmUp(), new Promise(function (res) { setTimeout(res, FLIP_DELAY); })]);   // 준비가 끝나고 정해진 시간이 지난 뒤에 뒤집기 시작
     return ready.then(function () { return Promise.all(list.map(function (c, i) {
       return new Promise(function (res) {
-        if (!c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
+        if (!c.el.animate) { setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } if (i === 0) SFX.play('cardFlip', 0.8); if (c === fixedCard) { c._intro = false; place(c, false); refreshSlots(); } res(); }, 0); return; }   // 움직임 줄이기: 화면은 바로 뒤집힌 상태, 소리는 그대로 한 번
         setTimeout(function () {
           SFX.play('cardFlip');   // 카드마다 뒤집히는 순간에 한 번씩 (왼쪽부터 차례로)
           // 제자리 뒤집기가 아니라 휘리릭: 위로 튀어 오르며 옆으로 얇아지고(약간 기울며), 꼭대기에서 앞면으로 바뀐 뒤 통통 내려앉음.
@@ -4401,8 +4439,11 @@ var Board = (function () {
             { transform: 'translate3d(0,0,0) rotate(0deg) scaleX(1)', offset: 1 }
           ], { duration: D, easing: 'linear' });
           setTimeout(function () { if (c._bk) { c._bk.remove(); c._bk = null; } }, up - 10);   // 거의 얇아진 순간에 물음표를 걷어 앞면이 보이게
-          fl.onfinish = fl.oncancel = function () { c.el.style.zIndex = ''; c.el.style.willChange = ''; if (c._bk) { c._bk.remove(); c._bk = null; } res(); };
-        }, i * 130);
+          fl.onfinish = fl.oncancel = function () {
+            c.el.style.zIndex = ''; c.el.style.willChange = ''; if (c._bk) { c._bk.remove(); c._bk = null; }
+            if (c === fixedCard && c._intro) landFixed(c, calm, res); else res();   // 수도원 카드는 뒤집힌 뒤 1번 칸으로 돌며 날아가 붙은 다음에 끝남
+          };
+        }, i * 130 + (c === fixedCard ? 400 : 0));   // 나머지 손패가 다 뒤집힌 뒤에 마지막으로
       });
     })); });
   }
