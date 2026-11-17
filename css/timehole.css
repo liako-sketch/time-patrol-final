@@ -579,6 +579,8 @@
 /* 큰 화면이 세로일 때(태블릿 세로): 창 크기 배율을 70% 가 아니라 90% 로 (너무 좁아 보이지 않게) */
 @container (min-width: 900px) and (min-height: 500px) and (max-aspect-ratio: 4/5) {
   .th-guidebox { --gs: .9; }
+  .th-gcap { font-size: 4.55cqmin; }   /* 가로 화면(5.85cqmin × .7)과 화면에 보이는 글자 크기가 같도록: 5.85 × .7 ÷ .9 */
+  .th-gcap .th-note-g { font-size: 2.19cqmin; }   /* 회색 안내도 같은 규칙: 2.81 × .7 ÷ .9 */
 }
 /* 폰 세로: 창을 화면 폭 거의 전부로 넓히고 안쪽 여백·칸 간격을 줄여 세 칸이 덜 좁게 */
 @container (max-width: 899px) and (max-aspect-ratio: 4/5) {
