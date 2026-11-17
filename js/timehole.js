@@ -627,6 +627,7 @@
     clearDemo();
     S.targetSpeed = CONFIG.CRUISE_SPEED;
     S.els.bubble.classList.remove('th-crt-on', 'th-crt-closing', 'th-await');
+    S.els.bubble.classList.add('th-hinted');   // 오프닝 동안: 무전창 아래에 '진행해 주세요' 안내 글 자리를 따로 둠
     S.els.bubble.classList.add('th-crt-off');   // 처음엔 말풍선이 꺼진 화면
     S.els.guide.classList.remove('th-on');
     // 흰 화면에서 시작해 서서히 걷힘
@@ -653,7 +654,7 @@
     var lines = S.seq;
     if (S.openIdx >= lines.length) {
       S.openReady = false;
-      S.els.bubble.classList.remove('th-await');
+      S.els.bubble.classList.remove('th-await', 'th-hinted');
       clearDemo();
       if (!CONFIG.SHOW_GUIDE) { S.phase = 'approach'; nextQuestion(); return; }   // 안내 패널 없이 바로 첫 문제
       S.phase = 'guide';
