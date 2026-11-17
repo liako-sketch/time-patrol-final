@@ -507,7 +507,8 @@
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }
 .th-note-g { display: block; margin: .7em 0 .35em; font-size: .82em; line-height: 1.4; color: rgba(255, 255, 255, .5); }   /* 보조 안내: 회색 반투명, 위 설명과 간격을 둠 */
-.th-hl-k { color: var(--tori-key, #5fd4e0); }   /* 타임홀 이름: 타임라인의 "타임홀을 무사히…" 대사와 같은 하늘색 */
+.th-hl-k { color: var(--tori-sky, #4fdcee); }   /* 타임홀 이름: 하늘색 */
+.th-hl-n { color: var(--tori-key, #6fb4ff); }   /* 코드네임: 파란색 */
 .th-hl-c { color: #b8f1fa; }   /* 하늘색 강조 */
 .th-tutbox .th-kbd rect, .th-tutbox .th-kbd path { stroke: var(--th-hl); }
 /* 해설이 없으면 제목 아래 여백도 없앰 */

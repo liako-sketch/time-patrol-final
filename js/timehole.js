@@ -105,7 +105,7 @@
     // 오프닝: 터치할 때마다 한 줄씩. {이름} 은 코드네임(합칠 때 start({ codename }) 으로 받음, 없으면 '패트롤')
     //   parts 의 inline 은 앞 조각과 같은 줄에 이어 붙임, glitch 는 깨진 글자 효과
     opening: [   // 두 줄 이상이 되는 대사는 뜻 단위로 줄바꿈해서 말풍선에서 어색하게 꺾이지 않게 함
-      { pose: 'happy', parts: [{ text: '치ㅊㅈ.. 들ㄹIㄴrㅛ?', glitch: true }, { text: '{이름}님, {k}타임홀{/k} 진입에 성공했어요!' }] },
+      { pose: 'happy', parts: [{ text: '치ㅊㅈ.. 들ㄹIㄴrㅛ?', glitch: true }, { text: '{n}{이름}{/n}님, {k}타임홀{/k} 진입에 성공했어요!' }] },
       { pose: 'default', parts: [{ text: '여기는 붕괴된 타임라인으로 이어지는 시간의 터널이에요.\n이곳에서 {y}흩어진 사료 카드를 모아{/y}야 {y}타임라인을 복구{/y}할 수 있어요.' }] },
       { pose: 'hint', parts: [{ text: '제가 문제를 내면, 정답이 있는 쪽 길로 달려 주세요.\n사실을 하나씩 맞힐 때마다 카드가 모일 거예요. 제 무전을 잘 들어 주세요!' }] },
       { pose: 'what', parts: [{ text: '어... 처음이라서 잘 모르시겠다고요?\n그렇다면, 먼저 연습부터 해 볼게요!' }] }
@@ -522,21 +522,21 @@
     if (S.els.tori.getAttribute('src') !== url) S.els.tori.src = url;
   }
   // 오프닝·튜토리얼 대사는 글자 크기를 줄여서라도 항상 두 줄 안에 들어가게 함
-  function fitBubble(node) {
+  function fitBubble(node, maxLines) {
     var t = node || S.els.btext;
     t.style.fontSize = '';
     if (!node && S.phase !== 'opening') return;
     var lh, n = 0, fs = parseFloat(getComputedStyle(t).fontSize) || 20;
     while (n++ < 14 && fs > 10) {
       lh = parseFloat(getComputedStyle(t).lineHeight) || fs * 1.4;
-      if (t.clientHeight / lh < 2.5) break;
+      if (t.clientHeight / lh < (maxLines || 2.5)) break;
       fs *= 0.92;
       t.style.fontSize = fs + 'px';
     }
   }
   // 글 속의 ← → 는 평면 방향키 아이콘으로 바꿔 넣음
   function fillArrows(node, text) {
-    String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|\{k\}.*?\{\/k\}|\{g\}.*?\{\/g\}|[←→])/).forEach(function (seg) {
+    String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|\{k\}.*?\{\/k\}|\{n\}.*?\{\/n\}|\{g\}.*?\{\/g\}|[←→])/).forEach(function (seg) {
       if (seg === '←' || seg === '→') {
         node.appendChild(svg('0 0 24 24', 'th-kbd', [['rect', { x: 1.5, y: 1.5, width: 21, height: 21, rx: 4.5 }],
           ['path', { d: seg === '←' ? 'M17 12 H7.5 M11 8.5 L7.5 12 L11 15.5' : 'M7 12 H16.5 M13 8.5 L16.5 12 L13 15.5' }]]));
@@ -546,6 +546,8 @@
         node.appendChild(el('span', 'th-note-g', seg.slice(3, -4)));   // 회색 반투명 보조 안내 (따로 한 줄)
       } else if (seg.indexOf('{k}') === 0) {
         node.appendChild(el('span', 'th-hl-k', seg.slice(3, -4)));   // 하늘색 강조 (타임홀 이름)
+      } else if (seg.indexOf('{n}') === 0) {
+        node.appendChild(el('span', 'th-hl-n', seg.slice(3, -4)));   // 파란색 강조 (코드네임)
       } else if (seg.indexOf('{c}') === 0) {
         node.appendChild(el('span', 'th-hl-c', seg.slice(3, -4)));   // 하늘색 강조
       } else if (seg) node.appendChild(document.createTextNode(seg));
@@ -633,7 +635,7 @@
       S.els.gbtn.focus({ preventScroll: true });
       return;
     }
-    var ln = lines[S.openIdx], who = S.codename || '패트롤';
+    var ln = lines[S.openIdx], who = String(S.codename || '패트롤').replace(/[{}]/g, '');   // 코드네임 속 {} 는 마크업으로 읽히지 않게 뺌
     say(ln.parts.map(function (p) { return { text: p.text.replace('{이름}', who), cls: p.cls, inline: p.inline, glitch: p.glitch }; }), ln.pose);
     if (ln.focus) applyFocus(ln.focus);   // 튜토리얼 단계: 강조 테두리·시범
     sfx('advance');
@@ -705,7 +707,7 @@
       bgmDuck(true);   // 어두운 남색 안내 상자가 떠 있는 동안만 배경음을 낮춤 (시작)
     }
     e.tutbox.classList.add('th-on', 'th-await');
-    fitBubble(e.tutnote);
+    fitBubble(e.tutnote, 6.5);   // 안내 상자는 위·아래 폭이 넉넉하므로 글자를 줄이지 않고 여러 줄로 둠
     applyFocus(st.focus);
     if (S.expIdx > 0) sfx('advance');   // 첫 단계는 글리치 소리가 이미 울리므로 블립을 겹치지 않음
     S.expReady = true;

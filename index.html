@@ -31,7 +31,8 @@
   --font-body: 'A2Z', sans-serif;                     /* 읽기용: 에이투지체 4 Regular */
   --font-title: 'A2Z', sans-serif;                    /* 제목용: 에이투지체 6 SemiBold (weight 600과 함께 사용) */
   --font-tori: 'ToriPromise', 'Malgun Gothic', sans-serif; /* 토리 대사 */
-  --tori-key: var(--me-main);                         /* 토리 대사 속 이름('토리'·코드네임) 하늘색: 기존 --me-main 재사용 */
+  --tori-key: var(--me-main);                         /* 토리 대사 속 이름('토리'·코드네임) 파란색: 기존 --me-main 재사용 */
+  --tori-sky: #4fdcee;                                /* 토리 대사 속 '타임홀' 하늘색 (파란색 --tori-key 와 확실히 구분) */
   --tori-hl-rgb: 255, 213, 74;                        /* --tori-hl 의 RGB (글로우 투명도 조절용) */
   --tori-hl: #ffd54a;                                 /* 토리 대사 강조(노랑): 인트로·본 활동 공통 */
   --ok-rgb: 79, 184, 148;                             /* 성공 녹색의 RGB (색약 모드에서 교체) */
@@ -99,6 +100,7 @@ html.is-iphone #board-bg { background-image: url('images/back/back_2_s.webp'); }
 #intro-line .intro-hl { color: var(--tori-hl); }
 #intro-line .intro-hr { color: var(--tori-warn); }
 #intro-line .intro-hk { color: var(--tori-key); }
+#intro-line .intro-hs { color: var(--tori-sky); }
 /* 깨진 코드네임(@#%$): 타임 홀 오프닝의 깨진 글자와 같은 효과. 흰색 그라데이션 글자가 1초 뒤 지직거리며 색이 갈라지고 3.6초마다 반복 */
 #intro-line .intro-garble { display: inline-block; color: transparent;
   background: linear-gradient(90deg, rgba(255, 255, 255, .35) 0%, rgba(255, 255, 255, 1) 100%); -webkit-background-clip: text; background-clip: text;
@@ -441,6 +443,7 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
 #board-bubble-text .hl-r { color: var(--tori-warn); }
 #board-bubble-text .hl-g { color: var(--ok-main); }
 #board-bubble-text .hl-k { color: var(--tori-key); }
+#board-bubble-text .hl-s { color: var(--tori-sky); }
 .board-rhint .hl-y { color: var(--tori-hl); }   /* 실패 팝업 힌트의 '○번 칸' */
 #board-next { position: absolute; right: 26px; bottom: 14px; color: #5fd4e0; font-size: 26px; display: none;
   animation: intro-blink 1s steps(2, start) infinite; }
@@ -737,8 +740,8 @@ mark.board-mk-ok { color: inherit; background: var(--ok-glow); border-radius: 4p
 #board-rkbox { width: 1300px; max-width: 94%; max-height: 94%; box-sizing: border-box; padding: 40px 56px 40px 36px; display: flex; align-items: center; gap: 36px; }
 #board-rkimg { flex: none; width: 300px; height: 300px; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 #board-rkcontent { flex: 1 1 0; min-width: 0; max-height: 100%; display: flex; flex-direction: column; }
-#board-rkmain { margin: 0; font-family: var(--font-title); font-weight: 600; font-size: 44px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
-#board-rknote { white-space: pre-line; margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
+#board-rkmain { margin: 0; text-align: right; font-family: var(--font-title); font-weight: 600; font-size: 44px; line-height: 1.35; color: #8ff3fa; text-shadow: 0 0 14px rgba(110, 240, 250, .55); word-break: keep-all; }
+#board-rknote { white-space: pre-line; text-align: right; margin: 12px 0 0; font-family: var(--font-body); font-weight: 400; font-size: 23px; line-height: 1.45; color: rgba(200, 235, 240, .85); word-break: keep-all; }
 #board-rkwrap { position: relative; margin-top: 16px; }
 #board-rklist { position: relative; min-height: 120px; overflow-anchor: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 #board-rklist::-webkit-scrollbar { display: none; }
@@ -771,7 +774,7 @@ html.calm-mode .board-rkans, html.calm-mode .board-rkarrow { transition: none; }
 #board-rkme .board-rkrow { flex: 1 1 0; min-width: 0; margin-top: 0; }
 .board-rkmenone { font-family: var(--font-title); font-weight: 600; font-size: 26px; color: #eefcff; }
 #board-rkme[hidden] { display: none; }
-#board-rkbtns { display: flex; justify-content: center; margin-top: 20px; }
+#board-rkbtns { display: flex; justify-content: center; margin-top: 20px; padding-left: 110px; }   /* 순위 줄들(왼쪽 라벨 자리 110px 제외)의 가운데에 맞춤 */
 /* ===== 접근성 버튼 + 설정 팝업 (스케일 무대 밖에 두되, right·bottom 은 스크립트가 무대 안쪽 오른쪽 아래 모서리로 맞춤) ===== */
 #a11y-btn { position: absolute; right: 24px; bottom: 24px; z-index: 40; width: 64px; height: 64px; box-sizing: border-box; margin: 0; padding: 4px 0 0; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
@@ -1816,7 +1819,7 @@ var Intro = (function () {
     { text: "세상에! 이 정도 진동은... 아무래도 타임라인이 무너진 것 같아요!", pose: 'sup', action: 'shake' },
     { text: "지금 출동할 수 있는 타임패트롤이 아무도 없는데... {이름}님이 도와주시겠어요? 제가 옆에서 도와 드릴게요.", pose: 'sad', yes: true, poseAt: { "제가 옆에서": 'default' } },
     { text: "좋아요! 붕괴된 타임라인은 중세 유럽으로 확인되었어요!", pose: 'default' },
-    { text: "앞에 보이는 타임 코스모스를 눌러 <k>타임홀</k>에 접근해 주세요!", pose: 'hint', action: 'orb' }
+    { text: "앞에 보이는 타임 코스모스를 눌러 <s>타임홀</s>에 접근해 주세요!", pose: 'hint', action: 'orb' }
   ];
 
   // ===== 요소 =====
@@ -1913,12 +1916,13 @@ var Intro = (function () {
   // [[강조]] 표기를 글자 배열로 풀기. {이름}은 파싱 뒤에 일반 글자로만 끼워 넣음(입력값은 강조·마크업 해석 안 함)
   function parseLine(text) {
     var chars = [], kind = '';
-    text.split(/(\[\[|\]\]|<r>|<\/r>|<k>|<\/k>|<g>|<\/g>)/).forEach(function (part) {
+    text.split(/(\[\[|\]\]|<r>|<\/r>|<k>|<\/k>|<s>|<\/s>|<g>|<\/g>)/).forEach(function (part) {
       if (part === '[[') { kind = 'y'; return; }
       if (part === '<r>') { kind = 'r'; return; }
       if (part === '<k>') { kind = 'k'; return; }
+      if (part === '<s>') { kind = 's'; return; }
       if (part === '<g>') { kind = 'g'; return; }
-      if (part === ']]' || part === '</r>' || part === '</k>' || part === '</g>') { kind = ''; return; }
+      if (part === ']]' || part === '</r>' || part === '</k>' || part === '</s>' || part === '</g>') { kind = ''; return; }
       Array.from(part.replace('{이름}', '\u0000')).forEach(function (c) {
         if (c === '\u0000') Array.from(codename).forEach(function (n) { chars.push({ c: n, hl: kind || 'k' }); });   // 코드네임은 하늘색 (다른 강조 안에 있으면 그 강조가 우선)
         else chars.push({ c: c, hl: kind });
@@ -1927,7 +1931,7 @@ var Intro = (function () {
     return chars;
   }
 
-  var HL_CLASS = { y: 'intro-hl', r: 'intro-hr', k: 'intro-hk', g: 'intro-garble' };
+  var HL_CLASS = { y: 'intro-hl', r: 'intro-hr', k: 'intro-hk', s: 'intro-hs', g: 'intro-garble' };
   var GLITCH_LAG = 350;   // 단어가 다 쓰인 뒤 글리치가 시작하기까지 (ms)
   var gEnd = -1, gStart = 0;   // 깨진 글자 단어가 다 쓰이는 글자 수 / 그 순간의 시각
   function render(chars) {
@@ -4192,8 +4196,8 @@ var Board = (function () {
     // <y>·<r> 표시를 읽어 글자별 강조 종류로 바꿈 (표시가 없으면 강조 없음)
     function parseHl(raw) {
       var out = [], k = '';
-      raw.split(/(<\/?[yrgk]>)/).forEach(function (part) {
-        var m = /^<(\/?)([yrgk])>$/.exec(part);
+      raw.split(/(<\/?[yrgks]>)/).forEach(function (part) {
+        var m = /^<(\/?)([yrgks])>$/.exec(part);
         if (m) { k = m[1] ? '' : m[2]; return; }
         Array.from(part).forEach(function (c) { out.push({ c: c, k: k }); });
       });
@@ -4424,7 +4428,7 @@ var Flow = (function () {
   var FADE_IN_MS = 900, HOLD_MS = 300, FADE_OUT_MS = 1000;
   function exitLine() {   // 타임 홀을 나온 직후 토리 대사. 코드네임은 하늘색으로만 표시하고(<> 는 제거해 표시 기호로 해석되지 않게), 없으면 '○○님' 부분을 뺌
     var nm = String(TORI_CODENAME || '').replace(/[<>]/g, '');
-    return '<k>타임홀</k>을 무사히 빠져나왔어요' + (nm ? ' <k>' + nm + '</k>님' : '') + '!\n<y>획득한 사료카드</y>를 뒤집어 보세요.';
+    return '<s>타임홀</s>을 무사히 빠져나왔어요' + (nm ? ' <k>' + nm + '</k>님' : '') + '!\n<y>획득한 사료카드</y>를 뒤집어 보세요.';
   }
   var EXIT_LOCK_MS = 1200;   // 이 대사는 나온 뒤 이 시간 동안 넘길 수 없음
   var advCb = null;   // 넘기는 입력(터치·Enter·Space)을 기다리는 중일 때만 채워짐
