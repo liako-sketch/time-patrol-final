@@ -509,7 +509,7 @@
     S.els.canvas.width = Math.max(1, Math.round(w * S.dpr));
     S.els.canvas.height = Math.max(1, Math.round(h * S.dpr));
     if (S.phase === 'idle') draw();
-    if (S.phase === 'opening') { lockBubbleH(); fitBubble(); }
+    if (S.phase === 'opening') fitBubble();
     if (S.phase === 'explain') fitTutNote(S.els.tutnote);   // 안내 상자는 처음 그릴 때와 같은 방식으로 다시 맞춤(두 줄 기준으로 줄이면 화면을 돌릴 때 급히 작아짐)
     if (S.demoFocus) layoutDemo(S.demoFocus);   // 튜토리얼 시범은 크기가 바뀌면 다시 배치
   }
@@ -588,16 +588,18 @@
     var who = String(S.codename || '패트롤').replace(/[{}]/g, '');   // 코드네임 속 {} 는 마크업으로 읽히지 않게 뺌
     return ln.parts.map(function (p) { return { text: p.text.replace('{이름}', who), cls: p.cls, inline: p.inline, glitch: p.glitch }; });
   }
-  // 가로 화면: 오프닝 무전창은 가장 긴 대사에 맞춘 높이로 고정(대사가 바뀌어도 창이 움직이지 않음). 세로 화면은 줄 수에 따라 늘었다 줄어듦
-  function lockBubbleH() {
-    var bb = S.els.bubble, t = S.els.btext;
-    bb.style.minHeight = '';
-    if (S.els.root.clientWidth < S.els.root.clientHeight || !S.seq) return;
-    var keep = Array.prototype.slice.call(t.childNodes), keepFs = t.style.fontSize, mx = 0;
-    bb.style.transition = 'none'; bb.style.height = '';
-    S.seq.forEach(function (ln) { fillSay(t, openingParts(ln)); mx = Math.max(mx, bb.offsetHeight); });
-    t.textContent = ''; keep.forEach(function (n) { t.appendChild(n); }); t.style.fontSize = keepFs;
-    if (mx) bb.style.minHeight = mx + 'px';
+  function glideBubbleH(h0, h1) {   // 무전창 높이가 h0 에서 h1 로 부드럽게 바뀜
+    var bb = S.els.bubble;
+    bb.style.height = h0 + 'px'; void bb.offsetHeight;
+    bb.style.transition = 'height .25s ease'; bb.style.height = h1 + 'px';
+    var sq = S.hSeq = (S.hSeq || 0) + 1;
+    setTimeout(function () { if (S && S.hSeq === sq) { bb.style.transition = ''; bb.style.height = ''; } }, 320);
+  }
+  function releaseBubbleH() {   // 오프닝이 끝나 안내 글 자리·고정 높이를 풀 때 창이 뚝 줄지 않고 부드럽게 줄어듦
+    var bb = S.els.bubble, h0 = bb.offsetHeight;
+    bb.classList.remove('th-hinted'); bb.style.minHeight = ''; bb.style.transition = 'none'; bb.style.height = '';
+    var h1 = bb.offsetHeight;
+    if (h0 && h1 && Math.abs(h1 - h0) > 2) glideBubbleH(h0, h1); else bb.style.transition = '';
   }
   function say(text, pose, cls) {
     var t = S.els.btext, bb0 = S.els.bubble, h0 = bb0.offsetHeight;   // 대사가 바뀌기 전 무전창 높이
@@ -607,10 +609,7 @@
     fitBubble();
     var h1 = bb0.offsetHeight;   // 새 대사에 맞는 높이: 줄 수가 달라지면 무전창이 아래로 늘었다 줄어듦
     if (h0 && h1 && Math.abs(h1 - h0) > 2 && !bb0.classList.contains('th-crt-off')) {   // 어지러움 방지 모드와 상관없이 항상 부드럽게 늘었다 줄어듦
-      bb0.style.height = h0 + 'px'; void bb0.offsetHeight;
-      bb0.style.transition = 'height .25s ease'; bb0.style.height = h1 + 'px';
-      var sq = S.hSeq = (S.hSeq || 0) + 1;
-      setTimeout(function () { if (S && S.hSeq === sq) { bb0.style.transition = ''; bb0.style.height = ''; } }, 320);
+      glideBubbleH(h0, h1);
     } else bb0.style.transition = '';
     // 새 대사가 들어올 때: 꼬리표의 신호 막대만 움직임 (말풍선은 깜빡이지 않음)
     var bb = S.els.bubble;
@@ -673,7 +672,7 @@
     var lines = S.seq;
     if (S.openIdx >= lines.length) {
       S.openReady = false;
-      S.els.bubble.classList.remove('th-await', 'th-hinted'); S.els.bubble.style.minHeight = '';
+      S.els.bubble.classList.remove('th-await'); releaseBubbleH();
       clearDemo();
       if (!CONFIG.SHOW_GUIDE) { S.phase = 'approach'; nextQuestion(); return; }   // 안내 패널 없이 바로 첫 문제
       S.phase = 'guide';
@@ -683,7 +682,6 @@
       return;
     }
     var ln = lines[S.openIdx];
-    if (S.openIdx === 0) lockBubbleH();   // 가로: 가장 긴 대사 기준으로 창 높이 고정
     say(openingParts(ln), ln.pose);
     if (ln.focus) applyFocus(ln.focus);   // 튜토리얼 단계: 강조 테두리·시범
     sfx('advance');
