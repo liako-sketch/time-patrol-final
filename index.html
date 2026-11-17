@@ -154,6 +154,9 @@ html.calm-mode #intro-yes, html.calm-mode #intro-yes.intro-on { transition: none
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes intro-popfade { from { opacity: 0; } to { opacity: 1; } }
+#intro-namePanel.intro-shake { animation: intro-shake .45s ease-in-out both; }   /* 10자 초과: 좌우로 흔들림(translate 만 써서 등장 연출의 transform 과 겹치지 않음) */
+@keyframes intro-shake { 0%, 100% { translate: 0 0; } 15% { translate: -12px 0; } 30% { translate: 11px 0; } 45% { translate: -9px 0; } 60% { translate: 7px 0; } 75% { translate: -4px 0; } 90% { translate: 2px 0; } }
+html.calm-mode #intro-namePanel.intro-shake { animation: none; }   /* 움직임 줄이기: 흔들지 않고 안내 문구만 */
 html.calm-mode #intro-namePanel.intro-pop { animation: intro-popfade .2s ease-out both; }   /* 움직임 줄이기를 켠 경우만 튀지 않고 서서히 나타남 */
 #intro-nameRow { display: flex; gap: 12px; }
 #intro-nameInput {
@@ -2085,7 +2088,7 @@ var Intro = (function () {
     if (typing || input.disabled || checking) return;
     var v = input.value.trim();
     if (!v) { err.textContent = '코드네임을 입력해 주세요.'; input.focus({ preventScroll: true }); return; }
-    if (tooLong()) { err.textContent = LONG_MSG; SFX.play('reject'); input.focus({ preventScroll: true }); return; }   // 10자를 넘으면 서버로 보내지 않고 여기서 막음
+    if (tooLong()) { err.textContent = LONG_MSG; SFX.play('reject'); panel.classList.remove('intro-shake'); void panel.offsetWidth; panel.classList.add('intro-shake'); input.focus({ preventScroll: true }); return; }   // 입력창이 좌우로 흔들림(튀는 연출 아님). 글자는 지우지 않고 직접 줄이게 함   // 10자를 넘으면 서버로 보내지 않고 여기서 막음
     if (looksPersonal(v)) {
       SFX.play('reject');
       err.textContent = '코드네임에 개인정보로 보이는 내용이 있어요. 다른 코드네임으로 다시 입력해 주세요.';
