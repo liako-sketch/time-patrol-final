@@ -846,7 +846,7 @@
     Array.prototype.forEach.call(S.els.gcols.querySelectorAll('.th-gstage'), function (st) {
       var w = st.clientWidth, h = st.clientHeight, kind = st.getAttribute('data-kind');
       if (!w || !h) return;
-      var bt = kind === 'keys' ? 0.06 : 0.3, bw = w * 0.42, bh = h * 0.38;   // CSS 의 상자 자리(.th-gbox)와 같은 비율
+      var bt = kind === 'keys' ? 0.12 : 0.34, bw = w * 0.42, bh = h * 0.38;   // CSS 의 상자 자리(.th-gbox)와 같은 비율
       var lx = w * 0.04 + bw / 2, rx = w * 0.96 - bw / 2, ly = h * bt + bh / 2;
       st.style.setProperty('--lx', lx + 'px'); st.style.setProperty('--rx', rx + 'px');
       st.style.setProperty('--ly', ly + 'px'); st.style.setProperty('--ry', ly + 'px');
