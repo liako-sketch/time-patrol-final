@@ -294,9 +294,9 @@
   .th-opt { flex-basis: 36cqw; min-height: max(80px, 18cqmin); padding: 10px 8px; }   /* 선택창을 조금 줄임 */
   .th-opt-text { font-size: max(14px, 3.6cqmin); }
   .th-radio { --av: max(54px, 16cqw); }
-  .th-radio-body { padding-right: max(16px, 3cqmin); padding-top: max(20px, 4cqmin); }   /* 위쪽도 여유를 줌(3줄일 때 답답하지 않게) */   /* 좁은 화면: 글자 칸을 넓게 */
+  .th-radio-body { padding-right: max(16px, 3cqmin); }   /* 좁은 화면: 글자 칸을 넓게 */
   .th-bubble-text { font-size: max(16px, 4.8cqmin); }
-  .th-radio.th-hinted .th-radio-body { padding-bottom: max(30px, 5.4cqmin); }   /* 세로 화면만: 가로 오프닝과 같은 비율(본 글자 아래 여백 ≈ 글자 크기의 1.2배) */
+  .th-radio.th-hinted .th-radio-body { padding-bottom: max(26px, 4.6cqmin); }   /* 세로 화면만: 가로 오프닝과 같은 비율(본 글자 아래 여백 ≈ 글자 크기의 1.2배) */
 }
 
 /* ---------- 종료: 빛으로 나가기 ---------- */

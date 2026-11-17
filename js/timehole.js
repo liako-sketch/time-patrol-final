@@ -525,8 +525,11 @@
   function fitBubble(node, maxLines) {
     var t = node || S.els.btext;
     t.style.fontSize = '';
-    if (!node) {   // 무전 대사는 글자 크기를 대사마다 바꾸지 않음(긴 대사는 줄 수가 늘고 무전창이 아래로 커짐). 줄바꿈 표시가 있는 짧은 두 줄 대사만 세로에서 조금(85%까지) 줄여 한 줄씩 보이게 함
-      if (S.phase === 'opening' && S.els.root.clientWidth < S.els.root.clientHeight && t.textContent.indexOf('\n') >= 0) fitLines(t, 0.85);
+    if (!node) {   // 무전 대사는 글자 크기를 대사마다 바꾸지 않음(긴 대사는 줄 수가 늘고 무전창이 아래로 커짐). 세로 화면의 오프닝 대사만: 세 줄 이상이 되면(대사가 길거나 코드네임이 길 때) 글자를 15% 줄임
+      if (S.phase === 'opening' && S.els.root.clientWidth < S.els.root.clientHeight) {
+        var lh0 = parseFloat(getComputedStyle(t).lineHeight) || (parseFloat(getComputedStyle(t).fontSize) || 20) * 1.4;
+        if (t.clientHeight / lh0 > 2.5) t.style.fontSize = (parseFloat(getComputedStyle(t).fontSize) * 0.85) + 'px';
+      }
       return;
     }
     var lh, n = 0, fs = parseFloat(getComputedStyle(t).fontSize) || 20;
@@ -536,13 +539,6 @@
       fs *= 0.92;
       t.style.fontSize = fs + 'px';
     }
-  }
-  // 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 floor(기본 크기의 비율)까지만 줄임. 그래도 넘치면 원래 크기로 두고 자동 줄바꿈
-  function fitLines(t, floor) {
-    t.style.whiteSpace = 'pre';
-    var base = parseFloat(getComputedStyle(t).fontSize) || 20, fs = base, n = 0;
-    while (n++ < 30 && t.scrollWidth > t.clientWidth + 1 && fs > base * floor) { fs *= 0.97; t.style.fontSize = fs + 'px'; }
-    t.style.whiteSpace = '';
   }
   // 안내 상자 글: 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 줄여 맞춤(너무 작아지면 자동 줄바꿈 허용)
   function fitTutNote(t) {
