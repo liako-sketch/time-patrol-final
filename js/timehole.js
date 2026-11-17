@@ -997,6 +997,7 @@
     S.targetSpeed = CONFIG.CRUISE_SPEED;   // 문제가 떠 있어도 속도는 그대로 (감속 없음)
     setTimer(0);
     S.els.timer.classList.add('th-on');
+    if (q.tutorial) showTimerHint();   // 수도원 문제는 틀려서 다시 나올 때도 눈금 안내가 계속 보임 (고르는 동안만 숨김)
   }
 
   function choose(side) {   // side: 'left' | 'right' | null(시간 초과)
