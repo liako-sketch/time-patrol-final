@@ -108,7 +108,7 @@
       { pose: 'happy', parts: [{ text: '치ㅊㅈ.. 들ㄹIㄴrㅛ?', glitch: true }, { text: '{n}{이름}{/n}님, {k}타임홀{/k} 진입에 성공했어요!' }] },
       { pose: 'default', parts: [{ text: '여기는 붕괴된 타임라인으로 이어지는 시간의 터널이에요. 이곳에서 {y}흩어진 사료 카드를 모아{/y}야 {y}타임라인을 복구{/y}할 수 있어요.' }] },
       { pose: 'hint', parts: [{ text: '제가 문제를 내면, 정답이 있는 쪽 길로 달려 주세요. 사실을 하나씩 맞힐 때마다 카드가 모일 거예요. 제 무전을 잘 들어 주세요!' }] },
-      { pose: 'what', parts: [{ text: '어... 처음이라서 잘 모르시겠다고요?\n그렇다면, 먼저 연습부터 해 볼게요!' }] }
+      { pose: 'what', parts: [{ text: '어... 처음이라서 잘 모르시겠다고요? 그렇다면, 먼저 연습부터 해 볼게요!' }] }
     ],
     beforeQuestion: ['앞에 문제가 기다리고 있어요. 잘 들어 주세요!', '다음 길이에요. 집중해 주세요!'],
     wrong: '앗, 이 길이 아니었어요.',
@@ -759,7 +759,7 @@
     };
     // 방향키는 모든 기기에서(블루투스 키보드). 그다음 터치 기기(지금은 모든 기기)는 누르기·슬라이드, TUTORIAL_PC_CURSOR 가 켜지면 PC 는 커서 클릭만
     var pcCursor = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();
-    if (pcCursor) T.swipe.text = '{c}모바일과 태블릿에서는{/c} ' + T.swipe.text + '{g}※ PC에서는 슬라이드를 지원하지 않아요.{/g}';   // PC 에서는 슬라이드 설명을 남기되 어느 기기 얘기인지 앞에 붙임
+    if (pcCursor) T.swipe.text = T.swipe.text + '{g}※ PC에서는 슬라이드를 지원하지 않아요.{/g}';   // PC 에서는 슬라이드 설명을 남기되 뒤에 회색 보조 안내를 붙임
     var order = ['radio', 'slots', 'timer', 'opts', 'keys'].concat(pcCursor ? ['click', 'swipe'] : ['tap', 'swipe'], ['ready']);
     return order.map(function (k) { return { pose: T[k].pose, parts: [{ text: T[k].text }], focus: k }; });
   }
