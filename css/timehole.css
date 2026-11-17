@@ -85,7 +85,7 @@
   /* 왼쪽 여백 = 시간 눈금이 말풍선 밖으로 삐져나오지 않을 만큼, 오른쪽 여백 = 왼쪽 여백 + 토리 원 + 간격 (글자가 가운데 오게) */
   --padl: calc(var(--av) * .13 + max(6px, 1.2cqmin));
   padding: max(16px, 3cqmin) calc(var(--padl) + var(--av) + max(12px, 2.8cqmin)) max(16px, 3cqmin) var(--padl); }
-.th-radio.th-hinted .th-radio-body { padding-bottom: calc(max(16px, 3cqmin) + max(24px, 3.6cqmin)); }   /* 오프닝: 글자와 '진행해 주세요' 안내 글이 겹치지 않게 아래 자리를 비움(줄 수가 늘면 같이 늘어남) */
+.th-radio.th-hinted .th-radio-body { padding-bottom: calc(max(5px, 1cqmin) + max(29px, 5.2cqmin)); }   /* 오프닝: 본 글자 아래 = 안내 글 아래 여백(1cqmin) + 안내 글 한 줄 높이(2.6cqmin) + 본 글자와 안내 글 사이 간격(안내 글 한 줄 높이와 같은 2.6cqmin) */
 .th-bubble-text { flex: 1 1 auto; margin: 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(18px, 5cqmin); line-height: 1.4;
   white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; }
 .th-bubble-text .th-q { color: var(--th-hl); }
@@ -296,7 +296,7 @@
   .th-opt-text { font-size: max(14px, 3.6cqmin); }
   .th-radio { --av: max(54px, 16cqw); }
   .th-radio-body { padding-right: max(16px, 3cqmin); }   /* 좁은 화면: 글자 칸을 넓게 */
-  .th-bubble-text { font-size: max(16px, 4.8cqmin); }   /* 세로 화면 무전 대사: 글자 크기는 고정이라 조금 작게 */
+  .th-bubble-text { font-size: max(16px, 4.8cqmin); }
 }
 
 /* ---------- 종료: 빛으로 나가기 ---------- */
