@@ -534,6 +534,13 @@
       t.style.fontSize = fs + 'px';
     }
   }
+  // 안내 상자 글: 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 줄여 맞춤(너무 작아지면 자동 줄바꿈 허용)
+  function fitTutNote(t) {
+    t.style.fontSize = ''; t.style.whiteSpace = 'pre';
+    var base = parseFloat(getComputedStyle(t).fontSize) || 20, fs = base, n = 0;
+    while (n++ < 30 && t.scrollWidth > t.clientWidth + 1 && fs > base * 0.7) { fs *= 0.96; t.style.fontSize = fs + 'px'; }
+    if (t.scrollWidth > t.clientWidth + 1) { t.style.whiteSpace = ''; t.style.fontSize = ''; fitBubble(t, 6.5); }
+  }
   // 글 속의 ← → 는 평면 방향키 아이콘으로 바꿔 넣음
   function fillArrows(node, text) {
     String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|\{k\}.*?\{\/k\}|\{n\}.*?\{\/n\}|\{g\}.*?\{\/g\}|[←→])/).forEach(function (seg) {
@@ -599,7 +606,7 @@
     S.els.tutbox.classList.remove('th-on', 'th-off', 'th-await');
     clearDemo();
     S.targetSpeed = CONFIG.CRUISE_SPEED;
-    S.els.bubble.classList.remove('th-crt-on', 'th-await');
+    S.els.bubble.classList.remove('th-crt-on', 'th-crt-closing', 'th-await');
     S.els.bubble.classList.add('th-crt-off');   // 처음엔 말풍선이 꺼진 화면
     S.els.guide.classList.remove('th-on');
     // 흰 화면에서 시작해 서서히 걷힘
@@ -707,7 +714,7 @@
       bgmDuck(true);   // 어두운 남색 안내 상자가 떠 있는 동안만 배경음을 낮춤 (시작)
     }
     e.tutbox.classList.add('th-on', 'th-await');
-    fitBubble(e.tutnote, 6.5);   // 안내 상자는 위·아래 폭이 넉넉하므로 글자를 줄이지 않고 여러 줄로 둠
+    fitTutNote(e.tutnote);   // 안내 상자는 위·아래 폭이 넉넉하므로 글자를 줄이지 않고 여러 줄로 둠
     applyFocus(st.focus);
     if (S.expIdx > 0) sfx('advance');   // 첫 단계는 글리치 소리가 이미 울리므로 블립을 겹치지 않음
     S.expReady = true;
@@ -722,7 +729,7 @@
     var T = {
       radio: { pose: 'hint', text: '먼저 위를 봐 주세요!\n여기서는 문제를 확인할 수 있어요.' },
       slots: { pose: 'default', text: '아래는 사료 카드 보관함이에요.\n맞힐 때마다 카드가 한 장씩 채워져요!' },
-      timer: { pose: 'what', text: '여기 보이는 눈금은 제한시간으로, 문제마다 ' + sec + '초예요.\n눈금이 꺼지기 전에 길을 골라 주세요!' },
+      timer: { pose: 'what', text: '여기 보이는 눈금은 제한시간으로,\n문제마다 {y}' + sec + '초{/y}예요.\n눈금이 꺼지기 전에 길을 골라 주세요!' },
       opts: { pose: 'hint', text: '양쪽으로 보이는 선택지예요.\n정답이라고 생각하는 쪽을 골라 주세요!' },
       keys: { pose: 'default', text: '키보드 ←, → 키로 고를 수 있어요.\n왼쪽 선택지는 ←, 오른쪽 선택지는 → 키예요!' },
       click: { pose: 'default', text: '마우스로 글을 {y}클릭{/y}해도 돼요.\n고르고 싶은 선택지를 {y}클릭{/y}해 주세요!' },
@@ -1086,6 +1093,9 @@
 
   function exitReached() {   // 출구에 거의 닿음: 하얗게 밝아진 뒤 끝
     S.exit.white = true;
+    S.els.bubble.classList.remove('th-crt-on', 'th-crt-off');
+    S.els.bubble.classList.add('th-crt-closing');   // 무전창 닫는 연출: 브라운관 TV 꺼지듯
+    sfx('holeGlitchSoft', 1);
     S.els.root.classList.add('th-exiting');   // 말풍선·카드 칸도 흰 빛과 함께 바로 사라짐
     S.els.white.style.transition = 'opacity 1.4s ease-out';   // 천천히 하얘짐 (바깥 창의 흰 화면과 같은 시간)
     S.els.white.classList.add('th-on');

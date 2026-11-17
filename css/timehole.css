@@ -304,7 +304,15 @@
 .th-white.th-snap { transition: none; }          /* 시작할 때 흰 화면을 한 번에 깔고 */
 .th-white.th-slow { transition: opacity 1.4s ease-out; }   /* 천천히 걷음 */
 /* 출구를 빠져나갈 때: 흰 빛이 덮는 것과 함께 토리 말풍선·카드 칸도 바로 사라짐 */
-.th-root.th-exiting .th-top, .th-root.th-exiting .th-hud, .th-root.th-exiting .th-opts { opacity: 0; transition: opacity .25s ease-out; }
+.th-root.th-exiting .th-top { opacity: 0; transition: opacity .05s linear .5s; }   /* 무전창은 TV 꺼지듯 닫힌 뒤(.5s) 사라짐 */
+.th-radio.th-crt-closing { transform-origin: 50% 50%; animation: th-crt-close .5s cubic-bezier(.6, 0, .8, .4) both; }
+@keyframes th-crt-close {   /* 켜질 때의 반대: 위아래로 좁아져 가로 선 → 점으로 */
+  0% { transform: none; filter: none; opacity: 1; }
+  45% { transform: scale(1, .012); filter: brightness(3); opacity: 1; }
+  80% { transform: scale(.06, .006); filter: brightness(4); opacity: 1; }
+  100% { transform: scale(0, .006); filter: brightness(4); opacity: 0; }
+}
+.th-root.th-exiting .th-hud, .th-root.th-exiting .th-opts { opacity: 0; transition: opacity .25s ease-out; }
 
 /* =====================================================================
    타임라인 공개 연출 (TimeHole.reveal)
@@ -362,7 +370,7 @@
    튜토리얼 시범 (첫 문제 전): 강조 테두리 / 방향키 / 손가락 누르기 / 손가락 슬라이드
    설명글은 전부 토리 말풍선에 뜬다. 시범 동안 선택지는 보이기만 하고 눌리지 않는다.
    ===================================================================== */
-.th-demo-layer { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.th-demo-layer { position: absolute; inset: 0; z-index: 9; pointer-events: none; }
 .th-root.th-demo .th-opt { pointer-events: none; }
 
 /* 강조 말고는 어두운 남색 반투명으로 덮음 (구멍은 clip-path 로 뚫음) */
@@ -506,7 +514,7 @@
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }
-.th-note-g { display: block; margin: .7em 0 .35em; font-size: .82em; line-height: 1.4; color: rgba(255, 255, 255, .5); }   /* 보조 안내: 회색 반투명, 위 설명과 간격을 둠 */
+.th-note-g { display: block; margin: .7em 0 .35em; font-size: .62em; line-height: 1.4; color: rgba(255, 255, 255, .5); }   /* 보조 안내: 회색 반투명, 위 설명과 간격을 둠 */
 .th-hl-k { color: var(--tori-sky, #4fdcee); }   /* 타임홀 이름: 하늘색 */
 .th-hl-n { color: var(--tori-key, #6fb4ff); }   /* 코드네임: 파란색 */
 .th-hl-c { color: #b8f1fa; }   /* 하늘색 강조 */
