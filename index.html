@@ -2019,6 +2019,10 @@ var Intro = (function () {
     clearTimeout(popTimer);
     popTimer = setTimeout(function () { if (active && !input.disabled && panel.style.display === 'block') input.focus({ preventScroll: true }); }, 560);   // 자동 포커스 때 브라우저가 화면을 밀어 올리지 않게
   }
+  function shakeName() {   // 코드네임 칸의 모든 빨간 안내: 입력창이 좌우로 진동하고 입력칸에 커서가 돌아옴
+    panel.classList.remove('intro-shake'); void panel.offsetWidth; panel.classList.add('intro-shake');
+    input.focus({ preventScroll: true });
+  }
   function finished(item) {
     if (item.action === 'askName') {
       err.textContent = '';
@@ -2087,13 +2091,12 @@ var Intro = (function () {
   function submitName() {
     if (typing || input.disabled || checking) return;
     var v = input.value.trim();
-    if (!v) { err.textContent = '코드네임을 입력해 주세요.'; input.focus({ preventScroll: true }); return; }
-    if (tooLong()) { err.textContent = LONG_MSG; SFX.play('reject'); panel.classList.remove('intro-shake'); void panel.offsetWidth; panel.classList.add('intro-shake'); input.focus({ preventScroll: true }); return; }   // 입력창이 좌우로 흔들림(튀는 연출 아님). 글자는 지우지 않고 직접 줄이게 함   // 10자를 넘으면 서버로 보내지 않고 여기서 막음
+    if (!v) { err.textContent = '코드네임을 입력해 주세요.'; SFX.play('reject'); shakeName(); return; }
+    if (tooLong()) { err.textContent = LONG_MSG; SFX.play('reject'); shakeName(); return; }   // 입력창이 좌우로 흔들림(튀는 연출 아님). 글자는 지우지 않고 직접 줄이게 함   // 10자를 넘으면 서버로 보내지 않고 여기서 막음
     if (looksPersonal(v)) {
       SFX.play('reject');
       err.textContent = '코드네임에 개인정보로 보이는 내용이 있어요. 다른 코드네임으로 다시 입력해 주세요.';
-      input.value = '';
-      popPanel();   // 다시 입력할 때도 같은 연출 한 번
+      shakeName();   // 입력한 글자는 지우지 않음(무엇이 문제인지 볼 수 있게). 입력창이 좌우로 진동
       return;
     }
     checking = true; nameBtn.disabled = true; input.disabled = true;   // 서버에 이미 쓰인 이름인지 묻는 동안 잠금
@@ -2104,13 +2107,12 @@ var Intro = (function () {
       if (st === 'taken') {   // 이미 시트에 있는 코드네임: 개인정보 거절과 같은 붉은 안내 줄
         SFX.play('reject');
         err.textContent = '이미 사용 중인 코드네임이에요. 다른 코드네임으로 다시 입력해 주세요.';
-        input.value = '';
-        popPanel();
+        shakeName();   // 입력한 글자는 지우지 않음
         return;
       }
       if (st === 'busy') { showNetPop(); return; }   // 서버가 바빠서 이름이 시트에 올라가지 않았을 때도 같은 안내 창
       if (st === 'unknown') { showNetPop(); return; }   // 서버에 이름이 올라가지 않으면 중복을 가릴 수 없어 다음으로 보내지 않음
-      if (st === 'bad') { err.textContent = '코드네임에 쓸 수 없는 글자(이모지, < > [ ] $ ` 등)가 있어요. 다시 입력해 주세요.'; input.focus({ preventScroll: true }); return; }
+      if (st === 'bad') { err.textContent = '코드네임에 쓸 수 없는 글자(이모지, < > [ ] $ ` 등)가 있어요. 다시 입력해 주세요.'; SFX.play('reject'); shakeName(); return; }
       acceptName(v);   // 'free'(서버에 이름이 올라감) 또는 'skip'
     });
   }
