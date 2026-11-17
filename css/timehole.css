@@ -568,6 +568,17 @@
   .th-gcol + .th-gcol::before { left: calc(4.8cqmin / -2); }
   .th-gstart { margin-top: 5.4cqmin; }   /* 시작 버튼은 칸에서 더 아래로 (창 세로는 내용만큼 늘어남) */
 }
+/* 큰 화면이 세로일 때(태블릿 세로): 창 크기 배율을 70% 가 아니라 90% 로 (너무 좁아 보이지 않게) */
+@container (min-width: 900px) and (min-height: 500px) and (max-aspect-ratio: 4/5) {
+  .th-guidebox { --gs: .9; }
+}
+/* 폰 세로: 창을 화면 폭 거의 전부로 넓히고 안쪽 여백·칸 간격을 줄여 세 칸이 덜 좁게 */
+@container (max-width: 899px) and (max-aspect-ratio: 4/5) {
+  .th-guidebox { width: 96cqw; }
+  .th-guidebox .th-banner-body { padding-left: 10px; padding-right: 10px; }
+  .th-gcols { gap: 12px; }
+  .th-gcol + .th-gcol::before { left: -6px; }
+}
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }
