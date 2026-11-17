@@ -545,6 +545,7 @@
 .th-gstage .th-key-right { left: 62%; }
 .th-gcap { margin: max(12px, 2.2cqmin) 0 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(17px, 3.9cqmin); line-height: 1.45; word-break: keep-all; text-wrap: balance; }
 .th-gcap .th-note-g { font-size: .72em; margin: .5em 0 0; }
+.th-gcap .th-nobr { white-space: nowrap; }   /* '← → 키' 는 한 덩어리: 줄이 바뀌어도 ← 앞에서만 */
 /* 켜질 때: 닫힐 때(th-crt-off)의 반대로 점 → 가로 선 → 위아래로 벌어짐. 글리치 대신 이 연출 */
 .th-guidebox.th-on { animation: th-guide-on .5s cubic-bezier(.25, .6, .5, 1) both; }
 .th-guidebox.th-on .th-banner-body::after { animation: none; }

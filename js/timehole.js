@@ -544,10 +544,12 @@
   }
   // 글 속의 ← → 는 평면 방향키 아이콘으로 바꿔 넣음
   function fillArrows(node, text) {
-    String(text).split(/(\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|\{k\}.*?\{\/k\}|\{n\}.*?\{\/n\}|\{g\}.*?\{\/g\}|[←→])/).forEach(function (seg) {
+    String(text).split(/(\{w\}.*?\{\/w\}|\{y\}.*?\{\/y\}|\{c\}.*?\{\/c\}|\{k\}.*?\{\/k\}|\{n\}.*?\{\/n\}|\{g\}.*?\{\/g\}|[←→])/).forEach(function (seg) {
       if (seg === '←' || seg === '→') {
         node.appendChild(svg('0 0 24 24', 'th-kbd', [['rect', { x: 1.5, y: 1.5, width: 21, height: 21, rx: 4.5 }],
           ['path', { d: seg === '←' ? 'M17 12 H7.5 M11 8.5 L7.5 12 L11 15.5' : 'M7 12 H16.5 M13 8.5 L16.5 12 L13 15.5' }]]));
+      } else if (seg.indexOf('{w}') === 0) {
+        node.appendChild(fillArrows(el('span', 'th-nobr', ''), seg.slice(3, -4)));   // 이 묶음 안에서는 줄바꿈하지 않음 (줄이 바뀌면 묶음 앞에서만)
       } else if (seg.indexOf('{y}') === 0) {
         node.appendChild(el('span', 'th-hl-y', seg.slice(3, -4)));   // 노란 글씨 강조
       } else if (seg.indexOf('{g}') === 0) {
@@ -760,7 +762,7 @@
   function fillGuide() {
     var pc = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();   // PC 는 터치 대신 마우스 커서 클릭을 보여 주고, 슬라이드 칸에는 회색 보조 안내를 붙임
     var cols = [
-      { kind: 'keys', cap: '키보드 ← → 키' },
+      { kind: 'keys', cap: '키보드 {w}← → 키{/w}' },   // 세로 화면에서 줄이 바뀌면 ← 앞에서만 바뀌게 묶음
       { kind: pc ? 'click' : 'tap', cap: pc ? '선택지를 {y}클릭{/y}하기' : '선택지를 {y}터치{/y}하기' },
       { kind: 'swipe', cap: '좌우로 {y}슬라이드{/y}' + (pc ? '{g}※ PC에서는 지원하지 않아요{/g}' : '') }
     ];
