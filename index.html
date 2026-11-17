@@ -1750,10 +1750,7 @@ var FS = (function () {
   function element() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
   function request() { return docEl.requestFullscreen ? docEl.requestFullscreen() : docEl.webkitRequestFullscreen && docEl.webkitRequestFullscreen(); }
   function exit() { return document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen && document.webkitExitFullscreen(); }
-  // 가로 고정: 안드로이드(크롬·갤럭시 등)는 전체화면 상태에서 가능. 지원하지 않는 기기(아이폰·아이패드)에서는 조용히 무시됨
-  function lockLandscape() {
-    try { var o = window.screen && screen.orientation; if (o && o.lock) { var r = o.lock('landscape'); if (r && r.catch) r.catch(function () {}); } } catch (_) {}
-  }
+  // 전체화면에서도 기기를 돌리면 세로·가로가 바뀜 (가로 고정은 하지 않음). 예전에 걸린 고정이 남아 있으면 풀어 줌. 지원하지 않는 기기에서는 조용히 무시됨
   function unlockLandscape() {
     try { var o = window.screen && screen.orientation; if (o && o.unlock) o.unlock(); } catch (_) {}
   }
@@ -1761,7 +1758,7 @@ var FS = (function () {
     var on = !!element();
     btn.innerHTML = (on ? ICON_EXIT : ICON_ENTER) + '<span>' + (on ? '전체화면 해제' : '전체화면') + '</span>';
     btn.setAttribute('aria-label', on ? '전체 화면 해제' : '전체 화면');
-    if (on) lockLandscape(); else unlockLandscape();   // 전체화면이면 가로로 고정, 해제하면 풀어 줌
+    unlockLandscape();   // 화면 방향은 고정하지 않음 (전체화면은 돌려도 그대로 유지됨)
   }
   // 사용자가 누를 때만 전환, 미지원 기기에서는 버튼 숨김
   if ((docEl.requestFullscreen || docEl.webkitRequestFullscreen) && document.fullscreenEnabled !== false) {
