@@ -529,14 +529,16 @@
     var lh, n = 0, fs = parseFloat(getComputedStyle(t).fontSize) || 20;
     while (n++ < 14 && fs > 10) {
       lh = parseFloat(getComputedStyle(t).lineHeight) || fs * 1.4;
-      if (t.clientHeight / lh < (maxLines || 2.5)) break;
+      if (t.clientHeight / lh < (maxLines || (S.els.root.clientWidth < S.els.root.clientHeight ? 3.5 : 2.5))) break;   // 오프닝 대사: 가로는 두 줄, 세로(폭이 좁음)는 세 줄까지 허용
       fs *= 0.92;
       t.style.fontSize = fs + 'px';
     }
   }
   // 안내 상자 글: 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 줄여 맞춤(너무 작아지면 자동 줄바꿈 허용)
   function fitTutNote(t) {
-    t.style.fontSize = ''; t.style.whiteSpace = 'pre';
+    t.style.fontSize = '';
+    if (S.els.root.clientWidth < S.els.root.clientHeight) { t.style.whiteSpace = ''; fitBubble(t, 6.5); return; }   // 세로 화면: 폭이 좁아 한 줄 맞춤은 글자가 너무 작아지므로, 크기는 그대로 두고 자동 줄바꿈(균형 맞춤)
+    t.style.whiteSpace = 'pre';
     var base = parseFloat(getComputedStyle(t).fontSize) || 20, fs = base, n = 0;
     while (n++ < 30 && t.scrollWidth > t.clientWidth + 1 && fs > base * 0.7) { fs *= 0.96; t.style.fontSize = fs + 'px'; }
     if (t.scrollWidth > t.clientWidth + 1) { t.style.whiteSpace = ''; t.style.fontSize = ''; fitBubble(t, 6.5); }

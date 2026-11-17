@@ -291,7 +291,8 @@
 @container (max-aspect-ratio: 4/5) {          /* 세로 화면: 가이드 칸을 세로로 */
   .th-guide-rows { grid-template-columns: 1fr; }
   .th-opts { top: 70%; }   /* 세로 화면에서는 선택지를 조금 더 아래로 */
-  .th-opt { flex-basis: 43cqw; min-height: max(96px, 22cqmin); padding: 10px 8px; }
+  .th-top { left: max(10px, 1.6cqw); right: max(10px, 1.6cqw); }   /* 무전창 폭을 조금 넓힘 */
+  .th-opt { flex-basis: 39cqw; min-height: max(88px, 20cqmin); padding: 10px 8px; }   /* 선택창을 조금 줄임 */
   .th-opt-text { font-size: max(14px, 3.6cqmin); }
   .th-radio { --av: max(54px, 16cqw); }
   .th-radio-body { padding-right: max(16px, 3cqmin); }   /* 좁은 화면: 글자 칸을 넓게 */
