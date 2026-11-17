@@ -2140,10 +2140,10 @@ var Intro = (function () {
   bind(yesBtn, 'click', function (e) { e.stopPropagation(); advance(true); yesBtn.blur(); });   // Enter·터치와 같은 진행 (효과음도 advance 안에서 기존 소리)
   bind($('intro-nameBtn'), 'click', function (e) { e.stopPropagation(); submitName(); });
   bind(input, 'keydown', function (e) { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); submitName(); } });
-  // 10자를 넘어도 입력 중에는 아무 안내가 없고, 확인(제출)을 누를 때만 빨간 안내로 막음. 글자를 줄여 10자 이하가 되면 그 안내만 지움
+  // 10자를 넘어도 입력 중에는 아무 안내가 없고, 확인(제출)을 누를 때만 빨간 안내로 막음. 안내는 다른 오류 문구처럼 다음 제출 때까지 그대로 둠
   var LONG_MSG = '코드네임은 10자 이하로 작성해 주세요.';
   function tooLong() { return Array.from(input.value.trim()).length > 10; }
-  bind(input, 'input', function () { if (err.textContent === LONG_MSG && !tooLong()) err.textContent = ''; });
+
   bind(panel, 'click', function (e) { e.stopPropagation(); });
   bind(orb, 'click', function (e) {
     e.stopPropagation();
