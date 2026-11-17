@@ -819,7 +819,7 @@
     var pc = CONFIG.TUTORIAL_PC_CURSOR && !isTouchFirst();   // PC 는 터치 대신 마우스 커서 클릭을 보여 주고, 슬라이드 칸에는 회색 보조 안내를 붙임
     var cols = [
       { kind: 'keys', cap: '키보드 ← → 키' },
-      { kind: pc ? 'click' : 'tap', cap: pc ? '글을 {y}클릭{/y}하기' : '글을 {y}터치{/y}하기' },
+      { kind: pc ? 'click' : 'tap', cap: pc ? '선택지를 {y}클릭{/y}하기' : '선택지를 {y}터치{/y}하기' },
       { kind: 'swipe', cap: '좌우로 {y}슬라이드{/y}' + (pc ? '{g}※ PC에서는 지원하지 않아요{/g}' : '') }
     ];
     S.els.gcols.textContent = '';
@@ -837,7 +837,9 @@
         if (c.kind !== 'swipe') { stage.appendChild(el('span', 'th-ripple th-ripple-l')); stage.appendChild(el('span', 'th-ripple th-ripple-r')); }
         stage.appendChild(pointerEl(c.kind === 'click' ? 'cursor' : 'finger', c.kind === 'swipe'));
       }
-      col.appendChild(stage);
+      var frame = el('div', 'th-gframe');   // 둥근 테두리 틀에는 시범만, 설명 글은 틀 아래 바깥에
+      frame.appendChild(stage);
+      col.appendChild(frame);
       col.appendChild(fillArrows(el('p', 'th-gcap'), c.cap));
       S.els.gcols.appendChild(col);
     });

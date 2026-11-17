@@ -517,11 +517,12 @@
 .th-tutbox .th-banner-body::after { background: linear-gradient(180deg, transparent, rgba(190, 240, 255, .5), transparent); }
 
 /* ---------- 조작법 안내 팝업: 화면 거의 전체를 덮는 글리치 창 (같은 등장·퇴장 연출), 안은 3칸 ---------- */
-.th-guidebox { width: min(97cqw, 1860px); min-height: min(70cqh, 44cqw); display: flex; flex-direction: column; justify-content: center; }   /* 가로로 넓고 위아래는 낮게 (폭이 좁은 세로 화면은 내용만큼) */
+.th-guidebox { width: calc(100cqw - 2 * max(18px, 3cqw) - max(28px, 4cqw)); min-height: min(70cqh, 44cqw); display: flex; flex-direction: column; justify-content: center; }   /* 가로로 넓고 위아래는 낮게 (폭이 좁은 세로 화면은 내용만큼) */
 .th-guidebox .th-banner-body { padding: max(30px, 5cqmin) max(14px, 2.6cqmin) max(20px, 3.4cqmin); }
-.th-gcols { display: flex; gap: max(10px, 1.8cqmin); }
-.th-gcol { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
-  padding: max(12px, 2.2cqmin) max(8px, 1.6cqmin) max(12px, 2cqmin); border: 2px solid rgba(143, 240, 250, .5); border-radius: max(18px, 3.6cqmin); background: rgba(5, 16, 30, .4); }   /* 칸마다 둥근 테두리 틀 */
+.th-gcols { display: flex; gap: max(20px, 3.6cqmin); }
+.th-gcol { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.th-gframe { box-sizing: border-box; width: 100%; display: flex; justify-content: center;
+  padding: max(12px, 2.2cqmin) max(8px, 1.6cqmin); border: 2px solid rgba(143, 240, 250, .5); border-radius: max(18px, 3.6cqmin); background: rgba(5, 16, 30, .4); }   /* 칸마다 둥근 테두리 틀 (설명 글은 틀 아래 바깥) */
 .th-gstage { position: relative; width: min(100%, 62cqh); aspect-ratio: 1 / 0.82; }   /* 키 작은 가로 화면에서도 팝업이 화면 높이를 넘지 않게 */
 .th-gbox { position: absolute; top: 34%; height: 38%; width: 42%; box-sizing: border-box; border: 2px solid rgba(95, 212, 224, .75); border-radius: max(8px, 1.4cqmin);
   background-color: rgba(10, 25, 45, .42); box-shadow: 0 0 18px rgba(95, 212, 224, .3); }
@@ -533,7 +534,7 @@
 .th-gstage .th-key { top: 58%; width: 26%; height: auto; }
 .th-gstage .th-key-left { left: 12%; }
 .th-gstage .th-key-right { left: 62%; }
-.th-gcap { margin: max(6px, 1.2cqmin) 0 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(17px, 3.9cqmin); line-height: 1.45; word-break: keep-all; text-wrap: balance; }
+.th-gcap { margin: max(12px, 2.2cqmin) 0 0; text-align: center; font-family: var(--th-font-tori); color: #fff; font-size: max(17px, 3.9cqmin); line-height: 1.45; word-break: keep-all; text-wrap: balance; }
 .th-gcap .th-note-g { font-size: .72em; margin: .5em 0 0; }
 /* 켜질 때: 닫힐 때(th-crt-off)의 반대로 점 → 가로 선 → 위아래로 벌어짐. 글리치 대신 이 연출 */
 .th-guidebox.th-on { animation: th-guide-on .5s cubic-bezier(.25, .6, .5, 1) both; }
@@ -549,6 +550,11 @@
   font-family: var(--th-font-tori); font-size: max(18px, 4cqmin); cursor: pointer; pointer-events: none; }
 .th-guidebox.th-on .th-gstart { pointer-events: auto; }   /* 팝업이 떠 있을 때만 누를 수 있음 */
 .th-gstart:hover, .th-gstart:focus-visible { background: rgba(96, 74, 14, .9); outline: none; }
+/* PC·큰 화면: 폰에서는 최소 글자 크기(17px 등)가 걸려 칸 대비 글이 크게 보이므로, 큰 화면은 설명·버튼 글자를 1.5배로 키워 비율을 가깝게 맞춤 (폰·세로 화면은 그대로) */
+@container (min-width: 900px) and (min-height: 500px) {
+  .th-gcap { font-size: 5.85cqmin; }
+  .th-gstart { font-size: 6cqmin; height: 11cqmin; padding: 0 6.6cqmin; }
+}
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
 .th-hl-y { color: var(--th-hl); }
