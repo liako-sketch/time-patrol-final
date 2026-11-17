@@ -26,8 +26,8 @@
     DEMO_TIMER_MS: 5000,         // 튜토리얼에서 시간 눈금이 한 바퀴 꺼지는 시간 (시범용, 실제 제한 시간과 별개)
     TUTORIAL_PC_CURSOR: true,    // 튜토리얼 조작법: 방향키는 모든 기기에서 보여 줌(블루투스 키보드). true(지금) 면 PC 는 터치 대신 '마우스 커서 클릭'을 보여 주고, 슬라이드 설명은 '모바일과 태블릿에서는' 을 붙여 남김. false 면 모든 기기에서 손가락 누르기·슬라이드
     SHOW_GUIDE: false,         // true 면 오프닝 뒤에 '타임 홀 달리는 법' 안내 패널을 보여 줌 (지금은 뺌)
-    OPENING_LOCK_MS: 1000,       // 오프닝 대사 네 줄: 뜬 뒤 이 시간이 지나야 넘길 수 있음
-    OPENING_GLITCH_LOCK_MS: 1500,   // 맨 앞의 깨진 글자(글리치) 대사는 글리치가 보일 시간을 고려해 더 길게
+    OPENING_LOCK_MS: 400,        // 오프닝 대사 2~4번째 줄: 뜬 뒤 이 시간이 지나야 넘길 수 있음 (실수로 건너뛰기 방지)
+    OPENING_GLITCH_LOCK_MS: 1500,   // 맨 앞(1번째)의 깨진 글자(글리치) 대사만: 글리치가 보일 시간 동안 넘길 수 없음
     OPENING_TAP_LOCK_MS: 400,    // 오프닝 대사가 뜬 직후 이 시간 동안은 터치해도 넘어가지 않음 (실수로 건너뛰기 방지)
     APPROACH_MS: 1700,           // 문제 직전 대사가 보이는 시간
     TURN_MS: 1200,               // 시간 초과 때 직진한 뒤 결과가 나올 때까지 시간
@@ -622,15 +622,10 @@
     var sq = S.hSeq = (S.hSeq || 0) + 1;
     setTimeout(function () { if (S && S.hSeq === sq) { bb.style.transition = ''; bb.style.height = ''; } }, 320);
   }
-  function releaseBubbleH() {   // 오프닝이 끝나 안내 글 자리·고정 높이를 풀 때 창이 뚝 줄지 않고 부드럽게 줄어듦
-    var bb = S.els.bubble, h0 = bb.offsetHeight;
-    bb.classList.remove('th-hinted'); bb.style.minHeight = ''; bb.style.transition = 'none'; bb.style.height = '';
-    var h1 = bb.offsetHeight;
-    if (h0 && h1 && Math.abs(h1 - h0) > 2) glideBubbleH(h0, h1); else bb.style.transition = '';
-  }
   function say(text, pose, cls) {
     var t = S.els.btext, bb0 = S.els.bubble, h0 = bb0.offsetHeight;   // 대사가 바뀌기 전 무전창 높이
     bb0.style.transition = 'none'; bb0.style.height = '';
+    if (S.hintPending) { S.hintPending = false; bb0.classList.remove('th-hinted'); bb0.style.minHeight = ''; }   // 오프닝 뒤 첫 대사: 안내 글 자리를 이때 풀어 새 대사 높이로 한 번에 부드럽게 바뀜
     fillSay(t, text, cls);
     if (pose) { S.curPose = pose; setTori(pose); }
     fitBubble();
@@ -664,7 +659,7 @@
     preloadAll();
     S.codename = typeof opts.codename === 'string' ? opts.codename.slice(0, 20) : '';   // 화면에 보여 주기만 함 (저장·전송 없음)
     S.phase = 'opening';
-    S.openIdx = -1; S.openReady = false; S.openAt = 0;
+    S.openIdx = -1; S.openReady = false; S.openAt = 0; S.hintPending = false;
     S.seq = TORI_LINES.opening;   // 오프닝 대사 → 첫 문제(수도원)가 뜨면 가운데 무전창으로 화면·조작법 설명
     S.tutDone = false; S.steps = null;
     S.els.tutbox.classList.remove('th-on', 'th-off', 'th-await');
@@ -700,7 +695,8 @@
     var lines = S.seq;
     if (S.openIdx >= lines.length) {
       S.openReady = false;
-      S.els.bubble.classList.remove('th-await'); releaseBubbleH();
+      S.els.bubble.classList.remove('th-await');
+      S.hintPending = true;   // 안내 글 자리(아래 여백)는 바로 풀지 않음: 풀면 무전창이 한 번 더 줄어들어 어색하므로, 다음 대사(문제)로 바뀌는 순간에 높이와 함께 한 번에 바뀜 (say 에서 처리)
       clearDemo();
       if (!CONFIG.SHOW_GUIDE) { S.phase = 'approach'; nextQuestion(); return; }   // 안내 패널 없이 바로 첫 문제
       S.phase = 'guide';

@@ -521,6 +521,7 @@
 .th-guidebox .th-banner-body { padding: max(30px, 5cqmin) max(14px, 2.6cqmin) max(20px, 3.4cqmin); }
 .th-gcols { display: flex; gap: max(20px, 3.6cqmin); }
 .th-gcol { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.th-gcol + .th-gcol::before { content: ''; position: absolute; top: 0; bottom: 0; left: calc(max(20px, 3.6cqmin) / -2); border-left: 2px solid rgba(143, 240, 250, .3); }   /* 칸과 칸 사이 구분선 (칸 간격의 한가운데) */
 .th-gframe { box-sizing: border-box; width: 100%; display: flex; justify-content: center;
   padding: max(12px, 2.2cqmin) max(8px, 1.6cqmin); border: 2px solid rgba(143, 240, 250, .5); border-radius: max(18px, 3.6cqmin); background: rgba(5, 16, 30, .4); }   /* 칸마다 둥근 테두리 틀 (설명 글은 틀 아래 바깥) */
 .th-gstage { position: relative; width: min(100%, 62cqh); aspect-ratio: 1 / 0.82; }   /* 키 작은 가로 화면에서도 팝업이 화면 높이를 넘지 않게 */
@@ -550,10 +551,11 @@
   font-family: var(--th-font-tori); font-size: max(18px, 4cqmin); cursor: pointer; pointer-events: none; }
 .th-guidebox.th-on .th-gstart { pointer-events: auto; }   /* 팝업이 떠 있을 때만 누를 수 있음 */
 .th-gstart:hover, .th-gstart:focus-visible { background: rgba(96, 74, 14, .9); outline: none; }
-/* PC·큰 화면: 폰에서는 최소 글자 크기(17px 등)가 걸려 칸 대비 글이 크게 보이므로, 큰 화면은 설명·버튼 글자를 1.5배로 키워 비율을 가깝게 맞춤 (폰·세로 화면은 그대로) */
+/* PC·큰 화면: 폰에서는 최소 글자 크기(17px 등)가 걸려 칸 대비 글이 크게 보이므로, 큰 화면은 칸 설명 글자만 1.5배로 키워 비율을 가깝게 맞춤 (시작 버튼은 그대로) (폰·세로 화면은 그대로) */
 @container (min-width: 900px) and (min-height: 500px) {
+  .th-guidebox { scale: .7; }   /* 창 전체를 70% 로 (크기가 큰 화면만: 화면에 꽉 차 보이지 않게) */
   .th-gcap { font-size: 5.85cqmin; }
-  .th-gstart { font-size: 6cqmin; height: 11cqmin; padding: 0 6.6cqmin; }
+  .th-gcap .th-note-g { font-size: 2.81cqmin; }   /* 회색 보조 안내는 키우기 전 크기 그대로 (칸 설명만 1.5배) */
 }
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
