@@ -332,6 +332,7 @@ html.is-iphone.ana-running #board-bg, html.is-iphone.ana-running #board-clip, ht
 .board-card .board-back { position: absolute; inset: 0; z-index: 20; border-radius: inherit; display: flex; align-items: center; justify-content: center; pointer-events: none;
   background: radial-gradient(circle at 50% 45%, rgba(40, 96, 140, .55), rgba(7, 18, 42, 1) 70%), linear-gradient(160deg, #10264a, #07122a);
   color: #8ff3fa; font-family: var(--font-title); font-weight: 600; font-size: 5.6em; text-shadow: 0 0 18px rgba(110, 230, 240, .8); }
+.board-card .board-back.board-plain { font-size: 0; }   /* 수도원(공개 카드) 뒷면: 물음표 없이 무지 */
 #flow-hole { background: #000; }
 #hole-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; background: #02060d; }   /* 인트로·타임라인과 같은 1920×1080 무대를 같은 방식으로 축소 (비율·버튼 크기 동일) */
 .board-card.board-zoom { transform: translateY(-120px) scale(var(--board-zs, 1.9)); z-index: 50; box-shadow: 0 18px 40px rgba(0,0,0,.6); }
@@ -4369,7 +4370,7 @@ var Board = (function () {
       c.el.appendChild(b); c._bk = b;
     });
     if (!fixedCard._bk) {   // 1번 칸 고정 카드(수도원)도 뒷면으로 손패 맨 끝에 둠 (1번 칸은 빈 칸으로 보임). 마지막에 뒤집힌 뒤 칸으로 날아가 붙음
-      var fb = document.createElement('div'); fb.className = 'board-back'; fb.textContent = '?';
+      var fb = document.createElement('div'); fb.className = 'board-back board-plain';   // 공개 카드라 물음표 없이 무지 뒷면
       fixedCard.el.appendChild(fb); fixedCard._bk = fb;
     }
     fixedCard._intro = true;
@@ -4404,18 +4405,37 @@ var Board = (function () {
     if (calm) {   // 움직임 줄이기: 회전·튀어오름 없이 부드럽게 이동만
       D = 420;
       kf = [{ transform: T(dx, dy, 0, sx, sy), easing: 'cubic-bezier(.22, .61, .36, 1)' }, { transform: T(0, 0, 0, 1, 1) }];
-    } else {
-      D = 980;
-      kf = [
-        { transform: T(dx, dy, 0, sx, sy), offset: 0, easing: 'cubic-bezier(.3, .5, .5, 1)' },
-        { transform: T(dx * 0.45, dy * 0.45 - 170, 380, mx, mx), offset: 0.5, easing: 'cubic-bezier(.4, 0, .6, 1)' },
-        { transform: T(dx * 0.04, dy * 0.04, 690, 1.1, 1.1), offset: 0.82, easing: 'ease-out' },
-        { transform: T(0, 0, 720, 1, 1), offset: 1 }
-      ];
+    } else {   // 동전처럼 앞뒤로 세 바퀴(가로 축 회전): 모서리만 보이는 순간마다 앞면↔뒷면(물음표)이 바뀜. 한 개의 transform 애니메이션으로 재생 (아이폰도 끊기지 않게)
+      D = 1150;
+      var TURNS = 1080, N = 44, ang = function (t) { return TURNS * (1 - Math.pow(1 - t, 2.2)); };
+      var P = function (px, py, ry, a, e) { return 'translate3d(' + px + 'px,' + py + 'px,0) perspective(1000px) rotateY(' + ry + 'deg) scale(' + a + ',' + e + ')'; };
+      kf = [];
+      for (var n = 0; n <= N; n++) {
+        var t = n / N, m = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;   // 이동은 천천히 출발해 빠르게, 끝에서 감속
+        var lift = -190 * Math.sin(Math.PI * Math.min(1, t / 0.85));                 // 위로 호를 그리며 날아감
+        var bump = t > 0.85 ? 0.09 * Math.sin(Math.PI * (t - 0.85) / 0.15) : 0;       // 도착할 때 살짝 튕김
+        var sc = 1 + (sx - 1) * (1 - m) + 0.14 * Math.sin(Math.PI * Math.min(1, t / 0.85)) + bump, sc2 = 1 + (sy - 1) * (1 - m) + 0.14 * Math.sin(Math.PI * Math.min(1, t / 0.85)) + bump;
+        kf.push({ transform: P(dx * (1 - m), dy * (1 - m) + lift, ang(t), sc, sc2), offset: t });
+      }
+      var side = false, backEl = null;
+      var showBack = function (on) {   // 모서리만 보일 때 호출: 뒷면 덮개를 붙였다 뗌
+        if (side) return;   // 이미 끝났으면 무시
+        if (on && !backEl) { backEl = document.createElement('div'); backEl.className = 'board-back board-plain'; c.el.appendChild(backEl); }
+        else if (!on && backEl) { backEl.remove(); backEl = null; }
+      };
+      var prevFinish = finish;
+      finish = function () { showBack(false); side = true; prevFinish(); };
+      for (var k = 0; k * 180 + 90 <= TURNS; k++) {   // 각도가 90, 270, 450… 를 지나는 시각을 찾아 그때 앞↔뒤를 바꿈
+        (function (target, wantBack) {
+          var lo = 0, hi = 1, it;
+          for (it = 0; it < 24; it++) { var mid = (lo + hi) / 2; if (ang(mid) < target) lo = mid; else hi = mid; }
+          setTimeout(function () { showBack(wantBack); }, Math.round(hi * D));
+        })(k * 180 + 90, k % 2 === 0);
+      }
     }
     c.el.style.zIndex = '40'; c.el.style.willChange = 'transform';
     var an = c.el.animate(kf, { duration: D, easing: 'linear' }); c._fa = an;
-    an.onfinish = an.oncancel = finish;
+    an.onfinish = an.oncancel = function () { finish(); };
   }
   function flipHand() {
     var list = handCards.filter(function (c) { return c._bk; }).sort(function (a, b) { return a.home - b.home; });
