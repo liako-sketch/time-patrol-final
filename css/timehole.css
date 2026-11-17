@@ -540,11 +540,18 @@
 /* 켜질 때: 닫힐 때(th-crt-off)의 반대로 점 → 가로 선 → 위아래로 벌어짐. 글리치 대신 이 연출 */
 .th-guidebox.th-on { animation: th-guide-on .5s cubic-bezier(.25, .6, .5, 1) both; }
 .th-guidebox.th-on .th-banner-body::after { animation: none; }
-@keyframes th-guide-on {
-  0%   { transform: translateY(-50%) scale(0, .006); filter: brightness(4); opacity: 0; }
-  20%  { transform: translateY(-50%) scale(.06, .012); filter: brightness(4); opacity: 1; }
-  45%  { transform: translateY(-50%) scale(1, .012); filter: brightness(3); opacity: 1; }
-  100% { transform: translateY(-50%) scale(1, 1); filter: none; opacity: 1; }
+@keyframes th-guide-on {   /* --gs: 창 크기 배율 (큰 화면에서 .7). 배율은 transform 안에 넣어야 가운데 위치(translateY -50%)가 어긋나지 않음 */
+  0%   { transform: translateY(-50%) scale(0, calc(var(--gs, 1) * .006)); filter: brightness(4); opacity: 0; }
+  20%  { transform: translateY(-50%) scale(calc(var(--gs, 1) * .06), calc(var(--gs, 1) * .012)); filter: brightness(4); opacity: 1; }
+  45%  { transform: translateY(-50%) scale(var(--gs, 1), calc(var(--gs, 1) * .012)); filter: brightness(3); opacity: 1; }
+  100% { transform: translateY(-50%) scale(var(--gs, 1), var(--gs, 1)); filter: none; opacity: 1; }
+}
+.th-guidebox.th-on.th-off { animation: th-guide-off .5s cubic-bezier(.5, 0, .75, .4) forwards; }
+@keyframes th-guide-off {
+  0%   { transform: translateY(-50%) scale(var(--gs, 1), var(--gs, 1)); filter: none; opacity: 1; }
+  55%  { transform: translateY(-50%) scale(var(--gs, 1), calc(var(--gs, 1) * .012)); filter: brightness(3); opacity: 1; }
+  80%  { transform: translateY(-50%) scale(calc(var(--gs, 1) * .06), calc(var(--gs, 1) * .012)); filter: brightness(4); opacity: 1; }
+  100% { transform: translateY(-50%) scale(0, calc(var(--gs, 1) * .006)); filter: brightness(4); opacity: 0; }
 }
 .th-gstart { display: block; margin: max(14px, 2.6cqmin) auto 0; height: max(46px, 8cqmin); padding: 0 max(22px, 4.4cqmin); box-sizing: border-box;
   border: 2px solid var(--th-hl, #ffd54a); border-radius: max(10px, 1.6cqmin); background: rgba(60, 46, 8, .78); color: #fff; box-shadow: 0 0 18px rgba(255, 213, 74, .4);
@@ -553,9 +560,13 @@
 .th-gstart:hover, .th-gstart:focus-visible { background: rgba(96, 74, 14, .9); outline: none; }
 /* PC·큰 화면: 폰에서는 최소 글자 크기(17px 등)가 걸려 칸 대비 글이 크게 보이므로, 큰 화면은 칸 설명 글자만 1.5배로 키워 비율을 가깝게 맞춤 (시작 버튼은 그대로) (폰·세로 화면은 그대로) */
 @container (min-width: 900px) and (min-height: 500px) {
-  .th-guidebox { scale: .7; }   /* 창 전체를 70% 로 (크기가 큰 화면만: 화면에 꽉 차 보이지 않게) */
+  .th-guidebox { --gs: .7; }   /* 창 전체를 70% 로 (크기가 큰 화면만: 화면에 꽉 차 보이지 않게). 배율은 열고 닫는 연출의 transform 에 들어감 */
   .th-gcap { font-size: 5.85cqmin; }
   .th-gcap .th-note-g { font-size: 2.81cqmin; }   /* 회색 보조 안내는 키우기 전 크기 그대로 (칸 설명만 1.5배) */
+  .th-guidebox .th-banner-body { padding-left: 5.2cqmin; padding-right: 5.2cqmin; }   /* 세 칸 전체 가로 폭을 조금 줄임 */
+  .th-gcols { gap: 4.8cqmin; }   /* 칸 사이 여백을 조금 늘림 (구분선은 여백의 한가운데) */
+  .th-gcol + .th-gcol::before { left: calc(4.8cqmin / -2); }
+  .th-gstart { margin-top: 5.4cqmin; }   /* 시작 버튼은 칸에서 더 아래로 (창 세로는 내용만큼 늘어남) */
 }
 
 /* 설명창 강조: 노란 글씨, 노란 방향키 아이콘 */
