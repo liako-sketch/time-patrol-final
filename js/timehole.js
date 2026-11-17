@@ -29,7 +29,7 @@
     OPENING_LOCK_MS: 400,        // 오프닝 대사 2~4번째 줄: 뜬 뒤 이 시간이 지나야 넘길 수 있음 (실수로 건너뛰기 방지)
     OPENING_GLITCH_LOCK_MS: 1500,   // 맨 앞(1번째)의 깨진 글자(글리치) 대사만: 글리치가 보일 시간 동안 넘길 수 없음
     OPENING_TAP_LOCK_MS: 400,    // 오프닝 대사가 뜬 직후 이 시간 동안은 터치해도 넘어가지 않음 (실수로 건너뛰기 방지)
-    APPROACH_MS: 1700,           // 문제 직전 대사가 보이는 시간
+    APPROACH_MS: 700,            // 문제 직전 대사가 보이는 시간
     TURN_MS: 1200,               // 시간 초과 때 직진한 뒤 결과가 나올 때까지 시간
     CARD_SHOW_MS: 1900,          // 카드 획득 연출이 화면 가운데 머무는 시간
     WRONG_NOTE_DELAY_MS: 500,    // 오답 후 안내가 뜨기까지 기다리는 시간
@@ -396,35 +396,6 @@
     banner.appendChild(bbody);
     root.appendChild(banner);
 
-    // 수도원 문제 설명용: 가운데에 글리치로 뜨는 두 번째 무전창 (상단 무전창에는 문제가 떠 있으므로)
-    var tutbox = el('div', 'th-banner th-tutbox th-radio');
-    tutbox.setAttribute('aria-live', 'polite');
-    var tbg = el('div', 'th-radio-bg');
-    tbg.appendChild(el('div', 'th-radio-frame'));
-    tbg.appendChild(el('div', 'th-radio-fill'));
-    tutbox.appendChild(tbg);
-    ['l', 'r', 't1', 'b2'].forEach(function (pos) {
-      tutbox.appendChild(svg('0 0 22 16', 'th-spike th-spike-' + pos, [['path', { d: 'M22 8 L13 6 L9 1 L7 6 L0 8 L7 10 L9 15 L13 10 Z' }]]));
-    });
-    var ttag = el('div', 'th-radio-tag');
-    ttag.setAttribute('aria-hidden', 'true');
-    ttag.appendChild(svg('0 0 16 16', 'th-radio-ant', [['path', { d: 'M8 15 L8 7 M4.5 4.5 A5 5 0 0 1 11.5 4.5 M2.5 2.5 A8 8 0 0 1 13.5 2.5' }], ['circle', { cx: 8, cy: 7, r: 1.6 }]]));
-    ttag.appendChild(el('span', '', UI_TEXT.radioTag));
-    var tsig = el('span', 'th-sig');
-    for (var tgi = 0; tgi < 3; tgi++) tsig.appendChild(el('i'));
-    ttag.appendChild(tsig);
-    tutbox.appendChild(ttag);
-    var tbody = el('div', 'th-banner-body');
-    var tutnote = el('p', 'th-banner-note');
-    tbody.appendChild(tutnote);
-    tutbox.appendChild(tbody);
-    var tnext = el('span', 'th-next', '▼');
-    tnext.setAttribute('aria-hidden', 'true');
-    var thint = el('span', 'th-hint', (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ? UI_TEXT.nextHint : UI_TEXT.nextHintPc);
-    thint.setAttribute('aria-hidden', 'true');
-    thint.appendChild(tnext);   // ▼ 는 안내 글 바로 옆에 붙임
-    tutbox.appendChild(thint);
-    root.appendChild(tutbox);
 
     // 조작법 안내 팝업: 타이머 설명 다음에 화면 거의 전체를 덮는 글리치 창으로 뜸. 안은 3칸(키보드 · 클릭/터치 · 슬라이드)이고 칸 내용은 열 때 채움
     var gbox = el('div', 'th-banner th-tutbox th-guidebox th-radio');
@@ -503,7 +474,7 @@
 
     container.appendChild(root);
     S.els = { root: root, canvas: canvas, ctx: canvas.getContext('2d'), timer: timer, ticks: Array.prototype.slice.call(timer.querySelectorAll('.th-tick')), tori: tori, toriWrap: toriWrap, bubble: bubble, btext: btext,
-      optL: optL, optR: optR, banner: banner, tutbox: tutbox, tutnote: tutnote, guidebox: gbox, gcols: gcols, gstart: gstart, bTitle: bTitle, bNote: bNote, cardget: cardget, slots: slots, guide: guide, gbtn: gbtn, white: white, demo: demo, hud: hud, toriBox: toriBox };
+      optL: optL, optR: optR, banner: banner, guidebox: gbox, gcols: gcols, gstart: gstart, bTitle: bTitle, bNote: bNote, cardget: cardget, slots: slots, guide: guide, gbtn: gbtn, white: white, demo: demo, hud: hud, toriBox: toriBox };
 
     // 입력
     on(window, 'keydown', onKey);
@@ -540,8 +511,8 @@
     S.els.canvas.height = Math.max(1, Math.round(h * S.dpr));
     if (S.phase === 'idle') draw();
     if (S.phase === 'opening') fitBubble();
-    if (S.phase === 'explain') fitTutNote(S.els.tutnote);   // 안내 상자는 처음 그릴 때와 같은 방식으로 다시 맞춤(두 줄 기준으로 줄이면 화면을 돌릴 때 급히 작아짐)
     if (S.demoFocus) layoutDemo(S.demoFocus);   // 튜토리얼 시범은 크기가 바뀌면 다시 배치
+    if (S.hint) layoutTimerHint();   // 시간 안내도 다시 배치
   }
 
   /* ---------------- 토리 말풍선 ---------------- */
@@ -570,15 +541,6 @@
       fs *= 0.92;
       t.style.fontSize = fs + 'px';
     }
-  }
-  // 안내 상자 글: 줄바꿈 표시대로 한 줄씩 보이게 글자 크기를 줄여 맞춤(너무 작아지면 자동 줄바꿈 허용)
-  function fitTutNote(t) {
-    t.style.fontSize = '';
-    if (S.els.root.clientWidth < S.els.root.clientHeight) { t.style.whiteSpace = ''; fitBubble(t, 6.5); return; }   // 세로 화면: 폭이 좁아 한 줄 맞춤은 글자가 너무 작아지므로, 크기는 그대로 두고 자동 줄바꿈(균형 맞춤)
-    t.style.whiteSpace = 'pre';
-    var base = parseFloat(getComputedStyle(t).fontSize) || 20, fs = base, n = 0;
-    while (n++ < 30 && t.scrollWidth > t.clientWidth + 1 && fs > base * 0.7) { fs *= 0.96; t.style.fontSize = fs + 'px'; }
-    if (t.scrollWidth > t.clientWidth + 1) { t.style.whiteSpace = ''; t.style.fontSize = ''; fitBubble(t, 6.5); }
   }
   // 글 속의 ← → 는 평면 방향키 아이콘으로 바꿔 넣음
   function fillArrows(node, text) {
@@ -662,7 +624,6 @@
     S.openIdx = -1; S.openReady = false; S.openAt = 0; S.hintPending = false;
     S.seq = TORI_LINES.opening;   // 오프닝 대사 → 첫 문제(수도원)가 뜨면 가운데 무전창으로 화면·조작법 설명
     S.tutDone = false; S.steps = null;
-    S.els.tutbox.classList.remove('th-on', 'th-off', 'th-await');
     S.els.guidebox.classList.remove('th-on', 'th-off');
     clearDemo();
     S.targetSpeed = CONFIG.CRUISE_SPEED;
@@ -742,7 +703,7 @@
     nextQuestion();
   }
 
-  // 수도원 문제가 뜬 채로, 가운데 무전창에서 한 단계씩(터치·Enter) 화면 구성·조작법을 설명. 끝나면 제한 시간이 시작됨
+  // 수도원 문제가 뜬 채로 조작법 팝업을 바로 띄움. 팝업의 시작 버튼을 누르면 제한 시간이 시작되고, 눈금에 시간 안내가 붙음
   function startExplain() {
     S.phase = 'explain';
     S.targetSpeed = CONFIG.CRUISE_SPEED;
@@ -756,51 +717,36 @@
     S.expIdx++;
     if (S.expIdx >= S.steps.length) {
       S.expReady = false;
-      [e.tutbox, e.guidebox].forEach(function (tb) {   // 떠 있는 안내 상자(설명 상자 또는 조작법 팝업)를 TV 꺼지듯 닫음
-        if (!tb.classList.contains('th-on')) return;
-        tb.classList.remove('th-await');
-        tb.classList.add('th-off');
-        after(500, function () { tb.classList.remove('th-on', 'th-off'); });
-      });
+      var gb = e.guidebox;   // 조작법 팝업을 TV 꺼지듯 닫음
+      if (gb.classList.contains('th-on')) {
+        gb.classList.add('th-off');
+        after(500, function () { gb.classList.remove('th-on', 'th-off'); });
+      }
       sfx('holeGlitchOut', 1);
       try { e.gstart.blur(); } catch (_) { /* 포커스를 못 풀어도 계속 */ }   // 눌렀던 시작 버튼에 포커스가 남지 않게
       clearDemo(true);
-      bgmDuck(false);   // 안내 상자가 사라질 때 원래 크기로 (종료)
+      bgmDuck(false);   // 팝업이 사라질 때 원래 크기로 (종료)
       S.phase = 'question';
       S.qElapsed = 0; S.tickIdx = 0;
       setTimer(0);
       e.timer.classList.add('th-on');
       e.optL.btn.classList.toggle('th-aura', !!S.sides.left);   // 이제 직접 고르는 타이밍: 정답 쪽 노란 아우라
       e.optR.btn.classList.toggle('th-aura', !!S.sides.right);
+      showTimerHint();   // 눈금에 동그라미와 '제한시간은 15초예요!' 안내
       return;
     }
-    var st = S.steps[S.expIdx];
-    if (st.focus === 'guide') { showGuide(); return; }
-    e.tutnote.textContent = '';
-    fillArrows(e.tutnote, st.parts[0].text);
-    if (S.expIdx === 0) {   // 글리치는 처음 나타날 때 한 번만
-      e.tutbox.classList.remove('th-on', 'th-off');
-      void e.tutbox.offsetWidth;
-      sfx('holeGlitchSoft', 1);   // 안내 상자용: 오류 글리치보다 부드러운 소리
-      bgmDuck(true);   // 어두운 남색 안내 상자가 떠 있는 동안만 배경음을 낮춤 (시작)
-    }
-    e.tutbox.classList.add('th-on', 'th-await');
-    fitTutNote(e.tutnote);   // 안내 상자는 위·아래 폭이 넉넉하므로 글자를 줄이지 않고 여러 줄로 둠
-    applyFocus(st.focus);
-    if (S.expIdx > 0) sfx('advance');   // 첫 단계는 글리치 소리가 이미 울리므로 블립을 겹치지 않음
-    S.expReady = true;
-    S.expAt = performance.now();
+    showGuide();
   }
 
-  // 조작법 안내 팝업: 설명 상자를 닫고 화면 거의 전체를 덮는 글리치 창을 엶. 세 칸에 키보드 · 클릭(터치) · 슬라이드 시범이 반복되고, 아래 버튼을 누르면 바로 시작
+  // 조작법 안내 팝업: 화면 거의 전체를 덮는 창이 TV 켜지듯 열림. 세 칸에 키보드 · 클릭(터치) · 슬라이드 시범이 반복되고, 아래 버튼을 누르면 바로 시작
   function showGuide() {
     var e = S.els;
-    e.tutbox.classList.remove('th-on', 'th-off', 'th-await');
     fillGuide();
     e.guidebox.classList.remove('th-on', 'th-off');
     void e.guidebox.offsetWidth;
     e.guidebox.classList.add('th-on');
     sfx('holeGlitchSoft', 1);
+    bgmDuck(true);   // 팝업이 떠 있는 동안만 배경음을 낮춤
     applyFocus('guide');   // 위 선택지 쪽은 어둡게 덮고 눈금은 끔
     S.expReady = true;
     S.expAt = performance.now();
@@ -860,15 +806,43 @@
   // 설명글은 전부 토리 말풍선에 뜨고, 화면에는 강조 테두리·아이콘 시범이 나옴. 터치(클릭·Enter·Space)로 한 단계씩 넘김
   function isTouchFirst() { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
   function tutorialSequence() {
-    var sec = Math.round(CONFIG.QUESTION_TIME_MS / 1000);
-    var T = {
-      radio: { pose: 'hint', text: '먼저 위를 봐 주세요!\n여기서는 문제를 확인할 수 있어요.' },
-      slots: { pose: 'default', text: '아래는 사료 카드 보관함이에요.\n맞힐 때마다 카드가 한 장씩 채워져요!' },
-      timer: { pose: 'what', text: '여기 보이는 눈금은 제한시간으로,\n문제마다 {y}' + sec + '초{/y}예요.\n눈금이 꺼지기 전에 길을 골라 주세요!' },
-      guide: { pose: 'hint', text: '' }   // 선택지·키보드·클릭(터치)·슬라이드 안내는 한 장의 조작법 팝업(showGuide)에 3칸으로 모아 보여 줌
-    };
-    var order = ['radio', 'slots', 'timer', 'guide'];
-    return order.map(function (k) { return { pose: T[k].pose, parts: [{ text: T[k].text }], focus: k }; });
+    return [{ pose: 'hint', parts: [{ text: '' }], focus: 'guide' }];   // 위 무전창·카드 보관함·눈금 설명은 없애고 조작법 팝업 하나만 (눈금 안내는 시작 뒤 showTimerHint)
+  }
+
+  // 시작 버튼을 누른 뒤: 눈금(토리 둘레)에 동그라미를 치고, 꺾인 선 끝의 네모 칸에 제한 시간을 알려 줌. 문제를 고르면 사라짐
+  function showTimerHint() {
+    S.hint = true;
+    layoutTimerHint();
+  }
+  function clearTimerHint() {
+    S.hint = false;
+    if (S.hintEl && S.hintEl.parentNode) S.hintEl.parentNode.removeChild(S.hintEl);
+    S.hintEl = null;
+  }
+  function layoutTimerHint() {
+    if (!S || !S.hint) return;
+    var e = S.els;
+    if (S.hintEl && S.hintEl.parentNode) S.hintEl.parentNode.removeChild(S.hintEl);
+    var W = e.root.clientWidth, H = e.root.clientHeight;
+    var tb = relRect(e.toriBox), bb = relRect(e.bubble);
+    var cx = tb.x + tb.w / 2, cy = tb.y + tb.h / 2, R = tb.w * 0.7;   // 동그라미: 눈금 둘레에 여유를 둠
+    var wrap = el('div', 'th-thint');
+    var ring = el('div', 'th-focus th-focus-round');
+    ring.style.left = (cx - R) + 'px'; ring.style.top = (cy - R) + 'px';
+    ring.style.width = (R * 2) + 'px'; ring.style.height = (R * 2) + 'px';
+    wrap.appendChild(ring);
+    // 선: 동그라미에서 오른쪽 아래로 비스듬히 나와 무전창 아래에서 꺾여 가로로 이어짐 → 끝에 네모 칸
+    var k = Math.SQRT1_2, x0 = cx + R * k, y0 = cy + R * k;
+    var y1 = Math.max(y0 + 20, bb.y + bb.h + H * 0.05), x1 = x0 + (y1 - y0);
+    var x2 = x1 + Math.max(24, W * 0.035);
+    wrap.appendChild(svg('0 0 ' + W + ' ' + H, 'th-thint-line', [['polyline', { points: x0 + ',' + y0 + ' ' + x1 + ',' + y1 + ' ' + x2 + ',' + y1, fill: 'none' }]]));
+    var box = el('div', 'th-thint-box');
+    fillArrows(box, '제한시간은 {y}' + Math.round(CONFIG.QUESTION_TIME_MS / 1000) + '초{/y}예요!');
+    box.style.left = x2 + 'px'; box.style.top = y1 + 'px';
+    box.style.maxWidth = Math.max(120, W - x2 - 12) + 'px';   // 좁은 화면에서는 화면 밖으로 나가지 않고 줄바꿈
+    wrap.appendChild(box);
+    e.demo.appendChild(wrap);
+    S.hintEl = wrap;
   }
 
   function relRect(node) {   // 게임 화면(root) 안에서의 위치·크기 (화면이 확대·축소돼 있어도 맞게)
@@ -967,6 +941,7 @@
   function clearDemo(keepOpts) {
     var e = S.els;
     S.demoFocus = null; S.demoTimer = false;
+    S.hint = false; S.hintEl = null;   // (데모 층을 비우면 시간 안내도 함께 지워짐)
     var dm = S.dimEl;
     S.dimEl = null;
     e.demo.textContent = '';
@@ -1027,6 +1002,7 @@
   function choose(side) {   // side: 'left' | 'right' | null(시간 초과)
     if (!S || S.phase !== 'question') return;
     S.phase = 'resolve';
+    clearTimerHint();
     var correct = !!side && S.sides[side];
     S.els.timer.classList.remove('th-on', 'th-warn', 'th-hurry');
     resetTimerStage();

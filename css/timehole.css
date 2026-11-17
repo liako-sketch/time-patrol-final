@@ -516,6 +516,14 @@
 .th-tutbox .th-banner-note { color: #fff; font-family: var(--th-font-tori); font-size: max(17px, 3.9cqmin); line-height: 1.5; white-space: pre-wrap; }
 .th-tutbox .th-banner-body::after { background: linear-gradient(180deg, transparent, rgba(190, 240, 255, .5), transparent); }
 
+/* 시작 뒤 눈금 안내: 동그라미(.th-focus) + 꺾인 선 + 끝의 네모 칸. 눌러도 막지 않음 */
+.th-thint { position: absolute; inset: 0; pointer-events: none; animation: th-thint-in .35s ease-out both; }
+.th-thint-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.th-thint-line polyline { stroke: #8ff0fa; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 5px rgba(95, 212, 224, .8)); }
+.th-thint-box { position: absolute; transform: translateY(-50%); box-sizing: border-box; padding: .5em .9em; border: 2px solid #5fd4e0; border-radius: max(8px, 1.4cqmin);
+  background: rgba(8, 20, 38, .92); color: #fff; font-family: var(--th-font-tori); font-size: max(15px, 3cqmin); line-height: 1.4; word-break: keep-all; box-shadow: 0 0 14px rgba(95, 212, 224, .5); }
+@keyframes th-thint-in { from { opacity: 0; } to { opacity: 1; } }
+
 /* ---------- 조작법 안내 팝업: 화면 거의 전체를 덮는 글리치 창 (같은 등장·퇴장 연출), 안은 3칸 ---------- */
 .th-guidebox { width: calc(100cqw - 2 * max(18px, 3cqw) - max(28px, 4cqw)); min-height: min(70cqh, 44cqw); display: flex; flex-direction: column; justify-content: center; }   /* 가로로 넓고 위아래는 낮게 (폭이 좁은 세로 화면은 내용만큼) */
 .th-guidebox .th-banner-body { padding: max(30px, 5cqmin) max(14px, 2.6cqmin) max(20px, 3.4cqmin); }
