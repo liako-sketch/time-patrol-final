@@ -295,7 +295,7 @@
   .th-opt-text { font-size: max(14px, 3.6cqmin); }
   .th-radio { --av: max(54px, 16cqw); }
   .th-radio-body { padding-right: max(16px, 3cqmin); }   /* 좁은 화면: 글자 칸을 넓게 */
-  .th-bubble-text { font-size: max(15px, 4cqmin); }   /* 세로 화면 무전 대사: 글자 크기는 고정이라 조금 작게 */
+  .th-bubble-text { font-size: max(16px, 4.4cqmin); }   /* 세로 화면 무전 대사: 글자 크기는 고정이라 조금 작게 */
 }
 
 /* ---------- 종료: 빛으로 나가기 ---------- */
