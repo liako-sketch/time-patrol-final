@@ -1,0 +1,10 @@
+# 인증·비밀값 파일은 올리지 않음
+.clasp.json
+.clasprc.json
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+*secret*
+node_modules/
